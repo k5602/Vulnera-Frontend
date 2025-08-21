@@ -372,25 +372,25 @@ document.addEventListener("DOMContentLoaded", function () {
       aria-modal="true"
       aria-labelledby="result-title"
     >
-      <div class="modal-box w-11/12 max-w-5xl">
-        <div class="flex justify-between items-center mb-4">
+      <div class="modal-box w-11/12 max-w-7xl h-5/6 max-h-[90vh] flex flex-col">
+        <div class="flex justify-between items-center mb-4 flex-shrink-0">
           <h3 id="result-title" class="font-bold text-lg">Analysis Result</h3>
           <div class="flex items-center gap-2">
             <button
               id="download-report-btn"
               class="btn btn-sm btn-outline btn-primary"
               disabled
-              aria-label="Download analysis report"
+              aria-label="Download analysis report and fixed versions"
             >
               <i class="fas fa-download mr-2" aria-hidden="true"></i>
-              Download
+              Download Zip
             </button>
             <button class="btn btn-sm btn-circle btn-ghost" onclick="closeResultModal()" aria-label="Close analysis results">
               <i class="fas fa-times" aria-hidden="true"></i>
             </button>
           </div>
         </div>
-        <div id="result-content" class="max-h-[60vh] overflow-y-auto p-1">
+        <div id="result-content" class="flex-1 overflow-y-auto p-1">
           <!-- Results will be rendered here -->
         </div>
       </div>
