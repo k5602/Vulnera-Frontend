@@ -2,7 +2,20 @@ import { CONFIG } from '../config.js';
 import { showError, showInfo, showSuccess } from '../ui/notifications.js';
 import { presentAnalysisPayload } from './analysis.js';
 
-const GH_URL_REGEX = /^(https?:\/\/)?(www\.)?github\.com\/(?!enterprise)([A-Za-z0-9_.-]+)\/([A-Za-z0-9_.-]+)(?:\/(tree|commit)\/[^\s\/]+)?(?:\.git)?(\/)?$/i;
+const GH_URL_REGEX = /^(https?:\/\/)?(www\.)?github\.com\/(?!enterprise)([A-Za-z0-9_.-]+)\/([A-Za-z0-9_.-]+)(?:\/(tree|commit)\/([^\s\/]+))?(?:\.git)?\/?$/i;
+
+function parseGitHubUrl(repoUrl) {
+  try {
+    const m = repoUrl.match(GH_URL_REGEX);
+    if (!m) return {};
+    const owner = m[3];
+    const repo = m[4];
+    const ref = m[6] || undefined;
+    return { owner, repo, ref };
+  } catch {
+    return {};
+  }
+}
 
 export function initGitHubScanning() {
   const scanBtn = document.getElementById('github-scan-btn');
@@ -46,14 +59,19 @@ export function initGitHubScanning() {
         });
       }
 
+      const parsed = parseGitHubUrl(url);
+      const hasParsed = !!(parsed.owner && parsed.repo);
+
       const body = {
-        repository_url: url,
+        repository_url: hasParsed ? null : url,
         include_lockfiles: includeLockfiles,
         return_packages: false,
         max_files: maxFiles,
         include_paths: includePathsRaw ? includePathsRaw.split(',').map(s => s.trim()).filter(Boolean) : null,
         exclude_paths: excludePathsRaw ? excludePathsRaw.split(',').map(s => s.trim()).filter(Boolean) : null,
-        ref: ref || null
+        ref: ref || parsed.ref || null,
+        owner: parsed.owner || null,
+        repo: parsed.repo || null
       };
 
       // Remember token in session if requested
@@ -64,6 +82,13 @@ export function initGitHubScanning() {
           else sessionStorage.removeItem('vulnera.gh.token');
         }
       } catch {}
+
+      if (CONFIG.ENABLE_DEBUG === 'true') {
+        console.group('[RepoScan] Request');
+        console.log('Endpoint:', `${CONFIG.API_ENDPOINT}/analyze/repository`);
+        console.log('Body:', body);
+        console.groupEnd();
+      }
 
       const res = await fetch(`${CONFIG.API_ENDPOINT}/analyze/repository`, {
         method: 'POST',
@@ -80,11 +105,23 @@ export function initGitHubScanning() {
       });
 
       clearTimeout(timeoutId);
-      const payload = await res.json().catch(() => ({}));
+  const payload = await res.json().catch(() => ({}));
+
+      if (CONFIG.ENABLE_DEBUG === 'true') {
+        console.group('[RepoScan] Response');
+        console.log('Status:', res.status, res.statusText);
+        console.log('Payload:', payload);
+        console.groupEnd();
+      }
 
       if (!res.ok) {
-        const msg = payload?.message || payload?.error || `Repository scan failed (${res.status})`;
-        throw new Error(msg);
+        const code = payload?.code || 'ERROR';
+        const reqId = payload?.request_id ? ` • Request ID: ${payload.request_id}` : '';
+        let msg = payload?.message || payload?.error || `Repository scan failed (${res.status})`;
+        if (String(msg).toLowerCase().includes('service configuration')) {
+          msg += ' — Tip: Provide a GitHub token in Advanced options or verify backend GitHub integration.';
+        }
+        throw new Error(`[${code}] ${msg}${reqId}`);
       }
 
       // Show results using the shared presenter
