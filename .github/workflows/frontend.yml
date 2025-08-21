@@ -39,7 +39,7 @@ jobs:
             az storage blob upload-batch \
               --account-name vulnerastorageaccount \
               --auth-mode key \
-              -s ./frontend/dist \
+              -s ./dist \
               -d '$web' \
               --overwrite true
         env:
