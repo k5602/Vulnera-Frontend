@@ -385,20 +385,16 @@ document.addEventListener("DOMContentLoaded", function () {
               <i class="fas fa-download mr-2" aria-hidden="true"></i>
               Download
             </button>
-            <form method="dialog">
-              <button class="btn btn-sm btn-circle btn-ghost" aria-label="Close analysis results">
-                <i class="fas fa-times" aria-hidden="true"></i>
-              </button>
-            </form>
+            <button class="btn btn-sm btn-circle btn-ghost" onclick="closeResultModal()" aria-label="Close analysis results">
+              <i class="fas fa-times" aria-hidden="true"></i>
+            </button>
           </div>
         </div>
         <div id="result-content" class="max-h-[60vh] overflow-y-auto p-1">
           <!-- Results will be rendered here -->
         </div>
       </div>
-      <form method="dialog" class="modal-backdrop">
-        <button>close</button>
-      </form>
+      <div class="modal-backdrop" onclick="closeResultModal()"></div>
     </div>
 
     <!-- Theme Toggle -->
@@ -419,6 +415,35 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Modal focus management
   onModalToggle('loading-modal', { onOpen: (modal)=> { const h = modal.querySelector('#loading-title'); h && h.focus(); }, onClose: ()=> {} });
+  // Modal handlers and global functions
+  window.closeResultModal = function() {
+    const resultModal = document.getElementById("result-modal");
+    if (resultModal) {
+      resultModal.checked = false;
+    }
+  };
+
+  // Add keyboard support for closing modals
+  document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+      // Close package modal if open (higher priority)
+      const packageModal = document.getElementById("package-vuln-modal-container");
+      if (packageModal) {
+        window.closePackageModal && window.closePackageModal();
+        event.preventDefault();
+        return;
+      }
+      
+      // Close result modal if open
+      const resultModal = document.getElementById("result-modal");
+      if (resultModal && resultModal.checked) {
+        closeResultModal();
+        event.preventDefault();
+        return;
+      }
+    }
+  });
+
   onModalToggle('result-modal', { onOpen: (modal)=> { const h = modal.querySelector('#result-title'); h && h.focus(); }, onClose: ()=> {} });
 });
 

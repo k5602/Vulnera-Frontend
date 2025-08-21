@@ -69,41 +69,48 @@ function generateHTMLReport(data, filename = "unknown") {
 
   const packageCards = packages.map(pkg => {
     const severitySafe = safeSeverity(pkg.maxSeverity);
-    const vulnItems = pkg.vulnerabilities.map(v => `
-      <div class="vulnerability-item" style="border-left: 3px solid ${getSeverityColor(safeSeverity(v.severity))}; background: ${getSeverityBg(safeSeverity(v.severity))};">
-        <div class="vulnerability-item-header">
-          <span class="severity-badge" style="background: ${getSeverityColor(safeSeverity(v.severity))};">${escapeHtml(safeSeverity(v.severity))}</span>
-          <h4 class="vulnerability-item-title">${escapeHtml(v.id)}</h4>
-        </div>
-        <p class="vulnerability-item-summary">${escapeHtml(v.summary || "")}</p>
-        ${v.description ? `<p class="vulnerability-item-description">${escapeHtml(v.description)}</p>` : ""}
-        ${Array.isArray(v.references) && v.references.length ? `
-          <div class="references">
-            <h5>References:</h5>
-            <ul>
-              ${v.references.map(r => `<li><a href="${encodeURI(r)}" target="_blank" rel="noreferrer noopener">${escapeHtml(r)}</a></li>`).join("")}
-            </ul>
+    
+    // Create collapsible vulnerability sections for better UX
+    const vulnItems = pkg.vulnerabilities.map((v, index) => `
+      <details class="vulnerability-item" ${index === 0 ? 'open' : ''}>
+        <summary class="vulnerability-summary" style="border-left: 3px solid ${getSeverityColor(safeSeverity(v.severity))}; background: ${getSeverityBg(safeSeverity(v.severity))};">
+          <div class="vulnerability-item-header">
+            <span class="severity-badge" style="background: ${getSeverityColor(safeSeverity(v.severity))}; color: white;">${escapeHtml(safeSeverity(v.severity).toUpperCase())}</span>
+            <h4 class="vulnerability-item-title">${escapeHtml(v.id)}</h4>
           </div>
-        ` : ""}
-      </div>
+        </summary>
+        <div class="vulnerability-content">
+          <p class="vulnerability-item-summary"><strong>Summary:</strong> ${escapeHtml(v.summary || "No summary available")}</p>
+          ${v.description ? `<p class="vulnerability-item-description"><strong>Description:</strong> ${escapeHtml(v.description)}</p>` : ""}
+          ${Array.isArray(v.references) && v.references.length ? `
+            <div class="references">
+              <h5>References:</h5>
+              <ul>
+                ${v.references.slice(0, 5).map(r => `<li><a href="${encodeURI(r)}" target="_blank" rel="noreferrer noopener">${escapeHtml(r)}</a></li>`).join("")}
+                ${v.references.length > 5 ? `<li><em>... and ${v.references.length - 5} more references</em></li>` : ''}
+              </ul>
+            </div>
+          ` : ""}
+        </div>
+      </details>
     `).join("");
 
     return `
-    <div class="package-card" style="border-left: 4px solid ${getSeverityColor(severitySafe)}; background: white;">
-      <div class="package-header">
+    <details class="package-card" style="border-left: 4px solid ${getSeverityColor(severitySafe)};">
+      <summary class="package-header">
         <div class="package-info">
           <h3 class="package-name">${escapeHtml(pkg.name)}</h3>
-          <p class="package-version">Version: ${escapeHtml(pkg.version)} (${escapeHtml(pkg.ecosystem)})</p>
+          <p class="package-version">Version: ${escapeHtml(pkg.version)} • Ecosystem: ${escapeHtml(pkg.ecosystem)}</p>
         </div>
         <div class="package-meta">
-          <span class="severity-badge" style="background: ${getSeverityColor(severitySafe)};">${escapeHtml(severitySafe)}</span>
+          <span class="severity-badge" style="background: ${getSeverityColor(severitySafe)}; color: white;">${escapeHtml(severitySafe).toUpperCase()}</span>
           <span class="vuln-count">${pkg.vulnerabilities.length} vulnerability${pkg.vulnerabilities.length !== 1 ? 's' : ''}</span>
         </div>
-      </div>
+      </summary>
       <div class="package-vulnerabilities">
         ${vulnItems}
       </div>
-    </div>
+    </details>
   `;}).join("");
 
   return `<!DOCTYPE html>
@@ -186,6 +193,45 @@ function generateHTMLReport(data, filename = "unknown") {
             font-size: 0.875rem;
             text-transform: uppercase;
             letter-spacing: 0.05em;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-desc {
+            color: #9ca3af;
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+        }
+
+        .pagination-info {
+            margin-bottom: 2rem;
+        }
+
+        .pagination-card {
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            padding: 2rem;
+            border-radius: 12px;
+            border: 1px solid #d1d5db;
+        }
+
+        .pagination-card h3 {
+            color: #374151;
+            margin-bottom: 1rem;
+            font-size: 1.25rem;
+        }
+
+        .pagination-card p {
+            color: #4b5563;
+            margin-bottom: 0.75rem;
+            line-height: 1.6;
+        }
+
+        .pagination-note {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            color: #92400e;
         }
 
         .severity-summary {
@@ -199,18 +245,44 @@ function generateHTMLReport(data, filename = "unknown") {
         .severity-bars {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-top: 1rem;
+            gap: 1.5rem;
+            margin-top: 1.5rem;
         }
 
         .severity-bar {
-            text-align: center;
+            text-align: left;
+        }
+
+        .severity-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .severity-icon {
+            font-size: 1.1rem;
+        }
+
+        .severity-bar-container {
+            background: #f3f4f6;
+            height: 12px;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
         }
 
         .severity-bar-fill {
-            height: 8px;
-            border-radius: 4px;
-            margin: 0.5rem 0;
+            height: 100%;
+            border-radius: 6px;
+            transition: width 0.3s ease;
+        }
+
+        .severity-desc {
+            font-size: 0.8rem;
+            color: #6b7280;
+            font-style: italic;
         }
 
         .vulnerabilities-section {
@@ -234,11 +306,13 @@ function generateHTMLReport(data, filename = "unknown") {
         }
 
         .package-card {
+            background: white;
             border-radius: 12px;
-            padding: 2rem;
+            padding: 2rem 2rem 2rem 3rem;
             margin-bottom: 2rem;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             border: 1px solid #e5e7eb;
+            position: relative;
         }
 
         .package-header {
@@ -247,7 +321,34 @@ function generateHTMLReport(data, filename = "unknown") {
             justify-content: space-between;
             margin-bottom: 1.5rem;
             padding-bottom: 1rem;
-            border-bottom: 1px solid #e5e7eb;
+            border-bottom: 2px solid #f3f4f6;
+            cursor: pointer;
+            list-style: none;
+            position: relative;
+        }
+
+        .package-header:hover {
+            background-color: #f9fafb;
+            border-radius: 8px;
+            margin: -0.5rem;
+            padding: 0.5rem 0.5rem 1.5rem 0.5rem;
+        }
+
+        .package-header::-webkit-details-marker {
+            display: none;
+        }
+
+        .package-header::before {
+            content: "▶";
+            position: absolute;
+            left: -1.5rem;
+            font-size: 0.8rem;
+            color: #6b7280;
+            transition: transform 0.2s ease;
+        }
+
+        .package-card[open] .package-header::before {
+            transform: rotate(90deg);
         }
 
         .package-info h3 {
@@ -260,12 +361,14 @@ function generateHTMLReport(data, filename = "unknown") {
         .package-version {
             color: #6b7280;
             font-size: 0.9rem;
+            font-weight: 500;
         }
 
         .package-meta {
             display: flex;
             align-items: center;
             gap: 1rem;
+            flex-wrap: wrap;
         }
 
         .vuln-count {
@@ -273,45 +376,74 @@ function generateHTMLReport(data, filename = "unknown") {
             padding: 0.5rem 1rem;
             border-radius: 6px;
             font-size: 0.875rem;
-            font-weight: 500;
+            font-weight: 600;
             color: #374151;
         }
 
         .package-vulnerabilities {
             display: flex;
             flex-direction: column;
-            gap: 1rem;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+            transition: opacity 0.2s ease;
         }
 
         .vulnerability-item {
-            border-radius: 8px;
-            padding: 1.5rem;
             border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .vulnerability-summary {
+            padding: 1rem;
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.2s ease;
+        }
+
+        .vulnerability-summary:hover {
+            background-color: rgba(0, 0, 0, 0.02);
         }
 
         .vulnerability-item-header {
             display: flex;
             align-items: center;
             gap: 1rem;
-            margin-bottom: 0.75rem;
         }
 
         .vulnerability-item-title {
             font-size: 1.1rem;
             font-weight: 600;
             color: #1f2937;
+            margin: 0;
+        }
+
+        .vulnerability-content {
+            padding: 1rem;
+            background: #fafbfc;
+            border-top: 1px solid #e5e7eb;
         }
 
         .vulnerability-item-summary {
-            font-size: 1rem;
-            margin-bottom: 0.75rem;
+            margin-bottom: 1rem;
             color: #4b5563;
+            line-height: 1.6;
         }
 
         .vulnerability-item-description {
             margin-bottom: 1rem;
             color: #6b7280;
             font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .severity-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
         .vulnerability-header {
@@ -473,41 +605,85 @@ function generateHTMLReport(data, filename = "unknown") {
             <div class="stat-card">
                 <div class="stat-value" style="color: #3b82f6;">${meta.total_packages ?? "-"}</div>
                 <div class="stat-label">Total Packages</div>
+                <div class="stat-desc">Analyzed in scan</div>
             </div>
             <div class="stat-card">
                 <div class="stat-value" style="color: #ef4444;">${packages.length}</div>
                 <div class="stat-label">Vulnerable Packages</div>
+                <div class="stat-desc">Requiring attention</div>
             </div>
             <div class="stat-card">
                 <div class="stat-value" style="color: #f59e0b;">${meta.total_vulnerabilities ?? vulns.length}</div>
                 <div class="stat-label">Total Vulnerabilities</div>
+                <div class="stat-desc">Security issues found</div>
             </div>
             ${pagination.total_pages ? `
             <div class="stat-card">
-                <div class="stat-value" style="color: #8b5cf6;">${pagination.page || 1} / ${pagination.total_pages}</div>
-                <div class="stat-label">Report Page</div>
+                <div class="stat-value" style="color: #8b5cf6;">Page ${pagination.page || 1} of ${pagination.total_pages}</div>
+                <div class="stat-label">Report Pagination</div>
+                <div class="stat-desc">${pagination.per_page || 50} items per page</div>
             </div>
             ` : ''}
         </div>
 
+        ${pagination.total_pages > 1 ? `
+        <div class="pagination-info">
+            <div class="pagination-card">
+                <h3>📄 Pagination Information</h3>
+                <p>This report shows <strong>page ${pagination.page || 1} of ${pagination.total_pages}</strong> pages.</p>
+                <p>Displaying <strong>${packages.length} vulnerable packages</strong> out of <strong>${meta.total_packages || 'unknown'} total packages</strong>.</p>
+                <p>Each page contains up to <strong>${pagination.per_page || 50} packages</strong> for optimal loading performance.</p>
+                ${pagination.page < pagination.total_pages ? `
+                <div class="pagination-note">
+                    <strong>💡 Note:</strong> To see additional vulnerable packages, generate reports for pages ${(pagination.page || 1) + 1}-${pagination.total_pages}.
+                </div>
+                ` : ''}
+            </div>
+        </div>
+        ` : ''}
+
         <div class="severity-summary">
-            <h2 class="section-title">Severity Breakdown</h2>
+            <h2 class="section-title">🛡️ Security Risk Breakdown</h2>
             <div class="severity-bars">
                 <div class="severity-bar">
-                    <div style="color: #dc2626; font-weight: 600;">Critical: ${sev.critical}</div>
-                    <div class="severity-bar-fill" style="background: #dc2626; width: ${Math.max(10, (sev.critical / Math.max(1, meta.total_vulnerabilities || vulns.length)) * 100)}%;"></div>
+                    <div class="severity-label" style="color: #dc2626;">
+                        <span class="severity-icon">🔴</span>
+                        <strong>Critical: ${sev.critical}</strong>
+                    </div>
+                    <div class="severity-bar-container">
+                        <div class="severity-bar-fill" style="background: #dc2626; width: ${Math.max(5, (sev.critical / Math.max(1, meta.total_vulnerabilities || vulns.length)) * 100)}%;"></div>
+                    </div>
+                    <div class="severity-desc">Immediate action required</div>
                 </div>
                 <div class="severity-bar">
-                    <div style="color: #ea580c; font-weight: 600;">High: ${sev.high}</div>
-                    <div class="severity-bar-fill" style="background: #ea580c; width: ${Math.max(10, (sev.high / Math.max(1, meta.total_vulnerabilities || vulns.length)) * 100)}%;"></div>
+                    <div class="severity-label" style="color: #ea580c;">
+                        <span class="severity-icon">🟠</span>
+                        <strong>High: ${sev.high}</strong>
+                    </div>
+                    <div class="severity-bar-container">
+                        <div class="severity-bar-fill" style="background: #ea580c; width: ${Math.max(5, (sev.high / Math.max(1, meta.total_vulnerabilities || vulns.length)) * 100)}%;"></div>
+                    </div>
+                    <div class="severity-desc">Action needed soon</div>
                 </div>
                 <div class="severity-bar">
-                    <div style="color: #d97706; font-weight: 600;">Medium: ${sev.medium}</div>
-                    <div class="severity-bar-fill" style="background: #d97706; width: ${Math.max(10, (sev.medium / Math.max(1, meta.total_vulnerabilities || vulns.length)) * 100)}%;"></div>
+                    <div class="severity-label" style="color: #d97706;">
+                        <span class="severity-icon">🟡</span>
+                        <strong>Medium: ${sev.medium}</strong>
+                    </div>
+                    <div class="severity-bar-container">
+                        <div class="severity-bar-fill" style="background: #d97706; width: ${Math.max(5, (sev.medium / Math.max(1, meta.total_vulnerabilities || vulns.length)) * 100)}%;"></div>
+                    </div>
+                    <div class="severity-desc">Plan for resolution</div>
                 </div>
                 <div class="severity-bar">
-                    <div style="color: #6b7280; font-weight: 600;">Low: ${sev.low}</div>
-                    <div class="severity-bar-fill" style="background: #6b7280; width: ${Math.max(10, (sev.low / Math.max(1, meta.total_vulnerabilities || vulns.length)) * 100)}%;"></div>
+                    <div class="severity-label" style="color: #6b7280;">
+                        <span class="severity-icon">⚪</span>
+                        <strong>Low: ${sev.low}</strong>
+                    </div>
+                    <div class="severity-bar-container">
+                        <div class="severity-bar-fill" style="background: #6b7280; width: ${Math.max(5, (sev.low / Math.max(1, meta.total_vulnerabilities || vulns.length)) * 100)}%;"></div>
+                    </div>
+                    <div class="severity-desc">Monitor and review</div>
                 </div>
             </div>
         </div>
