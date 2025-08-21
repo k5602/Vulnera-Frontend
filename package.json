@@ -14,7 +14,6 @@
     "preview": "vite preview",
     "preview:staging": "vite preview --mode staging",
     "preview:production": "vite preview --mode production",
-    "config:show": "./switch-api.sh status",
     "env:init": "cp .env.example .env && echo 'Created .env from .env.example'"
   },
   "devDependencies": {

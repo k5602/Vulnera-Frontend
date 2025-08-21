@@ -1,48 +1,64 @@
 import "./style.css";
-import { CONFIG } from './config.js';
-import { initThemeToggle } from './ui/theme.js';
-import { initDragAndDrop } from './features/dragDrop.js';
-import { initSampleFile } from './features/sample-file.js';
-import { initGitHubScanning } from './features/github-scan.js';
-import { initNotyf, showVsCodeExtensionPreview } from './ui/notifications.js';
-import { onModalToggle } from './ui/focus.js';
+import { CONFIG } from "./config.js";
+import { initThemeToggle } from "./ui/theme.js";
+import { initDragAndDrop } from "./features/dragDrop.js";
+import { initSampleFile } from "./features/sample-file.js";
+import { initGitHubScanning } from "./features/github-scan.js";
+import { initNotyf, showVsCodeExtensionPreview } from "./ui/notifications.js";
+import { onModalToggle } from "./ui/focus.js";
 
 // Enhanced logging for debugging
-if (CONFIG.ENABLE_DEBUG === 'true' || import.meta.env?.DEV) {
-  console.group("🔧 Vulnera Configuration");
-  console.log("Environment:", CONFIG.ENVIRONMENT);
-  console.log("API Base URL:", CONFIG.API_BASE_URL);
-  console.log("API Endpoint:", CONFIG.API_ENDPOINT);
-  console.log("App Name:", CONFIG.APP_NAME);
-  console.log("App Version:", CONFIG.APP_VERSION);
-  console.log("API Timeout:", CONFIG.API_TIMEOUT + "ms");
-  console.log("Debug Mode:", CONFIG.ENABLE_DEBUG);
-  
-  // Show environment variable sources
-  console.group("Environment Variable Sources:");
-  console.log("Vite Env:", import.meta.env || 'Not available');
-  console.log("Window Vars:", typeof window !== 'undefined' ? {
-    VULNERA_API_BASE_URL: window.VULNERA_API_BASE_URL,
-    VULNERA_API_VERSION: window.VULNERA_API_VERSION,
-    VULNERA_APP_NAME: window.VULNERA_APP_NAME
-  } : 'Not available');
-  console.groupEnd();
-  console.groupEnd();
+if (CONFIG.ENABLE_DEBUG === "true" || import.meta.env?.DEV) {
+    console.group("🔧 Vulnera Configuration");
+    console.log("Environment:", CONFIG.ENVIRONMENT);
+    console.log("API Base URL:", CONFIG.API_BASE_URL);
+    console.log("API Endpoint:", CONFIG.API_ENDPOINT);
+    console.log("App Name:", CONFIG.APP_NAME);
+    console.log("App Version:", CONFIG.APP_VERSION);
+    console.log("API Timeout:", CONFIG.API_TIMEOUT + "ms");
+    console.log("Debug Mode:", CONFIG.ENABLE_DEBUG);
 
-  // Test API connectivity in development
-  if (CONFIG.ENVIRONMENT === 'development') {
-    const controller = new AbortController();
-    const timeout = setTimeout(()=> controller.abort(), 2500);
-    fetch(`${CONFIG.API_BASE_URL}/health`, { signal: controller.signal })
-      .then(r => r.ok ? console.log('✅ Backend health check passed') : console.warn('⚠️ Backend health check failed'))
-      .catch(err => console.warn('⚠️ Backend not reachable at', CONFIG.API_BASE_URL, '-', err?.name === 'AbortError' ? 'timeout' : err.message))
-      .finally(()=> clearTimeout(timeout));
-  }
+    // Show environment variable sources
+    console.group("Environment Variable Sources:");
+    console.log("Vite Env:", import.meta.env || "Not available");
+    console.log(
+        "Window Vars:",
+        typeof window !== "undefined"
+            ? {
+                  VULNERA_API_BASE_URL: window.VULNERA_API_BASE_URL,
+                  VULNERA_API_VERSION: window.VULNERA_API_VERSION,
+                  VULNERA_APP_NAME: window.VULNERA_APP_NAME,
+              }
+            : "Not available",
+    );
+    console.groupEnd();
+    console.groupEnd();
+
+    // Test API connectivity in development
+    if (CONFIG.ENVIRONMENT === "development") {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 2500);
+        fetch(`${CONFIG.API_BASE_URL}/health`, { signal: controller.signal })
+            .then((r) =>
+                r.ok
+                    ? console.log("✅ Backend health check passed")
+                    : console.warn("⚠️ Backend health check failed"),
+            )
+            .catch((err) =>
+                console.warn(
+                    "⚠️ Backend not reachable at",
+                    CONFIG.API_BASE_URL,
+                    "-",
+                    err?.name === "AbortError" ? "timeout" : err.message,
+                ),
+            )
+            .finally(() => clearTimeout(timeout));
+    }
 }
 
 // Initialize the app
 document.addEventListener("DOMContentLoaded", function () {
-  document.querySelector("#app").innerHTML = `
+    document.querySelector("#app").innerHTML = `
     <!-- Navigation -->
     <div class="navbar bg-base-100 shadow-lg px-2 sm:px-4">
       <div class="flex-1">
@@ -67,7 +83,7 @@ document.addEventListener("DOMContentLoaded", function () {
           <div class="flex justify-center mb-2">
             <img src="/images/logo.png" alt="Vulnera Logo" class="h-24 sm:h-38 md:h-47 lg:h-58 xl:h-70 w-auto">
           </div>
-      
+
           <h1>Vulnera</h1>
           <p class="text-base sm:text-lg md:text-xl opacity-70 mb-3 sm:mb-4 px-4">
             Comprehensive vulnerability analysis for your dependencies
@@ -387,13 +403,10 @@ document.addEventListener("DOMContentLoaded", function () {
       </div>
       <div>
         <div class="grid grid-flow-col gap-3 sm:gap-4">
-          <a href="https://github.com" class="text-xl sm:text-2xl hover:text-primary transition-colors">
+          <a href="https://github.com/k5602/Vulnera" class="text-xl sm:text-2xl hover:text-primary transition-colors">
             <i class="fab fa-github"></i>
           </a>
-          <a href="https://twitter.com" class="text-xl sm:text-2xl hover:text-primary transition-colors">
-            <i class="fab fa-twitter"></i>
-          </a>
-          <a href="https://linkedin.com" class="text-xl sm:text-2xl hover:text-primary transition-colors">
+          <a href="https://www.linkedin.com/in/k5602/" class="text-xl sm:text-2xl hover:text-primary transition-colors">
             <i class="fab fa-linkedin"></i>
           </a>
         </div>
@@ -467,67 +480,88 @@ document.addEventListener("DOMContentLoaded", function () {
     </label>
   `;
 
-  initThemeToggle();
-  initDragAndDrop();
-  initSampleFile();
-  setTimeout(() => { if (typeof Notyf !== 'undefined') { initGitHubScanning(); } }, 100);
+    initThemeToggle();
+    initDragAndDrop();
+    initSampleFile();
+    setTimeout(() => {
+        if (typeof Notyf !== "undefined") {
+            initGitHubScanning();
+        }
+    }, 100);
 
-  // Preview button for upcoming VS Code Extension
-  const vsPrev = document.getElementById('vscode-ext-preview');
-  if (vsPrev) { vsPrev.addEventListener('click', () => showVsCodeExtensionPreview()); }
+    // Preview button for upcoming VS Code Extension
+    const vsPrev = document.getElementById("vscode-ext-preview");
+    if (vsPrev) {
+        vsPrev.addEventListener("click", () => showVsCodeExtensionPreview());
+    }
 
-  // Hero CTA scrolls to GitHub input
-  const ghCta = document.getElementById('github-scan-cta');
-  if (ghCta) {
-    ghCta.addEventListener('click', () => {
-      const input = document.getElementById('github-url-input');
-      if (input) { input.scrollIntoView({ behavior: 'smooth', block: 'center' }); setTimeout(()=> input.focus(), 400); }
+    // Hero CTA scrolls to GitHub input
+    const ghCta = document.getElementById("github-scan-cta");
+    if (ghCta) {
+        ghCta.addEventListener("click", () => {
+            const input = document.getElementById("github-url-input");
+            if (input) {
+                input.scrollIntoView({ behavior: "smooth", block: "center" });
+                setTimeout(() => input.focus(), 400);
+            }
+        });
+    }
+
+    // Prefill GitHub token from session storage if available
+    const tokenInput = document.getElementById("gh-token");
+    const rememberCb = document.getElementById("gh-remember-token");
+    if (tokenInput && rememberCb && typeof sessionStorage !== "undefined") {
+        const storedToken = sessionStorage.getItem("vulnera.gh.token");
+        if (storedToken) {
+            tokenInput.value = storedToken;
+            rememberCb.checked = true;
+        }
+    }
+
+    // Modal focus management
+    onModalToggle("loading-modal", {
+        onOpen: (modal) => {
+            const h = modal.querySelector("#loading-title");
+            h && h.focus();
+        },
+        onClose: () => {},
     });
-  }
+    // Modal handlers and global functions
+    window.closeResultModal = function () {
+        const resultModal = document.getElementById("result-modal");
+        if (resultModal) {
+            resultModal.checked = false;
+        }
+    };
 
-  // Prefill GitHub token from session storage if available
-  const tokenInput = document.getElementById('gh-token');
-  const rememberCb = document.getElementById('gh-remember-token');
-  if (tokenInput && rememberCb && typeof sessionStorage !== 'undefined') {
-    const storedToken = sessionStorage.getItem('vulnera.gh.token');
-    if (storedToken) {
-      tokenInput.value = storedToken;
-      rememberCb.checked = true;
-    }
-  }
+    // Add keyboard support for closing modals
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") {
+            // Close package modal if open (higher priority)
+            const packageModal = document.getElementById("package-vuln-modal-container");
+            if (packageModal) {
+                window.closePackageModal && window.closePackageModal();
+                event.preventDefault();
+                return;
+            }
 
-  // Modal focus management
-  onModalToggle('loading-modal', { onOpen: (modal)=> { const h = modal.querySelector('#loading-title'); h && h.focus(); }, onClose: ()=> {} });
-  // Modal handlers and global functions
-  window.closeResultModal = function() {
-    const resultModal = document.getElementById("result-modal");
-    if (resultModal) {
-      resultModal.checked = false;
-    }
-  };
+            // Close result modal if open
+            const resultModal = document.getElementById("result-modal");
+            if (resultModal && resultModal.checked) {
+                closeResultModal();
+                event.preventDefault();
+                return;
+            }
+        }
+    });
 
-  // Add keyboard support for closing modals
-  document.addEventListener('keydown', function(event) {
-    if (event.key === 'Escape') {
-      // Close package modal if open (higher priority)
-      const packageModal = document.getElementById("package-vuln-modal-container");
-      if (packageModal) {
-        window.closePackageModal && window.closePackageModal();
-        event.preventDefault();
-        return;
-      }
-      
-      // Close result modal if open
-      const resultModal = document.getElementById("result-modal");
-      if (resultModal && resultModal.checked) {
-        closeResultModal();
-        event.preventDefault();
-        return;
-      }
-    }
-  });
-
-  onModalToggle('result-modal', { onOpen: (modal)=> { const h = modal.querySelector('#result-title'); h && h.focus(); }, onClose: ()=> {} });
+    onModalToggle("result-modal", {
+        onOpen: (modal) => {
+            const h = modal.querySelector("#result-title");
+            h && h.focus();
+        },
+        onClose: () => {},
+    });
 });
 
 // Initialize Notyf for notifications
