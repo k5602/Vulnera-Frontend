@@ -5,6 +5,7 @@ import { initDragAndDrop } from './features/dragDrop.js';
 import { initSampleFile } from './features/sample-file.js';
 import { initGitHubScanning } from './features/github-scan.js';
 import { initNotyf } from './ui/notifications.js';
+import { onModalToggle } from './ui/focus.js';
 
 // Enhanced logging for debugging
 if (CONFIG.ENABLE_DEBUG === 'true' || import.meta.env?.DEV) {
@@ -414,13 +415,11 @@ document.addEventListener("DOMContentLoaded", function () {
   initThemeToggle();
   initDragAndDrop();
   initSampleFile();
+  setTimeout(() => { if (typeof Notyf !== 'undefined') { initGitHubScanning(); } }, 100);
 
-  // Initialize GitHub scanning (with delay to ensure Notyf is loaded)
-  setTimeout(() => {
-    if (typeof Notyf !== "undefined") {
-      initGitHubScanning();
-    }
-  }, 100);
+  // Modal focus management
+  onModalToggle('loading-modal', { onOpen: (modal)=> { const h = modal.querySelector('#loading-title'); h && h.focus(); }, onClose: ()=> {} });
+  onModalToggle('result-modal', { onOpen: (modal)=> { const h = modal.querySelector('#result-title'); h && h.focus(); }, onClose: ()=> {} });
 });
 
 // Initialize Notyf for notifications

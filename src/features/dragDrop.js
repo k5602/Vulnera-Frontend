@@ -6,6 +6,17 @@ export function initDragAndDrop() {
     const fileInput = document.getElementById("file-input");
     const fileInfo = document.getElementById("file-info");
     const analyzeBtn = document.getElementById("analyze-btn");
+
+    // Make dropZone focusable & add keyboard trigger
+    dropZone.setAttribute('tabindex','0');
+    dropZone.setAttribute('role','button');
+    dropZone.setAttribute('aria-label','Upload dependency file');
+    dropZone.addEventListener('keydown', (e)=> {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        fileInput.click();
+      }
+    });
   
     // Handle drag events
     ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
@@ -86,4 +97,3 @@ export function initDragAndDrop() {
       analyzeBtn.classList.toggle("btn-disabled", !supported);
     }
   }
-  

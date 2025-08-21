@@ -2,19 +2,16 @@ export function initThemeToggle() {
     const themeToggle = document.getElementById("theme-toggle");
     const htmlElement = document.documentElement;
   
+    // Apply saved theme ASAP using preference fallback
+    const stored = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const initial = stored || (prefersDark ? 'dark' : 'light');
+    htmlElement.setAttribute('data-theme', initial);
+    if (themeToggle) themeToggle.checked = initial === 'dark';
+  
     themeToggle.addEventListener("change", function () {
-      if (this.checked) {
-        htmlElement.setAttribute("data-theme", "dark");
-        localStorage.setItem("theme", "dark");
-      } else {
-        htmlElement.setAttribute("data-theme", "light");
-        localStorage.setItem("theme", "light");
-      }
+      const next = this.checked ? 'dark' : 'light';
+      htmlElement.setAttribute("data-theme", next);
+      localStorage.setItem("theme", next);
     });
-  
-    // Load saved theme
-    const savedTheme = localStorage.getItem("theme") || "light";
-    htmlElement.setAttribute("data-theme", savedTheme);
-    themeToggle.checked = savedTheme === "dark";
   }
-  
