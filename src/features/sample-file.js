@@ -1,4 +1,5 @@
 import { getEcosystem, isSupported } from '../utils/ecosystems.js';
+import { escapeHtml, MAX_FILE_BYTES } from '../utils/sanitize.js';
 
 export function initSampleFile() {
     document.getElementById("sample-btn").addEventListener("click", function () {
@@ -24,6 +25,7 @@ export function initSampleFile() {
         type: "application/json",
       });
       const file = new File([blob], "package.json", { type: "application/json" });
+      if (file.size > MAX_FILE_BYTES) { alert('Sample file exceeds limit'); return; }
   
       // Simulate file selection
       const fileInput = document.getElementById("file-input");
@@ -39,21 +41,13 @@ export function initSampleFile() {
       const supported = isSupported(file.name);
   
       fileInfo.innerHTML = `
-        <div class="alert ${
-            supported ? "alert-success" : "alert-warning"
-        } mb-4">
-          <i class="fas ${
-            supported ? "fa-check-circle" : "fa-exclamation-triangle"
-          }"></i>
+        <div class="alert ${supported ? 'alert-success' : 'alert-warning'} mb-4">
+          <i class="fas ${supported ? 'fa-check-circle' : 'fa-exclamation-triangle'}"></i>
           <div class="flex-1 min-w-0">
-            <div class="font-semibold text-sm sm:text-base truncate">${
-              file.name
-            }</div>
+            <div class="font-semibold text-sm sm:text-base truncate">${escapeHtml(file.name)}</div>
             <div class="text-xs sm:text-sm opacity-70">
-              <span class="font-medium">${ecosystem}</span>
-              <span class="hidden xs:inline"> - ${(file.size / 1024).toFixed(
-                2
-              )} KB</span>
+              <span class="font-medium">${escapeHtml(ecosystem)}</span>
+              <span class="hidden xs:inline"> - ${(file.size / 1024).toFixed(2)} KB</span>
             </div>
           </div>
         </div>
@@ -63,4 +57,3 @@ export function initSampleFile() {
       analyzeBtn.classList.toggle("btn-disabled", !supported);
     });
   }
-  

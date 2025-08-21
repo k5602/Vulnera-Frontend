@@ -1,4 +1,5 @@
 // Accessible Notyf wrapper
+import { sanitizeMessage } from '../utils/sanitize.js';
 let notyfInstance; // allow re-init without const reassignment errors
 
 function createNotyf() {
@@ -32,9 +33,9 @@ export function initNotyf() {
 
 function getNotyf() { return notyfInstance || createNotyf(); }
 
-export function showError(message) { try { getNotyf().open({ type: 'warning', message }); } catch { alert(message); } }
-export function showSuccess(message) { try { getNotyf().open({ type: 'success', message }); } catch { alert(message); } }
-export function showInfo(message) { try { getNotyf().open({ type: 'info', message }); } catch { alert(message); } }
+export function showError(message) { try { getNotyf().open({ type: 'warning', message: sanitizeMessage(message) }); } catch { alert(message); } }
+export function showSuccess(message) { try { getNotyf().open({ type: 'success', message: sanitizeMessage(message) }); } catch { alert(message); } }
+export function showInfo(message) { try { getNotyf().open({ type: 'info', message: sanitizeMessage(message) }); } catch { alert(message); } }
 export function showGitHubComingSoon() {
   const n = getNotyf();
   n.open({ type: 'github', message: '🚀 GitHub Repository Scanning - Coming Soon! Scan entire repos for vulnerabilities across all dependency files.' });

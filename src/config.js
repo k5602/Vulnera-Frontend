@@ -80,12 +80,20 @@ function getEnvironmentConfig() {
     )
   };
 
-  // Validate API_BASE_URL format
-  try {
-    new URL(config.API_BASE_URL);
-  } catch (error) {
-    console.warn(`⚠️ Invalid API_BASE_URL format: ${config.API_BASE_URL}. Using default.`);
-    config.API_BASE_URL = 'http://localhost:3000';
+  // Validate API_BASE_URL format & whitelist
+  const allowedOrigins = [
+    /^http:\/\/localhost:\d+$/, 
+    /^https:\/\/api\.vulnera\.dev$/, 
+    /^https:\/\/staging\.vulnera\.dev$/
+  ];
+  try { new URL(config.API_BASE_URL); } catch { config.API_BASE_URL = 'http://localhost:3000'; }
+  if (!allowedOrigins.some(r => r.test(config.API_BASE_URL))) {
+    console.warn('Blocked unsafe API_BASE_URL value:', config.API_BASE_URL);
+    config.API_BASE_URL = 'https://api.vulnera.dev';
+  }
+  if (config.ENVIRONMENT === 'production') {
+    // Disallow window overrides in production
+    Object.freeze(config);
   }
 
   // Remove trailing slash from API_BASE_URL

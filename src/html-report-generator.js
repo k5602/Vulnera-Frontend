@@ -1,3 +1,5 @@
+import { escapeHtml, safeSeverity } from './utils/sanitize.js';
+
 // HTML Report Generator for Vulnera
 function generateHTMLReport(data, filename = "unknown") {
   const meta = data?.metadata || {};
@@ -12,25 +14,29 @@ function generateHTMLReport(data, filename = "unknown") {
   });
 
   const getSeverityColor = (severity) => {
-    const s = String(severity || "").toLowerCase();
+    const s = safeSeverity(severity);
     if (s === "critical") return "#dc2626"; // red-600
     if (s === "high") return "#ea580c"; // orange-600
     if (s === "medium") return "#d97706"; // amber-600
-    return "#6b7280"; // gray-500
+    if (s === "low") return "#6b7280"; // gray-500
+    return '#6366f1';
   };
 
   const getSeverityBg = (severity) => {
-    const s = String(severity || "").toLowerCase();
+    const s = safeSeverity(severity);
     if (s === "critical") return "#fef2f2"; // red-50
     if (s === "high") return "#fff7ed"; // orange-50
     if (s === "medium") return "#fffbeb"; // amber-50
-    return "#f9fafb"; // gray-50
+    if (s === "low") return "#f9fafb"; // gray-50
+    return '#eef2ff';
   };
 
-  const vulnerabilityCards = vulns.map(v => `
-    <div class="vulnerability-card" style="border-left: 4px solid ${getSeverityColor(v.severity)}; background: ${getSeverityBg(v.severity)};">
+  const vulnerabilityCards = vulns.map(v => {
+    const severitySafe = safeSeverity(v.severity);
+    return `
+    <div class="vulnerability-card" style="border-left: 4px solid ${getSeverityColor(severitySafe)}; background: ${getSeverityBg(severitySafe)};">
       <div class="vulnerability-header">
-        <span class="severity-badge" style="background: ${getSeverityColor(v.severity)};">${v.severity}</span>
+        <span class="severity-badge" style="background: ${getSeverityColor(severitySafe)};">${escapeHtml(severitySafe)}</span>
         <h3 class="vulnerability-title">${escapeHtml(v.id)}</h3>
       </div>
       <p class="vulnerability-summary">${escapeHtml(v.summary || "")}</p>
@@ -54,17 +60,18 @@ function generateHTMLReport(data, filename = "unknown") {
         <div class="references">
           <h4>References:</h4>
           <ul>
-            ${v.references.map(r => `<li><a href="${encodeURI(r)}" target="_blank">${escapeHtml(r)}</a></li>`).join("")}
+            ${v.references.map(r => `<li><a href="${encodeURI(r)}" target="_blank" rel="noreferrer noopener">${escapeHtml(r)}</a></li>`).join("")}
           </ul>
         </div>
       ` : ""}
     </div>
-  `).join("");
+  `;}).join("");
 
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self' 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none';">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vulnera Security Report - ${escapeHtml(filename)}</title>
     <style>
@@ -410,20 +417,6 @@ function generateHTMLReport(data, filename = "unknown") {
     </div>
 </body>
 </html>`;
-}
-
-// Helper function to escape HTML (already exists in main.js but duplicated here for completeness)
-function escapeHtml(str) {
-  return String(str || "").replace(
-    /[&<>"']/g,
-    (c) => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#39;"
-    }[c])
-  );
 }
 
 // Export the function for use in main.js

@@ -1,5 +1,6 @@
 import { getEcosystem, isSupported } from '../utils/ecosystems.js';
 import { handleAnalyze } from './analysis.js';
+import { escapeHtml, MAX_FILE_BYTES } from '../utils/sanitize.js';
 
 export function initDragAndDrop() {
     const dropZone = document.getElementById("drop-zone");
@@ -64,6 +65,10 @@ export function initDragAndDrop() {
     function handleFiles(files) {
       if (files.length > 0) {
         const file = files[0];
+        if (file.size > MAX_FILE_BYTES) {
+          alert('File too large (>1MB).');
+          return;
+        }
         displayFileInfo(file);
       }
     }
@@ -71,28 +76,20 @@ export function initDragAndDrop() {
     function displayFileInfo(file) {
       const ecosystem = getEcosystem(file.name);
       const supported = isSupported(file.name);
-  
+
       fileInfo.innerHTML = `
-        <div class="alert ${
-          supported ? "alert-success" : "alert-warning"
-        } mb-4">
-          <i class="fas ${
-            supported ? "fa-check-circle" : "fa-exclamation-triangle"
-          }"></i>
+        <div class="alert ${supported ? 'alert-success' : 'alert-warning'} mb-4">
+          <i class="fas ${supported ? 'fa-check-circle' : 'fa-exclamation-triangle'}"></i>
           <div class="flex-1 min-w-0">
-            <div class="font-semibold text-sm sm:text-base truncate">${
-              file.name
-            }</div>
+            <div class="font-semibold text-sm sm:text-base truncate">${escapeHtml(file.name)}</div>
             <div class="text-xs sm:text-sm opacity-70">
-              <span class="font-medium">${ecosystem}</span>
-              <span class="hidden xs:inline"> - ${(file.size / 1024).toFixed(
-                2
-              )} KB</span>
+              <span class="font-medium">${escapeHtml(ecosystem)}</span>
+              <span class="hidden xs:inline"> - ${(file.size / 1024).toFixed(2)} KB</span>
             </div>
           </div>
         </div>
       `;
-  
+
       analyzeBtn.disabled = !supported;
       analyzeBtn.classList.toggle("btn-disabled", !supported);
     }

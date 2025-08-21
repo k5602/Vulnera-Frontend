@@ -2,6 +2,7 @@ import { CONFIG } from '../config.js';
 import { detectEcosystemForApi } from '../utils/ecosystems.js';
 import { showError, showSuccess } from '../ui/notifications.js';
 import { generateHTMLReport } from '../html-report-generator.js';
+import { escapeHtml, safeSeverity, sanitizeMessage, MAX_FILE_BYTES } from '../utils/sanitize.js';
 
 let lastAnalysisData = null;
 let lastAnalysisFileName = null;
@@ -24,6 +25,13 @@ export async function handleAnalyze() {
     loadingModal.checked = true;
 
     try {
+      // File size guard
+      if (file.size > MAX_FILE_BYTES) {
+        showError(`File too large (> ${(MAX_FILE_BYTES/1024).toFixed(0)} KB)`);
+        loadingModal.checked = false;
+        return;
+      }
+
       const file_content = await file.text();
       
       if (CONFIG.ENABLE_DEBUG === 'true') {
@@ -89,6 +97,7 @@ export async function handleAnalyze() {
         errorMessage = err.message;
       }
       
+      errorMessage = sanitizeMessage(errorMessage);
       showError(errorMessage);
       
       if (CONFIG.ENABLE_DEBUG === 'true') {
@@ -126,12 +135,8 @@ export async function handleAnalyze() {
         <div class="collapse collapse-arrow bg-base-200">
           <input type="checkbox" />
           <div class="collapse-title text-sm sm:text-base font-medium flex items-center gap-2">
-            <span class="badge ${badgeFromSeverity(v.severity)}">${
-          v.severity
-        }</span>
-            <span class="truncate">${escapeHtml(v.id)} — ${escapeHtml(
-          v.summary
-        )}</span>
+            <span class="badge ${badgeFromSeverity(v.severity)}">${escapeHtmlLocal(safeSeverity(v.severity))}</span>
+            <span class="truncate">${escapeHtmlLocal(v.id)} — ${escapeHtmlLocal(v.summary)}</span>
           </div>
           <div class="collapse-content text-sm">
             <p class="mb-2 opacity-80">${escapeHtml(v.description || "")}</p>
@@ -146,10 +151,7 @@ export async function handleAnalyze() {
                   <tbody>
                     ${v.affected_packages
                       .map(
-                        (p) =>
-                          `<tr><td>${escapeHtml(p.name)}</td><td>${escapeHtml(
-                            p.version
-                          )}</td><td>${escapeHtml(p.ecosystem)}</td></tr>`
+                        (p) => `<tr><td>${escapeHtmlLocal(p.name)}</td><td>${escapeHtmlLocal(p.version)}</td><td>${escapeHtmlLocal(p.ecosystem)}</td></tr>`
                       )
                       .join("")}
                   </tbody>
@@ -163,10 +165,7 @@ export async function handleAnalyze() {
               <div class="mt-2 flex flex-wrap gap-2">
                 ${v.references
                   .map(
-                    (r) =>
-                      `<a class="link link-primary text-xs" href="${encodeURI(
-                        r
-                      )}" target="_blank" rel="noreferrer">${escapeHtml(r)}</a>`
+                    (r) => `<a class="link link-primary text-xs" href="${encodeURI(r)}" target="_blank" rel="noreferrer">${escapeHtmlLocal(r)}</a>`
                   )
                   .join("")}
               </div>`
@@ -256,23 +255,12 @@ export async function handleAnalyze() {
   }
 
   function badgeFromSeverity(sev) {
-    const s = String(sev || "").toLowerCase();
+    const s = safeSeverity(sev);
     if (s === "critical") return "badge-error";
     if (s === "high") return "badge-warning";
     if (s === "medium") return "badge-accent";
-    return "badge-ghost";
+    if (s === "low") return "badge-ghost";
+    return 'badge-neutral';
   }
 
-  function escapeHtml(str) {
-    return String(str || "").replace(
-      /[&<>"]+/g,
-      (c) =>
-        ({
-          "&": "&amp;",
-          "<": "&lt;",
-          ">": "&gt;",
-          '"': "&quot;",
-        }[c])
-    );
-  }
-  
+  function escapeHtmlLocal(str) { return escapeHtml(str); }
