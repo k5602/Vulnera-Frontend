@@ -6,6 +6,9 @@ import { escapeHtml, safeSeverity, sanitizeMessage, MAX_FILE_BYTES } from '../ut
 
 let lastAnalysisData = null;
 let lastAnalysisFileName = null;
+let lastAnalysisId = null;
+let currentPage = 1;
+let totalPages = 1;
 
 export async function handleAnalyze() {
     const fileInput = document.getElementById("file-input");
@@ -78,11 +81,17 @@ export async function handleAnalyze() {
         return;
       }
 
-      // Store analysis data for download
+      // Store analysis data for download and pagination
       lastAnalysisData = payload;
       lastAnalysisFileName = file.name;
+      lastAnalysisId = payload.id;
+      
+      // Handle pagination info
+      const pagination = payload.pagination || {};
+      currentPage = pagination.page || 1;
+      totalPages = pagination.total_pages || 1;
 
-      renderAnalysisResult(payload);
+      renderPackageView(payload);
     } catch (err) {
       loadingModal.checked = false;
       
@@ -111,6 +120,235 @@ export async function handleAnalyze() {
       console.error(err);
     }
   }
+
+  function renderPackageView(data) {
+    const resultModal = document.getElementById("result-modal");
+    resultModal.checked = true;
+
+    const meta = data?.metadata || {};
+    const vulns = Array.isArray(data?.vulnerabilities) ? data.vulnerabilities : [];
+    const pagination = data?.pagination || {};
+    
+    // Group vulnerabilities by affected packages
+    const packageMap = new Map();
+    
+    vulns.forEach(vuln => {
+      if (Array.isArray(vuln.affected_packages)) {
+        vuln.affected_packages.forEach(pkg => {
+          const key = `${pkg.name}@${pkg.version}`;
+          if (!packageMap.has(key)) {
+            packageMap.set(key, {
+              name: pkg.name,
+              version: pkg.version,
+              ecosystem: pkg.ecosystem,
+              vulnerabilities: [],
+              maxSeverity: 'low'
+            });
+          }
+          
+          const packageData = packageMap.get(key);
+          packageData.vulnerabilities.push(vuln);
+          
+          // Update max severity
+          const severityOrder = { critical: 4, high: 3, medium: 2, low: 1, unknown: 0 };
+          const vulnSeverity = safeSeverity(vuln.severity);
+          if (severityOrder[vulnSeverity] > severityOrder[packageData.maxSeverity]) {
+            packageData.maxSeverity = vulnSeverity;
+          }
+        });
+      }
+    });
+
+    const packages = Array.from(packageMap.values()).sort((a, b) => {
+      const severityOrder = { critical: 4, high: 3, medium: 2, low: 1, unknown: 0 };
+      return severityOrder[b.maxSeverity] - severityOrder[a.maxSeverity];
+    });
+
+    const sev = meta.severity_breakdown || { critical: 0, high: 0, medium: 0, low: 0 };
+
+    const packageCards = packages.map(pkg => `
+      <div class="package-card bg-base-200 rounded-lg p-4 cursor-pointer hover:bg-base-300 transition-colors" 
+           data-package="${escapeHtml(pkg.name)}" 
+           data-version="${escapeHtml(pkg.version)}"
+           onclick="showPackageVulnerabilities('${escapeHtml(pkg.name)}', '${escapeHtml(pkg.version)}')">
+        <div class="flex items-center justify-between">
+          <div class="flex-1">
+            <h3 class="font-semibold text-lg">${escapeHtml(pkg.name)}</h3>
+            <p class="text-sm opacity-70">Version: ${escapeHtml(pkg.version)} (${escapeHtml(pkg.ecosystem)})</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="badge ${badgeFromSeverity(pkg.maxSeverity)}">${escapeHtml(pkg.maxSeverity)}</span>
+            <span class="text-sm font-medium">${pkg.vulnerabilities.length} vuln${pkg.vulnerabilities.length !== 1 ? 's' : ''}</span>
+            <i class="fas fa-chevron-right text-sm opacity-50"></i>
+          </div>
+        </div>
+      </div>
+    `).join('');
+
+    // Pagination controls
+    const paginationControls = totalPages > 1 ? `
+      <div class="flex justify-center items-center gap-2 mt-4">
+        <button class="btn btn-sm" ${currentPage <= 1 ? 'disabled' : ''} onclick="loadAnalysisPage(${currentPage - 1})">
+          <i class="fas fa-chevron-left"></i> Previous
+        </button>
+        <span class="mx-4">Page ${currentPage} of ${totalPages}</span>
+        <button class="btn btn-sm" ${currentPage >= totalPages ? 'disabled' : ''} onclick="loadAnalysisPage(${currentPage + 1})">
+          Next <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+    ` : '';
+
+    document.getElementById("result-content").innerHTML = `
+      <div class="space-y-4">
+        <div class="alert alert-info">
+          <i class="fas fa-info-circle"></i>
+          <span class="text-sm sm:text-base">Analysis completed successfully</span>
+        </div>
+        
+        <div class="stats stats-vertical sm:stats-horizontal shadow w-full">
+          <div class="stat p-3 sm:p-4">
+            <div class="stat-title text-xs sm:text-sm">Total Packages</div>
+            <div class="stat-value text-2xl sm:text-3xl text-primary">${meta.total_packages ?? "-"}</div>
+          </div>
+          <div class="stat p-3 sm:p-4">
+            <div class="stat-title text-xs sm:text-sm">Vulnerable Packages</div>
+            <div class="stat-value text-2xl sm:text-3xl text-error">${packages.length}</div>
+          </div>
+          <div class="stat p-3 sm:p-4">
+            <div class="stat-title text-xs sm:text-sm">Total Vulnerabilities</div>
+            <div class="stat-value text-2xl sm:text-3xl text-warning">${meta.total_vulnerabilities ?? vulns.length}</div>
+          </div>
+          <div class="stat p-3 sm:p-4">
+            <div class="stat-title text-xs sm:text-sm">Severity Breakdown</div>
+            <div class="stat-desc text-xs">C:${sev.critical} H:${sev.high} M:${sev.medium} L:${sev.low}</div>
+          </div>
+        </div>
+
+        ${packages.length > 0 ? `
+          <div class="mt-6">
+            <h3 class="text-lg font-semibold mb-4">Vulnerable Packages (click to view details)</h3>
+            <div class="space-y-2">
+              ${packageCards}
+            </div>
+            ${paginationControls}
+          </div>
+        ` : `
+          <div class="alert alert-success">
+            <i class="fas fa-check-circle"></i>
+            <span>No vulnerable packages found.</span>
+          </div>
+        `}
+      </div>
+    `;
+
+    setupDownloadButton(data);
+  }
+
+  // Load specific page of analysis results
+  async function loadAnalysisPage(page) {
+    if (!lastAnalysisId || page < 1 || page > totalPages) return;
+    
+    const loadingModal = document.getElementById("loading-modal");
+    loadingModal.checked = true;
+    
+    try {
+      const res = await fetch(`${CONFIG.API_ENDPOINT}/reports/${lastAnalysisId}?page=${page}&per_page=50`, {
+        headers: {
+          "Accept": "application/json",
+          "User-Agent": `${CONFIG.APP_NAME}/${CONFIG.APP_VERSION}`,
+        }
+      });
+      
+      if (!res.ok) {
+        throw new Error(`Failed to load page ${page}`);
+      }
+      
+      const payload = await res.json();
+      loadingModal.checked = false;
+      
+      lastAnalysisData = payload;
+      currentPage = payload.pagination?.page || page;
+      totalPages = payload.pagination?.total_pages || totalPages;
+      
+      renderPackageView(payload);
+    } catch (error) {
+      loadingModal.checked = false;
+      showError(`Failed to load page ${page}: ${error.message}`);
+    }
+  }
+  
+  // Show vulnerabilities for a specific package
+  function showPackageVulnerabilities(packageName, version) {
+    const vulns = lastAnalysisData?.vulnerabilities || [];
+    const packageVulns = vulns.filter(v => 
+      v.affected_packages?.some(p => p.name === packageName && p.version === version)
+    );
+    
+    const vulnItems = packageVulns.map(v => `
+      <div class="collapse collapse-arrow bg-base-200 mb-2">
+        <input type="checkbox" />
+        <div class="collapse-title text-sm sm:text-base font-medium flex items-center gap-2">
+          <span class="badge ${badgeFromSeverity(v.severity)}">${escapeHtmlLocal(safeSeverity(v.severity))}</span>
+          <span class="truncate">${escapeHtmlLocal(v.id)} — ${escapeHtmlLocal(v.summary)}</span>
+        </div>
+        <div class="collapse-content text-sm">
+          <p class="mb-2 opacity-80">${escapeHtmlLocal(v.description || "")}</p>
+          ${Array.isArray(v.references) && v.references.length ? `
+            <div class="mt-2 flex flex-wrap gap-2">
+              ${v.references.map(r => `<a class="link link-primary text-xs" href="${encodeURI(r)}" target="_blank" rel="noreferrer">${escapeHtmlLocal(r)}</a>`).join("")}
+            </div>
+          ` : ""}
+        </div>
+      </div>
+    `).join('');
+    
+    // Create package vulnerability modal
+    const modalHtml = `
+      <input type="checkbox" id="package-vuln-modal" class="modal-toggle" checked />
+      <div class="modal modal-bottom sm:modal-middle" role="dialog" aria-modal="true">
+        <div class="modal-box w-11/12 max-w-4xl">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="font-bold text-lg">
+              Vulnerabilities in ${escapeHtml(packageName)} v${escapeHtml(version)}
+            </h3>
+            <form method="dialog">
+              <button class="btn btn-sm btn-circle btn-ghost" onclick="closePackageModal()">
+                <i class="fas fa-times"></i>
+              </button>
+            </form>
+          </div>
+          <div class="max-h-[60vh] overflow-y-auto">
+            ${vulnItems || '<p class="text-center py-4">No vulnerabilities found for this package.</p>'}
+          </div>
+        </div>
+        <form method="dialog" class="modal-backdrop" onclick="closePackageModal()">
+          <button>close</button>
+        </form>
+      </div>
+    `;
+    
+    // Remove existing package modal if any
+    const existingModal = document.getElementById('package-vuln-modal');
+    if (existingModal) {
+      existingModal.parentElement.remove();
+    }
+    
+    // Add new modal to body
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+  }
+  
+  function closePackageModal() {
+    const modal = document.getElementById('package-vuln-modal');
+    if (modal) {
+      modal.checked = false;
+      setTimeout(() => modal.parentElement.remove(), 300);
+    }
+  }
+
+  // Make functions globally available for onclick handlers
+  window.loadAnalysisPage = loadAnalysisPage;
+  window.showPackageVulnerabilities = showPackageVulnerabilities;
+  window.closePackageModal = closePackageModal;
 
   function renderAnalysisResult(data) {
     const resultModal = document.getElementById("result-modal");
