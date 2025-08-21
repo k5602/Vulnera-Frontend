@@ -31,7 +31,7 @@ jobs:
           VITE_APP_VERSION: 1.0.0
           VITE_ENVIRONMENT: production
           VITE_ENABLE_DEBUG: false
-
+      
       - name: Upload to Azure Storage
         uses: azure/CLI@v1
         with:
