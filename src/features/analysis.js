@@ -304,33 +304,46 @@ export async function handleAnalyze() {
     
     // Create package vulnerability modal
     const modalHtml = `
-      <input type="checkbox" id="package-vuln-modal" class="modal-toggle" checked />
-      <div class="modal modal-bottom sm:modal-middle" role="dialog" aria-modal="true">
+      <div class="modal modal-open modal-bottom sm:modal-middle" id="package-vuln-modal-container" style="z-index: 1001;">
         <div class="modal-box w-11/12 max-w-4xl">
           <div class="flex justify-between items-center mb-4">
-            <h3 class="font-bold text-lg">
-              Vulnerabilities in ${escapeHtml(packageName)} v${escapeHtml(version)}
-            </h3>
-            <form method="dialog">
-              <button class="btn btn-sm btn-circle btn-ghost" onclick="closePackageModal()">
-                <i class="fas fa-times"></i>
+            <div class="flex items-center gap-3">
+              <button class="btn btn-sm btn-ghost btn-circle" onclick="closePackageModal()" title="Back to package list">
+                <i class="fas fa-arrow-left"></i>
               </button>
-            </form>
+              <h3 class="font-bold text-lg">
+                Vulnerabilities in ${escapeHtml(packageName)} v${escapeHtml(version)}
+              </h3>
+            </div>
+            <button class="btn btn-sm btn-circle btn-ghost" onclick="closePackageModal()" title="Close">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+          <div class="bg-base-100 p-3 rounded-lg mb-4">
+            <div class="flex items-center justify-between text-sm">
+              <span class="opacity-70">Package: ${escapeHtml(packageName)}</span>
+              <span class="opacity-70">Version: ${escapeHtml(version)}</span>
+              <span class="badge badge-neutral">${packageVulns.length} vulnerability${packageVulns.length !== 1 ? 's' : ''}</span>
+            </div>
           </div>
           <div class="max-h-[60vh] overflow-y-auto">
             ${vulnItems || '<p class="text-center py-4">No vulnerabilities found for this package.</p>'}
           </div>
+          <div class="modal-action">
+            <button class="btn btn-primary" onclick="closePackageModal()">
+              <i class="fas fa-arrow-left mr-2"></i>
+              Back to Package List
+            </button>
+          </div>
         </div>
-        <form method="dialog" class="modal-backdrop" onclick="closePackageModal()">
-          <button>close</button>
-        </form>
+        <div class="modal-backdrop" onclick="closePackageModal()"></div>
       </div>
     `;
     
     // Remove existing package modal if any
-    const existingModal = document.getElementById('package-vuln-modal');
+    const existingModal = document.getElementById('package-vuln-modal-container');
     if (existingModal) {
-      existingModal.parentElement.remove();
+      existingModal.remove();
     }
     
     // Add new modal to body
@@ -338,10 +351,29 @@ export async function handleAnalyze() {
   }
   
   function closePackageModal() {
-    const modal = document.getElementById('package-vuln-modal');
-    if (modal) {
-      modal.checked = false;
-      setTimeout(() => modal.parentElement.remove(), 300);
+    const modalContainer = document.getElementById('package-vuln-modal-container');
+    if (modalContainer) {
+      // Add fade out animation
+      modalContainer.style.opacity = '0';
+      modalContainer.style.transition = 'opacity 0.3s ease';
+      
+      // Remove modal after animation
+      setTimeout(() => {
+        modalContainer.remove();
+      }, 300);
+      
+      // Ensure the main result modal stays visible and focused
+      setTimeout(() => {
+        const resultModal = document.getElementById('result-modal');
+        if (resultModal) {
+          resultModal.checked = true;
+        }
+        
+        const resultTitle = document.getElementById('result-title');
+        if (resultTitle) {
+          resultTitle.focus();
+        }
+      }, 100);
     }
   }
 

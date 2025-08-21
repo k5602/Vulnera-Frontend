@@ -69,6 +69,12 @@ export function initDragAndDrop() {
           alert('File too large (>1MB).');
           return;
         }
+        
+        // Create a new FileList and assign it to the input
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        fileInput.files = dt.files;
+        
         displayFileInfo(file);
       }
     }
@@ -92,5 +98,12 @@ export function initDragAndDrop() {
 
       analyzeBtn.disabled = !supported;
       analyzeBtn.classList.toggle("btn-disabled", !supported);
+      
+      // Auto-analyze if the file is supported
+      if (supported) {
+        setTimeout(() => {
+          handleAnalyze();
+        }, 500); // Small delay to show the file info first
+      }
     }
   }
