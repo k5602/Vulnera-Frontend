@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "vite",
     "dev:local": "vite --mode development",
-    "dev:staging": "vite --mode staging", 
+    "dev:staging": "vite --mode staging",
     "build": "vite build",
     "build:staging": "vite build --mode staging",
     "build:production": "vite build --mode production",
@@ -28,6 +28,7 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.12",
+    "jszip": "^3.10.1",
     "tailwindcss": "^4.1.12"
   }
 }
