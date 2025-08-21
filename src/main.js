@@ -30,9 +30,12 @@ if (CONFIG.ENABLE_DEBUG === 'true' || import.meta.env?.DEV) {
 
   // Test API connectivity in development
   if (CONFIG.ENVIRONMENT === 'development') {
-    fetch(`${CONFIG.API_BASE_URL}/health`)
-      .then(response => response.ok ? console.log("✅ Backend health check passed") : console.warn("⚠️ Backend health check failed"))
-      .catch(() => console.warn("⚠️ Backend not reachable at", CONFIG.API_BASE_URL));
+    const controller = new AbortController();
+    const timeout = setTimeout(()=> controller.abort(), 2500);
+    fetch(`${CONFIG.API_BASE_URL}/health`, { signal: controller.signal })
+      .then(r => r.ok ? console.log('✅ Backend health check passed') : console.warn('⚠️ Backend health check failed'))
+      .catch(err => console.warn('⚠️ Backend not reachable at', CONFIG.API_BASE_URL, '-', err?.name === 'AbortError' ? 'timeout' : err.message))
+      .finally(()=> clearTimeout(timeout));
   }
 }
 
@@ -116,22 +119,21 @@ document.addEventListener("DOMContentLoaded", function () {
                 class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 aria-label="Dependency file upload"
               />
-              <div class="flex flex-col items-center justify-center space-y-4">
-                <i
-                  class="fas fa-cloud-upload-alt text-4xl text-primary"
-                  aria-hidden="true"
-                ></i>
+              <div class="flex flex-col items-center justify-center space-y-4 pointer-events-none">
+                <i class="fas fa-cloud-upload-alt text-4xl text-primary" aria-hidden="true"></i>
                 <p class="text-lg font-semibold text-base-content">
-                  <label for="file-input" class="link link-primary font-bold"
-                    >Click to upload</label
-                  >
+                  <span class="link link-primary font-bold">Click to upload</span>
                   or drag & drop a file
                 </p>
-                <p class="text-sm text-base-content/60">
-                  Supported files: package.json, requirements.txt, pom.xml, and
-                  more.
-                </p>
+                <p class="text-sm text-base-content/60">Supported: package.json, requirements.txt, pom.xml…</p>
               </div>
+            </div>
+            <div id="file-info" class="mt-4"></div>
+            <div class="mt-4 flex justify-center">
+              <button id="analyze-btn" class="btn btn-primary btn-wide btn-disabled" disabled aria-disabled="true">
+                <i class="fas fa-shield-alt mr-2"></i>
+                Analyze Dependencies
+              </button>
             </div>
 
             <div class="divider my-6 sm:my-8">OR</div>
