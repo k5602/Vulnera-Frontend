@@ -1,121 +1,21 @@
 import "./style.css";
-import { generateHTMLReport } from "./html-report-generator.js";
-
-/**
- * Environment Configuration System
- * Supports multiple environment variable sources with priority:
- * 1. Vite environment variables (VITE_*)
- * 2. Window object variables (for runtime configuration)
- * 3. Process environment variables (for Node.js environments)
- * 4. Default fallback values
- */
-function getEnvironmentConfig() {
-  // Helper function to get environment variable with fallback
-  const getEnvVar = (viteKey, windowKey, processKey, defaultValue) => {
-    // Priority 1: Vite environment variables (build-time)
-    if (import.meta.env && import.meta.env[viteKey]) {
-      return import.meta.env[viteKey];
-    }
-    
-    // Priority 2: Window object (runtime configuration)
-    if (typeof window !== "undefined" && window[windowKey]) {
-      return window[windowKey];
-    }
-    
-    // Priority 3: Process environment (Node.js environments)
-    if (typeof process !== "undefined" && process.env && process.env[processKey]) {
-      return process.env[processKey];
-    }
-    
-    // Priority 4: Default fallback
-    return defaultValue;
-  };
-
-  const config = {
-    API_BASE_URL: getEnvVar(
-      'VITE_API_BASE_URL',
-      'VULNERA_API_BASE_URL', 
-      'API_BASE_URL',
-      'http://localhost:3000'
-    ),
-    
-    API_VERSION: getEnvVar(
-      'VITE_API_VERSION',
-      'VULNERA_API_VERSION',
-      'API_VERSION',
-      'v1'
-    ),
-    
-    APP_NAME: getEnvVar(
-      'VITE_APP_NAME',
-      'VULNERA_APP_NAME',
-      'APP_NAME',
-      'Vulnera'
-    ),
-    
-    APP_VERSION: getEnvVar(
-      'VITE_APP_VERSION',
-      'VULNERA_APP_VERSION',
-      'APP_VERSION',
-      '1.0.0'
-    ),
-
-    // Additional configuration options
-    ENABLE_DEBUG: getEnvVar(
-      'VITE_ENABLE_DEBUG',
-      'VULNERA_ENABLE_DEBUG',
-      'ENABLE_DEBUG',
-      import.meta.env?.DEV ? 'true' : 'false'
-    ),
-
-    API_TIMEOUT: parseInt(getEnvVar(
-      'VITE_API_TIMEOUT',
-      'VULNERA_API_TIMEOUT',
-      'API_TIMEOUT',
-      '30000'
-    )),
-
-    ENVIRONMENT: getEnvVar(
-      'VITE_ENVIRONMENT',
-      'VULNERA_ENVIRONMENT',
-      'NODE_ENV',
-      import.meta.env?.MODE || 'development'
-    )
-  };
-
-  // Validate API_BASE_URL format
-  try {
-    new URL(config.API_BASE_URL);
-  } catch (error) {
-    console.warn(`⚠️ Invalid API_BASE_URL format: ${config.API_BASE_URL}. Using default.`);
-    config.API_BASE_URL = 'http://localhost:3000';
-  }
-
-  // Remove trailing slash from API_BASE_URL
-  config.API_BASE_URL = config.API_BASE_URL.replace(/\/$/, '');
-
-  // Build complete API endpoint
-  config.API_ENDPOINT = `${config.API_BASE_URL}/api/${config.API_VERSION}`;
-
-  return config;
-}
-
-// Initialize configuration
-const CONFIG = getEnvironmentConfig();
-
-// Destructure for easier access
-const { API_BASE_URL, API_ENDPOINT, APP_NAME, APP_VERSION, ENABLE_DEBUG, API_TIMEOUT, ENVIRONMENT } = CONFIG;
+import { CONFIG } from './config.js';
+import { initThemeToggle } from './ui/theme.js';
+import { initDragAndDrop } from './features/dragDrop.js';
+import { initSampleFile } from './features/sample-file.js';
+import { initGitHubScanning } from './features/github-scan.js';
+import { initNotyf } from './ui/notifications.js';
 
 // Enhanced logging for debugging
-if (ENABLE_DEBUG === 'true' || import.meta.env?.DEV) {
+if (CONFIG.ENABLE_DEBUG === 'true' || import.meta.env?.DEV) {
   console.group("🔧 Vulnera Configuration");
-  console.log("Environment:", ENVIRONMENT);
-  console.log("API Base URL:", API_BASE_URL);
-  console.log("API Endpoint:", API_ENDPOINT);
-  console.log("App Name:", APP_NAME);
-  console.log("App Version:", APP_VERSION);
-  console.log("API Timeout:", API_TIMEOUT + "ms");
-  console.log("Debug Mode:", ENABLE_DEBUG);
+  console.log("Environment:", CONFIG.ENVIRONMENT);
+  console.log("API Base URL:", CONFIG.API_BASE_URL);
+  console.log("API Endpoint:", CONFIG.API_ENDPOINT);
+  console.log("App Name:", CONFIG.APP_NAME);
+  console.log("App Version:", CONFIG.APP_VERSION);
+  console.log("API Timeout:", CONFIG.API_TIMEOUT + "ms");
+  console.log("Debug Mode:", CONFIG.ENABLE_DEBUG);
   
   // Show environment variable sources
   console.group("Environment Variable Sources:");
@@ -129,467 +29,10 @@ if (ENABLE_DEBUG === 'true' || import.meta.env?.DEV) {
   console.groupEnd();
 
   // Test API connectivity in development
-  if (ENVIRONMENT === 'development') {
-    fetch(`${API_BASE_URL}/health`)
+  if (CONFIG.ENVIRONMENT === 'development') {
+    fetch(`${CONFIG.API_BASE_URL}/health`)
       .then(response => response.ok ? console.log("✅ Backend health check passed") : console.warn("⚠️ Backend health check failed"))
-      .catch(() => console.warn("⚠️ Backend not reachable at", API_BASE_URL));
-  }
-}
-
-// Theme switching functionality
-function initThemeToggle() {
-  const themeToggle = document.getElementById("theme-toggle");
-  const htmlElement = document.documentElement;
-
-  themeToggle.addEventListener("change", function () {
-    if (this.checked) {
-      htmlElement.setAttribute("data-theme", "dark");
-      localStorage.setItem("theme", "dark");
-    } else {
-      htmlElement.setAttribute("data-theme", "light");
-      localStorage.setItem("theme", "light");
-    }
-  });
-
-  // Load saved theme
-  const savedTheme = localStorage.getItem("theme") || "light";
-  htmlElement.setAttribute("data-theme", savedTheme);
-  themeToggle.checked = savedTheme === "dark";
-}
-
-// Drag and drop functionality
-function initDragAndDrop() {
-  const dropZone = document.getElementById("drop-zone");
-  const fileInput = document.getElementById("file-input");
-  const fileInfo = document.getElementById("file-info");
-  const analyzeBtn = document.getElementById("analyze-btn");
-
-  // Handle drag events
-  ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
-    dropZone.addEventListener(eventName, preventDefaults, false);
-    document.body.addEventListener(eventName, preventDefaults, false);
-  });
-
-  ["dragenter", "dragover"].forEach((eventName) => {
-    dropZone.addEventListener(eventName, highlight, false);
-  });
-
-  ["dragleave", "drop"].forEach((eventName) => {
-    dropZone.addEventListener(eventName, unhighlight, false);
-  });
-
-  dropZone.addEventListener("drop", handleDrop, false);
-  dropZone.addEventListener("click", () => fileInput.click());
-  fileInput.addEventListener("change", handleFileSelect);
-  analyzeBtn.addEventListener("click", handleAnalyze);
-
-  function preventDefaults(e) {
-    e.preventDefault();
-    e.stopPropagation();
-  }
-
-  function highlight() {
-    dropZone.classList.add("border-primary", "bg-primary/5");
-  }
-
-  function unhighlight() {
-    dropZone.classList.remove("border-primary", "bg-primary/5");
-  }
-
-  function handleDrop(e) {
-    const dt = e.dataTransfer;
-    const files = dt.files;
-    handleFiles(files);
-  }
-
-  function handleFileSelect(e) {
-    const files = e.target.files;
-    handleFiles(files);
-  }
-
-  function handleFiles(files) {
-    if (files.length > 0) {
-      const file = files[0];
-      displayFileInfo(file);
-    }
-  }
-
-  function displayFileInfo(file) {
-    const supportedFiles = {
-      "package.json": "Node.js",
-      "package-lock.json": "Node.js",
-      "yarn.lock": "Node.js",
-      "requirements.txt": "Python",
-      Pipfile: "Python",
-      "pyproject.toml": "Python",
-      "pom.xml": "Java",
-      "build.gradle": "Java",
-      "build.gradle.kts": "Java",
-      "Cargo.toml": "Rust",
-      "Cargo.lock": "Rust",
-      "go.mod": "Go",
-      "go.sum": "Go",
-      "composer.json": "PHP",
-      "composer.lock": "PHP",
-      Gemfile: "Ruby",
-      "Gemfile.lock": "Ruby",
-      "packages.config": ".NET",
-      "*.csproj": ".NET",
-      "Directory.Packages.props": ".NET",
-    };
-
-    const ecosystem = supportedFiles[file.name] || "Unknown";
-    const isSupported = ecosystem !== "Unknown";
-
-    fileInfo.innerHTML = `
-      <div class="alert ${
-        isSupported ? "alert-success" : "alert-warning"
-      } mb-4">
-        <i class="fas ${
-          isSupported ? "fa-check-circle" : "fa-exclamation-triangle"
-        }"></i>
-        <div class="flex-1 min-w-0">
-          <div class="font-semibold text-sm sm:text-base truncate">${
-            file.name
-          }</div>
-          <div class="text-xs sm:text-sm opacity-70">
-            <span class="font-medium">${ecosystem}</span>
-            <span class="hidden xs:inline"> - ${(file.size / 1024).toFixed(
-              2
-            )} KB</span>
-          </div>
-        </div>
-      </div>
-    `;
-
-    analyzeBtn.disabled = !isSupported;
-    analyzeBtn.classList.toggle("btn-disabled", !isSupported);
-  }
-
-  async function handleAnalyze() {
-    const fileInput = document.getElementById("file-input");
-    const file = fileInput.files && fileInput.files[0];
-    if (!file) {
-      try {
-        notyf?.open({
-          type: "warning",
-          message: "Please select a dependency file first.",
-        });
-      } catch (_) {}
-      return;
-    }
-
-    const ecosystem = detectEcosystemForApi(file.name);
-    if (!ecosystem) {
-      try {
-        notyf?.open({
-          type: "warning",
-          message: "This ecosystem isn't supported by the API yet.",
-        });
-      } catch (_) {}
-      return;
-    }
-
-    const loadingModal = document.getElementById("loading-modal");
-    loadingModal.checked = true;
-
-    try {
-      const file_content = await file.text();
-      
-      if (ENABLE_DEBUG === 'true') {
-        console.log("🔍 API Request to:", `${API_ENDPOINT}/analyze`);
-        console.log("📤 Request data:", { ecosystem, filename: file.name });
-      }
-
-      // Create AbortController for request timeout
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
-
-      const res = await fetch(`${API_ENDPOINT}/analyze`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          "User-Agent": `${APP_NAME}/${APP_VERSION}`,
-        },
-        body: JSON.stringify({ ecosystem, file_content, filename: file.name }),
-        signal: controller.signal,
-      });
-
-      // Clear timeout if request completes
-      clearTimeout(timeoutId);
-
-      if (ENABLE_DEBUG === 'true') {
-        console.log("📥 Response status:", res.status, res.statusText);
-      }
-      
-      const payload = await res.json().catch(() => ({}));
-      
-      if (ENABLE_DEBUG === 'true') {
-        console.log("📊 Response payload:", payload);
-      }
-
-      loadingModal.checked = false;
-
-      if (!res.ok) {
-        const message =
-          payload?.message ||
-          payload?.error ||
-          `Request failed (${res.status})`;
-        showError(message);
-        return;
-      }
-
-      // Store analysis data for download
-      lastAnalysisData = payload;
-      lastAnalysisFileName = file.name;
-
-      renderAnalysisResult(payload);
-    } catch (err) {
-      loadingModal.checked = false;
-      
-      // Enhanced error handling
-      let errorMessage = "Network error while contacting the API.";
-      
-      if (err.name === 'AbortError') {
-        errorMessage = `Request timeout (${API_TIMEOUT}ms). The server might be slow or unavailable.`;
-      } else if (err.message.includes('Failed to fetch')) {
-        errorMessage = `Cannot reach the API server at ${API_BASE_URL}. Please check your connection or try switching to a different environment.`;
-      } else if (err.message) {
-        errorMessage = err.message;
-      }
-      
-      showError(errorMessage);
-      
-      if (ENABLE_DEBUG === 'true') {
-        console.error("API Error Details:", {
-          error: err,
-          apiEndpoint: API_ENDPOINT,
-          environment: ENVIRONMENT,
-          timestamp: new Date().toISOString()
-        });
-      }
-      console.error(err);
-    }
-  }
-
-  // Map filename to API ecosystem values the backend accepts
-  function detectEcosystemForApi(filename) {
-    const name = (filename || "").toLowerCase();
-    if (
-      name === "package.json" ||
-      name === "package-lock.json" ||
-      name === "yarn.lock"
-    )
-      return "npm";
-    if (
-      name === "requirements.txt" ||
-      name === "pipfile" ||
-      name === "pyproject.toml"
-    )
-      return "python"; // accepted by API
-    if (
-      name === "pom.xml" ||
-      name.endsWith("build.gradle") ||
-      name.endsWith("build.gradle.kts")
-    )
-      return "maven";
-    if (name === "cargo.toml" || name === "cargo.lock") return "cargo";
-    if (name === "go.mod" || name === "go.sum") return "go";
-    if (name === "composer.json" || name === "composer.lock") return "composer"; // accepted by API
-    // Ruby/.NET not yet supported by backend
-    return null;
-  }
-
-  function showError(message) {
-    try {
-      notyf?.open({ type: "warning", message });
-    } catch (_) {
-      alert(message);
-    }
-  }
-
-  function renderAnalysisResult(data) {
-    const resultModal = document.getElementById("result-modal");
-    resultModal.checked = true;
-
-    const meta = data?.metadata || {};
-    const vulns = Array.isArray(data?.vulnerabilities)
-      ? data.vulnerabilities
-      : [];
-
-    const sev = meta.severity_breakdown || {
-      critical: 0,
-      high: 0,
-      medium: 0,
-      low: 0,
-    };
-
-    const vulnItems = vulns
-      .slice(0, 50)
-      .map(
-        (v) => `
-        <div class="collapse collapse-arrow bg-base-200">
-          <input type="checkbox" />
-          <div class="collapse-title text-sm sm:text-base font-medium flex items-center gap-2">
-            <span class="badge ${badgeFromSeverity(v.severity)}">${
-          v.severity
-        }</span>
-            <span class="truncate">${escapeHtml(v.id)} — ${escapeHtml(
-          v.summary
-        )}</span>
-          </div>
-          <div class="collapse-content text-sm">
-            <p class="mb-2 opacity-80">${escapeHtml(v.description || "")}</p>
-            ${
-              Array.isArray(v.affected_packages) && v.affected_packages.length
-                ? `
-              <div class="overflow-x-auto">
-                <table class="table table-zebra table-xs sm:table-sm">
-                  <thead>
-                    <tr><th>Package</th><th>Version</th><th>Ecosystem</th></tr>
-                  </thead>
-                  <tbody>
-                    ${v.affected_packages
-                      .map(
-                        (p) =>
-                          `<tr><td>${escapeHtml(p.name)}</td><td>${escapeHtml(
-                            p.version
-                          )}</td><td>${escapeHtml(p.ecosystem)}</td></tr>`
-                      )
-                      .join("")}
-                  </tbody>
-                </table>
-              </div>`
-                : ""
-            }
-            ${
-              Array.isArray(v.references) && v.references.length
-                ? `
-              <div class="mt-2 flex flex-wrap gap-2">
-                ${v.references
-                  .map(
-                    (r) =>
-                      `<a class="link link-primary text-xs" href="${encodeURI(
-                        r
-                      )}" target="_blank" rel="noreferrer">${escapeHtml(r)}</a>`
-                  )
-                  .join("")}
-              </div>`
-                : ""
-            }
-          </div>
-        </div>`
-      )
-      .join("");
-
-    document.getElementById("result-content").innerHTML = `
-      <div class="space-y-3 sm:space-y-4">
-        <div class="alert alert-info">
-          <i class="fas fa-info-circle"></i>
-          <span class="text-sm sm:text-base">Analysis completed successfully</span>
-        </div>
-        <div class="stats stats-vertical sm:stats-horizontal shadow w-full">
-          <div class="stat p-3 sm:p-4">
-            <div class="stat-title text-xs sm:text-sm">Total Packages</div>
-            <div class="stat-value text-2xl sm:text-3xl text-primary">${
-              meta.total_packages ?? "-"
-            }</div>
-          </div>
-          <div class="stat p-3 sm:p-4">
-            <div class="stat-title text-xs sm:text-sm">Vulnerabilities</div>
-            <div class="stat-value text-2xl sm:text-3xl text-error">${
-              meta.total_vulnerabilities ?? vulns.length
-            }</div>
-          </div>
-          <div class="stat p-3 sm:p-4">
-            <div class="stat-title text-xs sm:text-sm">Severity Breakdown</div>
-            <div class="stat-desc text-xs">C:${sev.critical} H:${sev.high} M:${
-      sev.medium
-    } L:${sev.low}</div>
-          </div>
-        </div>
-
-        ${
-          vulnItems
-            ? `<div class="mt-4 space-y-2">${vulnItems}</div>`
-            : `
-          <div class="alert alert-success">
-            <i class="fas fa-check-circle"></i>
-            <span>No known vulnerabilities found.</span>
-          </div>`
-        }
-      </div>
-    `;
-
-    // Add download functionality
-    setupDownloadButton(data);
-  }
-
-  function setupDownloadButton(data) {
-    const downloadBtn = document.getElementById("download-report-btn");
-    if (downloadBtn && data) {
-      downloadBtn.disabled = false;
-      downloadBtn.onclick = async () => {
-        try {
-          // Generate HTML report
-          const fileName = lastAnalysisFileName || "dependency-analysis";
-          const htmlContent = generateHTMLReport(data, fileName);
-
-          // Create and download HTML file
-          const blob = new Blob([htmlContent], {
-            type: "text/html;charset=utf-8",
-          });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = `vulnera-report-${fileName.replace(/\.[^/.]+$/, "")}-${
-            new Date().toISOString().split("T")[0]
-          }.html`;
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-          URL.revokeObjectURL(url);
-
-          // Show success notification
-          try {
-            notyf?.open({
-              type: "success",
-              message: "HTML report downloaded successfully!",
-            });
-          } catch (_) {}
-        } catch (error) {
-          console.error("Download failed:", error);
-          try {
-            notyf?.open({
-              type: "warning",
-              message: "Download failed. Please try again.",
-            });
-          } catch (_) {}
-        }
-      };
-    }
-  }
-
-  function badgeFromSeverity(sev) {
-    const s = String(sev || "").toLowerCase();
-    if (s === "critical") return "badge-error";
-    if (s === "high") return "badge-warning";
-    if (s === "medium") return "badge-accent";
-    return "badge-ghost";
-  }
-
-  function escapeHtml(str) {
-    return String(str || "").replace(
-      /[&<>"]+/g,
-      (c) =>
-        ({
-          "&": "&amp;",
-          "<": "&lt;",
-          ">": "&gt;",
-          '"': "&quot;",
-        }[c])
-    );
+      .catch(() => console.warn("⚠️ Backend not reachable at", CONFIG.API_BASE_URL));
   }
 }
 
@@ -621,7 +64,7 @@ document.addEventListener("DOMContentLoaded", function () {
             <img src="/images/logo.png" alt="Vulnera Logo" class="h-24 sm:h-38 md:h-47 lg:h-58 xl:h-70 w-auto">
           </div>
       
-          </h1>
+          <h1>Vulnera</h1>
           <p class="text-base sm:text-lg md:text-xl opacity-70 mb-3 sm:mb-4 px-4">
             Comprehensive vulnerability analysis for your dependencies
           </p>
@@ -665,30 +108,67 @@ document.addEventListener("DOMContentLoaded", function () {
 
             <div
               id="drop-zone"
-              class="border-2 border-dashed border-base-300 rounded-lg p-6 sm:p-8 lg:p-12 text-center cursor-pointer hover:border-primary transition-all duration-300"
+              class="relative border-2 border-dashed border-base-300 rounded-xl p-8 sm:p-12 transition-all duration-300 ease-in-out cursor-pointer hover:border-primary hover:bg-base-200/50"
             >
-              <div class="space-y-3 sm:space-y-4">
-                <i class="fas fa-cloud-upload-alt text-4xl sm:text-5xl lg:text-6xl text-primary opacity-50"></i>
-                <div>
-                  <p class="text-lg sm:text-xl font-semibold">Drop your dependency file here</p>
-                  <p class="opacity-60 text-sm sm:text-base">or click to browse files</p>
-                </div>
-                <div class="badge badge-outline badge-lg text-xs sm:text-sm px-4 py-5 border-2">
-                  <span class="hidden sm:inline">Supported files: package.json, requirements.txt, Cargo.toml, and more</span>
-                  <span class="sm:hidden">Supports: package.json, requirements.txt, etc.</span>
-                </div>
+              <input
+                type="file"
+                id="file-input"
+                class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                aria-label="Dependency file upload"
+              />
+              <div class="flex flex-col items-center justify-center space-y-4">
+                <i
+                  class="fas fa-cloud-upload-alt text-4xl text-primary"
+                  aria-hidden="true"
+                ></i>
+                <p class="text-lg font-semibold text-base-content">
+                  <label for="file-input" class="link link-primary font-bold"
+                    >Click to upload</label
+                  >
+                  or drag & drop a file
+                </p>
+                <p class="text-sm text-base-content/60">
+                  Supported files: package.json, requirements.txt, pom.xml, and
+                  more.
+                </p>
               </div>
             </div>
 
-            <input type="file" id="file-input" class="hidden" accept=".json,.txt,.toml,.xml,.gradle,.lock,.props">
+            <div class="divider my-6 sm:my-8">OR</div>
 
-            <div id="file-info"></div>
+            <div class="flex flex-col sm:flex-row gap-4 w-full max-w-lg mx-auto">
+              <div class="relative flex-grow">
+                <i
+                  class="fas fa-link absolute left-4 top-1/2 -translate-y-1/2 text-base-content/40"
+                  aria-hidden="true"
+                ></i>
+                <input
+                  type="text"
+                  id="github-url-input"
+                  placeholder="Enter a public GitHub repository URL"
+                  class="input input-bordered w-full pl-10"
+                  aria-label="GitHub repository URL input"
+                />
+              </div>
+              <button
+                id="github-scan-btn"
+                class="btn btn-primary"
+                aria-label="Scan GitHub repository"
+              >
+                <i class="fab fa-github" aria-hidden="true"></i>
+                <span class="hidden sm:inline">Scan Repository</span>
+                <span class="sm:hidden">Scan</span>
+              </button>
+            </div>
 
-            <div class="card-actions justify-center mt-4 sm:mt-6">
-              <button id="analyze-btn" class="btn btn-primary btn-sm sm:btn-md lg:btn-lg w-full sm:w-auto" disabled>
-                <i class="fas fa-search"></i>
-                <span class="hidden xs:inline">Analyze Vulnerabilities</span>
-                <span class="xs:hidden">Analyze</span>
+            <div class="mt-6 text-center">
+              <button
+                id="sample-file-btn"
+                class="btn btn-ghost"
+                aria-label="Try with a sample file"
+              >
+                <i class="fas fa-file-alt mr-2" aria-hidden="true"></i>
+                Try with a sample file
               </button>
             </div>
           </div>
@@ -828,7 +308,7 @@ document.addEventListener("DOMContentLoaded", function () {
     </div>
 
     <!-- Footer -->
-    <footer class="footer footer-center p-6 sm:p-10 bg-base-200 text-base-content">
+    <footer class="footer footer-center p-4 bg-base-300 text-base-content">
       <div class="grid grid-flow-col gap-2 sm:gap-4 text-sm sm:text-base">
         <a class="link link-hover" href="/docs">
           <span class="hidden xs:inline">Documentation</span>
@@ -865,35 +345,68 @@ document.addEventListener("DOMContentLoaded", function () {
       </div>
     </footer>
 
-    <!-- Loading Modal -->
+    <!-- Modals -->
     <input type="checkbox" id="loading-modal" class="modal-toggle" />
-    <div class="modal modal-bottom sm:modal-middle">
-      <div class="modal-box w-11/12 max-w-md mx-auto">
-        <h3 class="font-bold text-lg sm:text-xl mb-4 text-center">Analyzing Dependencies</h3>
-        <div class="flex flex-col items-center space-y-3 sm:space-y-4 py-4">
-          <span class="loading loading-spinner loading-lg text-primary"></span>
-          <p class="text-sm sm:text-base text-center">Scanning for vulnerabilities...</p>
-        </div>
+    <div
+      class="modal modal-bottom sm:modal-middle"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="loading-title"
+    >
+      <div class="modal-box text-center">
+        <h3 id="loading-title" class="font-bold text-lg">Analyzing...</h3>
+        <p class="py-4">
+          Please wait while we scan your dependencies for vulnerabilities.
+        </p>
+        <span class="loading loading-lg loading-spinner text-primary"></span>
       </div>
     </div>
 
-    <!-- Result Modal -->
     <input type="checkbox" id="result-modal" class="modal-toggle" />
-    <div class="modal modal-bottom sm:modal-middle">
-      <div class="modal-box w-11/12 max-w-5xl mx-auto">
-        <label for="result-modal" class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</label>
-        <h3 class="font-bold text-lg sm:text-xl mb-4">Analysis Results</h3>
-        <div id="result-content" class="overflow-x-auto"></div>
-        <div class="modal-action flex-col sm:flex-row gap-2 sm:gap-4">
-          <label for="result-modal" class="btn btn-outline w-full sm:w-auto order-2 sm:order-1">Close</label>
-          <button id="download-report-btn" class="btn btn-primary w-full sm:w-auto order-1 sm:order-2" disabled>
-            <i class="fas fa-download"></i>
-            <span class="hidden xs:inline ml-2">Download HTML Report</span>
-            <span class="xs:hidden ml-2">Download</span>
-          </button>
+    <div
+      class="modal modal-bottom sm:modal-middle"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="result-title"
+    >
+      <div class="modal-box w-11/12 max-w-5xl">
+        <div class="flex justify-between items-center mb-4">
+          <h3 id="result-title" class="font-bold text-lg">Analysis Result</h3>
+          <div class="flex items-center gap-2">
+            <button
+              id="download-report-btn"
+              class="btn btn-sm btn-outline btn-primary"
+              disabled
+              aria-label="Download analysis report"
+            >
+              <i class="fas fa-download mr-2" aria-hidden="true"></i>
+              Download
+            </button>
+            <form method="dialog">
+              <button class="btn btn-sm btn-circle btn-ghost" aria-label="Close analysis results">
+                <i class="fas fa-times" aria-hidden="true"></i>
+              </button>
+            </form>
+          </div>
+        </div>
+        <div id="result-content" class="max-h-[60vh] overflow-y-auto p-1">
+          <!-- Results will be rendered here -->
         </div>
       </div>
+      <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+      </form>
     </div>
+
+    <!-- Theme Toggle -->
+    <label
+      class="swap swap-rotate fixed bottom-4 right-4 z-50 btn btn-circle shadow-lg"
+      aria-label="Toggle theme"
+    >
+      <input type="checkbox" id="theme-toggle" />
+      <i class="swap-off fas fa-sun text-yellow-500"></i>
+      <i class="swap-on fas fa-moon text-blue-500"></i>
+    </label>
   `;
 
   initThemeToggle();
@@ -908,186 +421,5 @@ document.addEventListener("DOMContentLoaded", function () {
   }, 100);
 });
 
-// Sample file functionality
-function initSampleFile() {
-  document.getElementById("sample-btn").addEventListener("click", function () {
-    // Create a sample file for testing
-    const sampleContent = {
-      name: "vulnerable-app",
-      version: "1.0.0",
-      description: "Sample package.json for testing vulnerability analysis",
-      dependencies: {
-        express: "4.17.1",
-        lodash: "4.17.20",
-        axios: "0.21.1",
-        moment: "2.29.1",
-        jquery: "3.5.1",
-      },
-      devDependencies: {
-        jest: "26.6.3",
-        eslint: "7.32.0",
-      },
-    };
-
-    const blob = new Blob([JSON.stringify(sampleContent, null, 2)], {
-      type: "application/json",
-    });
-    const file = new File([blob], "package.json", { type: "application/json" });
-
-    // Simulate file selection
-    const fileInput = document.getElementById("file-input");
-    const dataTransfer = new DataTransfer();
-    dataTransfer.items.add(file);
-    fileInput.files = dataTransfer.files;
-
-    // Create file info display function locally
-    const fileInfo = document.getElementById("file-info");
-    const analyzeBtn = document.getElementById("analyze-btn");
-
-    const supportedFiles = {
-      "package.json": "Node.js",
-      "package-lock.json": "Node.js",
-      "yarn.lock": "Node.js",
-      "requirements.txt": "Python",
-      Pipfile: "Python",
-      "pyproject.toml": "Python",
-      "pom.xml": "Java",
-      "build.gradle": "Java",
-      "build.gradle.kts": "Java",
-      "Cargo.toml": "Rust",
-      "Cargo.lock": "Rust",
-      "go.mod": "Go",
-      "go.sum": "Go",
-      "composer.json": "PHP",
-      "composer.lock": "PHP",
-      Gemfile: "Ruby",
-      "Gemfile.lock": "Ruby",
-      "packages.config": ".NET",
-      "*.csproj": ".NET",
-      "Directory.Packages.props": ".NET",
-    };
-
-    const ecosystem = supportedFiles[file.name] || "Unknown";
-    const isSupported = ecosystem !== "Unknown";
-
-    fileInfo.innerHTML = `
-      <div class="alert ${
-        isSupported ? "alert-success" : "alert-warning"
-      } mb-4">
-        <i class="fas ${
-          isSupported ? "fa-check-circle" : "fa-exclamation-triangle"
-        }"></i>
-        <div class="flex-1 min-w-0">
-          <div class="font-semibold text-sm sm:text-base truncate">${
-            file.name
-          }</div>
-          <div class="text-xs sm:text-sm opacity-70">
-            <span class="font-medium">${ecosystem}</span>
-            <span class="hidden xs:inline"> - ${(file.size / 1024).toFixed(
-              2
-            )} KB</span>
-          </div>
-        </div>
-      </div>
-    `;
-
-    analyzeBtn.disabled = !isSupported;
-    analyzeBtn.classList.toggle("btn-disabled", !isSupported);
-  });
-}
-
 // Initialize Notyf for notifications
-let notyf;
-let lastAnalysisData = null;
-let lastAnalysisFileName = null;
-
-// GitHub repo scanning functionality
-function initGitHubScanning() {
-  // Initialize Notyf with custom configuration
-  notyf = new Notyf({
-    duration: 5000,
-    position: {
-      x: "right",
-      y: "top",
-    },
-    types: [
-      {
-        type: "info",
-        background: "#3B82F6",
-        icon: {
-          className: "fas fa-info-circle",
-          tagName: "i",
-          color: "white",
-        },
-      },
-      {
-        type: "warning",
-        background: "#F59E0B",
-        icon: {
-          className: "fas fa-exclamation-triangle",
-          tagName: "i",
-          color: "white",
-        },
-      },
-      {
-        type: "success",
-        background: "#10B981",
-        icon: {
-          className: "fas fa-check-circle",
-          tagName: "i",
-          color: "white",
-        },
-      },
-      {
-        type: "github",
-        background: "#1F2937",
-        icon: {
-          className: "fab fa-github",
-          tagName: "i",
-          color: "white",
-        },
-      },
-    ],
-  });
-
-  // GitHub scan button in hero section
-  document
-    .getElementById("github-scan-btn")
-    .addEventListener("click", function () {
-      showGitHubComingSoon();
-    });
-
-  // GitHub scan preview button in coming soon section
-  document
-    .getElementById("github-scan-preview")
-    .addEventListener("click", function () {
-      showGitHubComingSoon();
-    });
-
-  function showGitHubComingSoon() {
-    // Show coming soon notification
-    notyf.open({
-      type: "github",
-      message:
-        "🚀 GitHub Repository Scanning - Coming Soon! Scan entire repos for vulnerabilities across all dependency files.",
-    });
-
-    // Show additional info after 2.5 seconds
-    setTimeout(() => {
-      notyf.open({
-        type: "info",
-        message:
-          "✨ Features: OAuth integration, bulk scanning, automated CI/CD workflows, and comprehensive reporting.",
-      });
-    }, 2500);
-
-    // Show feature timeline after 5 seconds
-    setTimeout(() => {
-      notyf.open({
-        type: "success",
-        message:
-          "📅 Expected Release: Q1 2026 | Follow our GitHub for beta access and updates!",
-      });
-    }, 5000);
-  }
-}
+initNotyf();
