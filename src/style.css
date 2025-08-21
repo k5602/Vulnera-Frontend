@@ -189,13 +189,15 @@ body {
 }
 
 /* Enhanced preview button animation */
-#github-scan-preview {
+#github-scan-preview,
+#vscode-ext-preview {
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
 }
 
-#github-scan-preview:before {
+#github-scan-preview:before,
+#vscode-ext-preview:before {
   content: '';
   position: absolute;
   top: 0;
@@ -206,11 +208,13 @@ body {
   transition: left 0.5s;
 }
 
-#github-scan-preview:hover:before {
+#github-scan-preview:hover:before,
+#vscode-ext-preview:hover:before {
   left: 100%;
 }
 
-#github-scan-preview:hover {
+#github-scan-preview:hover,
+#vscode-ext-preview:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
