@@ -14,11 +14,6 @@
     "preview": "vite preview",
     "preview:staging": "vite preview --mode staging",
     "preview:production": "vite preview --mode production",
-    "switch:local": "./switch-api.sh local",
-    "switch:remote": "./switch-api.sh remote",
-    "switch:azure": "./switch-api.sh azure",
-    "switch:production": "./switch-api.sh production",
-    "switch:staging": "./switch-api.sh staging",
     "config:show": "./switch-api.sh status",
     "env:init": "cp .env.example .env && echo 'Created .env from .env.example'"
   },

@@ -42,3 +42,10 @@ export function showGitHubComingSoon() {
   setTimeout(()=> n.open({ type: 'info', message: '✨ Features: OAuth integration, bulk scanning, automated CI/CD workflows, and comprehensive reporting.' }), 2500);
   setTimeout(()=> n.open({ type: 'success', message: '📅 Expected Release: Q1 2026 | Follow our GitHub for beta access and updates!' }), 5000);
 }
+
+export function showVsCodeExtensionPreview() {
+  const n = getNotyf();
+  n.open({ type: 'info', message: '🧩 VS Code Extension — on the roadmap.' });
+  setTimeout(() => n.open({ type: 'info', message: 'Inline diagnostics, quick fixes, and one-click scans from your editor.' }), 2000);
+  setTimeout(() => n.open({ type: 'success', message: 'Sign up for early access on our GitHub soon.' }), 4000);
+}

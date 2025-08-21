@@ -4,7 +4,7 @@ import { initThemeToggle } from './ui/theme.js';
 import { initDragAndDrop } from './features/dragDrop.js';
 import { initSampleFile } from './features/sample-file.js';
 import { initGitHubScanning } from './features/github-scan.js';
-import { initNotyf } from './ui/notifications.js';
+import { initNotyf, showVsCodeExtensionPreview } from './ui/notifications.js';
 import { onModalToggle } from './ui/focus.js';
 
 // Enhanced logging for debugging
@@ -93,7 +93,7 @@ document.addEventListener("DOMContentLoaded", function () {
               <span class="hidden xs:inline">Try Sample File</span>
               <span class="xs:hidden">Sample</span>
             </button>
-            <button id="github-scan-btn" class="btn btn-outline btn-warning btn-sm sm:btn-md">
+            <button id="github-scan-cta" class="btn btn-outline btn-warning btn-sm sm:btn-md">
               <i class="fab fa-github"></i>
               <span class="hidden xs:inline">Scan GitHub Repo</span>
               <span class="xs:hidden">GitHub</span>
@@ -164,6 +164,63 @@ document.addEventListener("DOMContentLoaded", function () {
               </button>
             </div>
 
+            <!-- Advanced options for repository scanning -->
+            <div class="mt-4 w-full max-w-3xl mx-auto">
+              <div class="collapse collapse-arrow bg-base-200">
+                <input type="checkbox" />
+                <div class="collapse-title font-medium">Advanced options</div>
+                <div class="collapse-content">
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <label class="label cursor-pointer justify-start gap-3">
+                      <input type="checkbox" id="gh-include-lockfiles" class="checkbox checkbox-sm" checked />
+                      <span class="label-text">Include lockfiles (package-lock.json, yarn.lock, Cargo.lock, etc.)</span>
+                    </label>
+
+                    <label class="form-control">
+                      <div class="label"><span class="label-text">Max files to scan (1-500)</span></div>
+                      <input type="number" id="gh-max-files" class="input input-bordered" min="1" max="500" value="200" />
+                    </label>
+
+                    <label class="form-control md:col-span-1">
+                      <div class="label"><span class="label-text">Include paths (comma separated)</span></div>
+                      <input type="text" id="gh-include-paths" class="input input-bordered" placeholder="crates/,src/" />
+                    </label>
+
+                    <label class="form-control md:col-span-1">
+                      <div class="label"><span class="label-text">Exclude paths (comma separated)</span></div>
+                      <input type="text" id="gh-exclude-paths" class="input input-bordered" placeholder="tests/,docs/" />
+                    </label>
+
+                    <label class="form-control md:col-span-2">
+                      <div class="label"><span class="label-text">Ref (branch, tag, or commit SHA)</span></div>
+                      <input type="text" id="gh-ref" class="input input-bordered" placeholder="main" />
+                    </label>
+
+                    <div class="md:col-span-2">
+                      <div class="divider my-1">Authentication</div>
+                    </div>
+
+                    <label class="form-control md:col-span-2">
+                      <div class="label"><span class="label-text">GitHub Token (PAT or OAuth bearer)</span></div>
+                      <input type="password" id="gh-token" class="input input-bordered" placeholder="ghp_… or OAuth token" autocomplete="off" />
+                      <div class="label"><span class="label-text-alt">Used for private repos and GHSA enrichment. Not stored.</span></div>
+                    </label>
+
+                    <label class="label cursor-pointer justify-start gap-3 md:col-span-2">
+                      <input type="checkbox" id="gh-remember-token" class="checkbox checkbox-sm" />
+                      <span class="label-text">Remember token for this session</span>
+                    </label>
+
+                    <label class="form-control md:col-span-2">
+                      <div class="label"><span class="label-text">Custom headers (key: value per line)</span></div>
+                      <textarea id="gh-custom-headers" class="textarea textarea-bordered" rows="3" placeholder="X-Org: example\nX-Feature-Flag: on"></textarea>
+                      <div class="label"><span class="label-text-alt">Sent to backend with the request. Avoid overriding Content-Type, Accept, or User-Agent.</span></div>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div class="mt-6 text-center">
               <button
                 id="sample-file-btn"
@@ -186,17 +243,17 @@ document.addEventListener("DOMContentLoaded", function () {
               <span class="xs:hidden">Coming Soon</span>
             </h2>
 
-            <div class="text-center">
+              <div class="text-center">
               <div class="mb-4">
-                <i class="fab fa-github text-4xl sm:text-5xl text-amber-600 dark:text-warning opacity-80 mb-3"></i>
-                <h3 class="text-lg sm:text-xl font-semibold mb-2 text-amber-800 dark:text-amber-200">GitHub Repository Scanning</h3>
+                <i class="fas fa-plug text-4xl sm:text-5xl text-amber-600 dark:text-warning opacity-80 mb-3"></i>
+                <h3 class="text-lg sm:text-xl font-semibold mb-2 text-amber-800 dark:text-amber-200">VS Code Extension</h3>
                 <p class="text-sm sm:text-base opacity-80 mb-4 text-amber-700 dark:text-amber-300">
-                  <span class="hidden sm:inline">Automatically scan entire GitHub repositories for vulnerabilities across all dependency files. Support for public and private repos with OAuth integration.</span>
-                  <span class="sm:hidden">Scan entire GitHub repos for vulnerabilities automatically.</span>
+                  <span class="hidden sm:inline">Next up: analyze dependencies directly in your editor with a VS Code extension. Seamless scans, inline diagnostics, and quick fixes.</span>
+                  <span class="sm:hidden">Upcoming: VS Code extension.</span>
                 </p>
-                <button id="github-scan-preview" class="btn btn-warning btn-sm sm:btn-md">
-                  <i class="fab fa-github"></i>
-                  <span class="hidden xs:inline">Preview GitHub Scanning</span>
+                <button id="vscode-ext-preview" class="btn btn-warning btn-sm sm:btn-md">
+                  <i class="fas fa-code"></i>
+                  <span class="hidden xs:inline">Preview Extension</span>
                   <span class="xs:hidden">Preview</span>
                 </button>
               </div>
@@ -286,23 +343,25 @@ document.addEventListener("DOMContentLoaded", function () {
               </div>
 
               <!-- Ruby -->
-              <div class="flex flex-col items-center p-3 sm:p-4 rounded-lg bg-base-200 hover:bg-primary hover:text-primary-content transition-all duration-300 hover:scale-105">
+              <div class="flex flex-col items-center p-3 sm:p-4 rounded-lg bg-base-200 hover:bg-primary hover:text-primary-content transition-all duration-300 hover:scale-105 relative">
                 <i class="fas fa-gem text-3xl sm:text-4xl text-red-600 mb-2 sm:mb-3"></i>
                 <h3 class="font-semibold text-base sm:text-lg">Ruby</h3>
                 <p class="text-xs sm:text-sm opacity-70 text-center leading-tight">
                   <span class="hidden sm:inline">RubyGems, Gemfile, Gemfile.lock</span>
                   <span class="sm:hidden">RubyGems, Gemfile</span>
                 </p>
+                <span class="badge badge-warning absolute top-2 right-2">Preview</span>
               </div>
 
               <!-- .NET -->
-              <div class="flex flex-col items-center p-3 sm:p-4 rounded-lg bg-base-200 hover:bg-primary hover:text-primary-content transition-all duration-300 hover:scale-105">
+              <div class="flex flex-col items-center p-3 sm:p-4 rounded-lg bg-base-200 hover:bg-primary hover:text-primary-content transition-all duration-300 hover:scale-105 relative">
                 <i class="fab fa-microsoft text-3xl sm:text-4xl text-blue-600 mb-2 sm:mb-3"></i>
                 <h3 class="font-semibold text-base sm:text-lg">.NET</h3>
                 <p class="text-xs sm:text-sm opacity-70 text-center leading-tight">
                   <span class="hidden sm:inline">NuGet, *.csproj, packages.config</span>
                   <span class="sm:hidden">NuGet, *.csproj</span>
                 </p>
+                <span class="badge badge-warning absolute top-2 right-2">Preview</span>
               </div>
             </div>
           </div>
@@ -412,6 +471,30 @@ document.addEventListener("DOMContentLoaded", function () {
   initDragAndDrop();
   initSampleFile();
   setTimeout(() => { if (typeof Notyf !== 'undefined') { initGitHubScanning(); } }, 100);
+
+  // Preview button for upcoming VS Code Extension
+  const vsPrev = document.getElementById('vscode-ext-preview');
+  if (vsPrev) { vsPrev.addEventListener('click', () => showVsCodeExtensionPreview()); }
+
+  // Hero CTA scrolls to GitHub input
+  const ghCta = document.getElementById('github-scan-cta');
+  if (ghCta) {
+    ghCta.addEventListener('click', () => {
+      const input = document.getElementById('github-url-input');
+      if (input) { input.scrollIntoView({ behavior: 'smooth', block: 'center' }); setTimeout(()=> input.focus(), 400); }
+    });
+  }
+
+  // Prefill GitHub token from session storage if available
+  const tokenInput = document.getElementById('gh-token');
+  const rememberCb = document.getElementById('gh-remember-token');
+  if (tokenInput && rememberCb && typeof sessionStorage !== 'undefined') {
+    const storedToken = sessionStorage.getItem('vulnera.gh.token');
+    if (storedToken) {
+      tokenInput.value = storedToken;
+      rememberCb.checked = true;
+    }
+  }
 
   // Modal focus management
   onModalToggle('loading-modal', { onOpen: (modal)=> { const h = modal.querySelector('#loading-title'); h && h.focus(); }, onClose: ()=> {} });
