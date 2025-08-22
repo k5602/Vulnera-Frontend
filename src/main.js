@@ -59,7 +59,7 @@ if (CONFIG.ENABLE_DEBUG === "true" || import.meta.env?.DEV) {
 
 // Initialize the app
 document.addEventListener("DOMContentLoaded", function () {
-  document.querySelector("#app").innerHTML = `
+    document.querySelector("#app").innerHTML = `
     <!-- Navigation -->
     <div class="navbar bg-base-100 shadow-lg px-2 sm:px-4">
       <div class="flex-1">
@@ -470,71 +470,76 @@ document.addEventListener("DOMContentLoaded", function () {
       <div class="modal-backdrop" onclick="closeResultModal()"></div>
     </div>
 
-    <!-- Theme Toggle -->
-    <label
-      class="swap swap-rotate fixed bottom-4 right-4 z-50 btn btn-circle shadow-lg"
-      aria-label="Toggle theme"
-    >
-      <input type="checkbox" id="theme-toggle" />
-      <i class="swap-off fas fa-sun text-yellow-500"></i>
-      <i class="swap-on fas fa-moon text-blue-500"></i>
-    </label>
+
   `;
 
-  initThemeToggle();
-  initDragAndDrop();
+    initThemeToggle();
+    initDragAndDrop();
 
-  // Lazy-load non-critical modules on idle or first interaction
-  const loadSample = async () => {
-    if (!initSampleFile) {
-      ({ initSampleFile } = await import(/* webpackChunkName: "sample-file" */ "./features/sample-file.js"));
-      initSampleFile();
+    // Lazy-load non-critical modules on idle or first interaction
+    const loadSample = async () => {
+        if (!initSampleFile) {
+            ({ initSampleFile } = await import(
+                /* webpackChunkName: "sample-file" */ "./features/sample-file.js"
+            ));
+            initSampleFile();
+        }
+    };
+    const loadGithubScan = async () => {
+        if (!initGitHubScanning && typeof Notyf !== "undefined") {
+            ({ initGitHubScanning } = await import(
+                /* webpackChunkName: "github-scan" */ "./features/github-scan.js"
+            ));
+            initGitHubScanning();
+        }
+    };
+    // Warm up lazily after first paint without blocking
+    if ("requestIdleCallback" in window) {
+        requestIdleCallback(
+            () => {
+                loadSample();
+                loadGithubScan();
+            },
+            { timeout: 3000 },
+        );
+    } else {
+        setTimeout(() => {
+            loadSample();
+            loadGithubScan();
+        }, 800);
     }
-  };
-  const loadGithubScan = async () => {
-    if (!initGitHubScanning && typeof Notyf !== "undefined") {
-      ({ initGitHubScanning } = await import(/* webpackChunkName: "github-scan" */ "./features/github-scan.js"));
-      initGitHubScanning();
-    }
-  };
-  // Warm up lazily after first paint without blocking
-  if ("requestIdleCallback" in window) {
-    requestIdleCallback(() => { loadSample(); loadGithubScan(); }, { timeout: 3000 });
-  } else {
-    setTimeout(() => { loadSample(); loadGithubScan(); }, 800);
-  }
 
-  // Ensure first-click works before modules load
-  const sampleBtn = document.getElementById('sample-btn');
-  if (sampleBtn) {
-    const stub = async (e) => {
-      e.preventDefault();
-      sampleBtn.removeEventListener('click', stub);
-      await loadSample();
-      // Re-dispatch to hit the real handler
-      sampleBtn.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    };
-    sampleBtn.addEventListener('click', stub, { once: true });
-  }
-  const ghScanBtn = document.getElementById('github-scan-btn');
-  if (ghScanBtn) {
-    const stub2 = async (e) => {
-      e.preventDefault();
-      ghScanBtn.removeEventListener('click', stub2);
-      await loadGithubScan();
-      ghScanBtn.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    };
-    ghScanBtn.addEventListener('click', stub2, { once: true });
-  }
+    // Ensure first-click works before modules load
+    const sampleBtn = document.getElementById("sample-btn");
+    if (sampleBtn) {
+        const stub = async (e) => {
+            e.preventDefault();
+            sampleBtn.removeEventListener("click", stub);
+            await loadSample();
+            // Re-dispatch to hit the real handler
+            sampleBtn.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+        };
+        sampleBtn.addEventListener("click", stub, { once: true });
+    }
+    const ghScanBtn = document.getElementById("github-scan-btn");
+    if (ghScanBtn) {
+        const stub2 = async (e) => {
+            e.preventDefault();
+            ghScanBtn.removeEventListener("click", stub2);
+            await loadGithubScan();
+            ghScanBtn.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+        };
+        ghScanBtn.addEventListener("click", stub2, { once: true });
+    }
 
     // Preview button for upcoming VS Code Extension
-  const vsPrev = document.getElementById("vscode-ext-preview");
+    const vsPrev = document.getElementById("vscode-ext-preview");
     if (vsPrev) {
         vsPrev.addEventListener("click", () => showVsCodeExtensionPreview());
     }
 
     // Hero CTA scrolls to GitHub input
-  const ghCta = document.getElementById("github-scan-cta");
+    const ghCta = document.getElementById("github-scan-cta");
     if (ghCta) {
         ghCta.addEventListener("click", () => {
             const input = document.getElementById("github-url-input");
@@ -542,8 +547,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 input.scrollIntoView({ behavior: "smooth", block: "center" });
                 setTimeout(() => input.focus(), 400);
             }
-      // Ensure GitHub scanning code is ready after CTA
-      loadGithubScan();
+            // Ensure GitHub scanning code is ready after CTA
+            loadGithubScan();
         });
     }
 
