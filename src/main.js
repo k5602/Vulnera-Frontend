@@ -2,8 +2,9 @@ import "./style.css";
 import { CONFIG } from "./config.js";
 import { initThemeToggle } from "./ui/theme.js";
 import { initDragAndDrop } from "./features/dragDrop.js";
-import { initSampleFile } from "./features/sample-file.js";
-import { initGitHubScanning } from "./features/github-scan.js";
+// Defer rarely used features to reduce initial JS payload
+let initSampleFile;
+let initGitHubScanning;
 import { initNotyf, showVsCodeExtensionPreview } from "./ui/notifications.js";
 import { onModalToggle } from "./ui/focus.js";
 
@@ -58,12 +59,12 @@ if (CONFIG.ENABLE_DEBUG === "true" || import.meta.env?.DEV) {
 
 // Initialize the app
 document.addEventListener("DOMContentLoaded", function () {
-    document.querySelector("#app").innerHTML = `
+  document.querySelector("#app").innerHTML = `
     <!-- Navigation -->
     <div class="navbar bg-base-100 shadow-lg px-2 sm:px-4">
       <div class="flex-1">
         <a class="btn btn-ghost text-2xl sm:text-3xl">
-          <img src="/images/logo.png" alt="Vulnera Logo" class="h-10 sm:h-20 w-auto mr-2">
+          <img src="/images/logo.png" alt="Vulnera Logo" class="h-10 sm:h-20 w-auto mr-2" width="160" height="160" fetchpriority="high" decoding="async">
         </a>
       </div>
       <div class="flex-none">
@@ -81,7 +82,7 @@ document.addEventListener("DOMContentLoaded", function () {
         <!-- Hero Section -->
         <div class="text-center mb-6 sm:mb-8">
           <div class="flex justify-center mb-2">
-            <img src="/images/logo.png" alt="Vulnera Logo" class="h-24 sm:h-38 md:h-47 lg:h-58 xl:h-70 w-auto">
+            <img src="/images/logo.png" alt="Vulnera Logo" class="h-24 sm:h-38 md:h-47 lg:h-58 xl:h-70 w-auto" width="280" height="280" fetchpriority="high" decoding="async">
           </div>
 
           <h1>Vulnera</h1>
@@ -480,23 +481,60 @@ document.addEventListener("DOMContentLoaded", function () {
     </label>
   `;
 
-    initThemeToggle();
-    initDragAndDrop();
-    initSampleFile();
-    setTimeout(() => {
-        if (typeof Notyf !== "undefined") {
-            initGitHubScanning();
-        }
-    }, 100);
+  initThemeToggle();
+  initDragAndDrop();
+
+  // Lazy-load non-critical modules on idle or first interaction
+  const loadSample = async () => {
+    if (!initSampleFile) {
+      ({ initSampleFile } = await import(/* webpackChunkName: "sample-file" */ "./features/sample-file.js"));
+      initSampleFile();
+    }
+  };
+  const loadGithubScan = async () => {
+    if (!initGitHubScanning && typeof Notyf !== "undefined") {
+      ({ initGitHubScanning } = await import(/* webpackChunkName: "github-scan" */ "./features/github-scan.js"));
+      initGitHubScanning();
+    }
+  };
+  // Warm up lazily after first paint without blocking
+  if ("requestIdleCallback" in window) {
+    requestIdleCallback(() => { loadSample(); loadGithubScan(); }, { timeout: 3000 });
+  } else {
+    setTimeout(() => { loadSample(); loadGithubScan(); }, 800);
+  }
+
+  // Ensure first-click works before modules load
+  const sampleBtn = document.getElementById('sample-btn');
+  if (sampleBtn) {
+    const stub = async (e) => {
+      e.preventDefault();
+      sampleBtn.removeEventListener('click', stub);
+      await loadSample();
+      // Re-dispatch to hit the real handler
+      sampleBtn.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    };
+    sampleBtn.addEventListener('click', stub, { once: true });
+  }
+  const ghScanBtn = document.getElementById('github-scan-btn');
+  if (ghScanBtn) {
+    const stub2 = async (e) => {
+      e.preventDefault();
+      ghScanBtn.removeEventListener('click', stub2);
+      await loadGithubScan();
+      ghScanBtn.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    };
+    ghScanBtn.addEventListener('click', stub2, { once: true });
+  }
 
     // Preview button for upcoming VS Code Extension
-    const vsPrev = document.getElementById("vscode-ext-preview");
+  const vsPrev = document.getElementById("vscode-ext-preview");
     if (vsPrev) {
         vsPrev.addEventListener("click", () => showVsCodeExtensionPreview());
     }
 
     // Hero CTA scrolls to GitHub input
-    const ghCta = document.getElementById("github-scan-cta");
+  const ghCta = document.getElementById("github-scan-cta");
     if (ghCta) {
         ghCta.addEventListener("click", () => {
             const input = document.getElementById("github-url-input");
@@ -504,6 +542,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 input.scrollIntoView({ behavior: "smooth", block: "center" });
                 setTimeout(() => input.focus(), 400);
             }
+      // Ensure GitHub scanning code is ready after CTA
+      loadGithubScan();
         });
     }
 

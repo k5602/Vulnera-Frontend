@@ -11,7 +11,10 @@ export function initThemeToggle() {
   
     themeToggle.addEventListener("change", function () {
       const next = this.checked ? 'dark' : 'light';
+      // Add scoped transition class for a brief period
+      htmlElement.classList.add('theme-transition');
       htmlElement.setAttribute("data-theme", next);
       localStorage.setItem("theme", next);
+      setTimeout(()=> htmlElement.classList.remove('theme-transition'), 250);
     });
   }

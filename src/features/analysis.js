@@ -1,10 +1,7 @@
 import { CONFIG } from '../config.js';
 import { detectEcosystemForApi } from '../utils/ecosystems.js';
 import { showError, showSuccess } from '../ui/notifications.js';
-import { generateHTMLReport } from '../html-report-generator.js';
 import { escapeHtml, safeSeverity, sanitizeMessage, MAX_FILE_BYTES } from '../utils/sanitize.js';
-import { generateFixedDependencyFile, generateFixLog } from '../utils/fileFixers.js';
-import JSZip from 'jszip';
 
 let lastAnalysisData = null;
 let lastAnalysisFileName = null;
@@ -539,9 +536,11 @@ export async function handleAnalyze() {
           const timestamp = new Date().toISOString().split("T")[0];
           
           // Create ZIP file
+          const { default: JSZip } = await import('jszip');
           const zip = new JSZip();
           
           // 1. Generate HTML report
+          const { generateHTMLReport } = await import('../html-report-generator.js');
           const htmlContent = generateHTMLReport(data, fileName);
           zip.file(`vulnera-report-${baseFileName}-${timestamp}.html`, htmlContent);
           
@@ -552,6 +551,7 @@ export async function handleAnalyze() {
             const originalContent = await originalFile.text();
             
             // Generate fixed dependency file
+            const { generateFixedDependencyFile, generateFixLog } = await import('../utils/fileFixers.js');
             const fixResult = generateFixedDependencyFile(
               originalContent, 
               originalFile.name, 
