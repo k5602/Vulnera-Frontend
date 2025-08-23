@@ -85,8 +85,10 @@ export async function handleAnalyze() {
         loadingModal.checked = false;
 
         if (!res.ok) {
+            const code = payload?.code || "ERROR";
+            const reqId = payload?.request_id ? ` • Request ID: ${payload.request_id}` : "";
             const message = payload?.message || payload?.error || `Request failed (${res.status})`;
-            showError(message);
+            showError(`[${code}] ${message}${reqId}`);
             return;
         }
 
@@ -138,6 +140,9 @@ function renderPackageView(data) {
     const repo = data?.repository || null;
     const vulns = Array.isArray(data?.vulnerabilities) ? data.vulnerabilities : [];
     const pagination = data?.pagination || {};
+    const recommendations = Array.isArray(data?.version_recommendations)
+        ? data.version_recommendations
+        : [];
 
     // Group vulnerabilities by affected packages
     const packageMap = new Map();
@@ -214,6 +219,26 @@ function renderPackageView(data) {
       </div>
     `
             : "";
+    const recommendationCards = recommendations
+        .map(
+            (r) => `
+      <div class="bg-base-200 rounded-lg p-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="font-semibold text-lg">${escapeHtml(r.package)}</h3>
+            <p class="text-sm opacity-70">${escapeHtml(r.ecosystem)}${r.current_version ? ` • Current: ${escapeHtml(r.current_version)}` : ""}</p>
+          </div>
+          <div class="flex flex-wrap gap-2 text-sm">
+            ${r.nearest_safe_above_current ? `<span class="badge badge-accent">Nearest: ${escapeHtml(r.nearest_safe_above_current)}${r.nearest_impact ? ` (${escapeHtml(r.nearest_impact)})` : ""}</span>` : ""}
+            ${r.most_up_to_date_safe ? `<span class="badge badge-primary">Latest: ${escapeHtml(r.most_up_to_date_safe)}${r.most_up_to_date_impact ? ` (${escapeHtml(r.most_up_to_date_impact)})` : ""}</span>` : ""}
+            ${r.prerelease_exclusion_applied ? `<span class="badge badge-ghost">Prereleases excluded</span>` : ""}
+          </div>
+        </div>
+        ${Array.isArray(r.notes) && r.notes.length ? `<div class="mt-2 text-xs opacity-70">Notes: ${r.notes.map((n) => escapeHtml(n)).join("; ")}</div>` : ""}
+      </div>
+    `,
+        )
+        .join("");
 
     // Optional repository summary card
     const repoSummary = repo
@@ -275,6 +300,19 @@ function renderPackageView(data) {
         </div>
 
         ${
+            recommendations.length > 0
+                ? `
+          <div class="mt-6">
+            <h3 class="text-lg font-semibold mb-4">Version Recommendations</h3>
+            <div class="space-y-2">
+              ${recommendationCards}
+            </div>
+          </div>
+        `
+                : ""
+        }
+
+        ${
             packages.length > 0
                 ? `
           <div class="mt-6">
@@ -330,7 +368,17 @@ async function loadAnalysisPage(page) {
         );
 
         if (!res.ok) {
-            throw new Error(`Failed to load page ${page}`);
+            let errMsg = `Failed to load page ${page}`;
+            try {
+                const errPayload = await res.clone().json();
+                const code = errPayload?.code || "ERROR";
+                const reqId = errPayload?.request_id
+                    ? ` • Request ID: ${errPayload.request_id}`
+                    : "";
+                const message = errPayload?.message || errPayload?.error || errMsg;
+                errMsg = `[${code}] ${message}${reqId}`;
+            } catch {}
+            throw new Error(errMsg);
         }
 
         const payload = await res.json();
@@ -606,6 +654,7 @@ function setupDownloadButton(data) {
                         originalContent,
                         originalFile.name,
                         data.vulnerabilities || [],
+                        data.version_recommendations || [],
                     );
 
                     // Add original file to zip

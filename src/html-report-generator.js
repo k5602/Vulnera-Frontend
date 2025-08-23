@@ -1,78 +1,85 @@
-import { escapeHtml, safeSeverity } from './utils/sanitize.js';
+import { escapeHtml, safeSeverity } from "./utils/sanitize.js";
 
 // HTML Report Generator for Vulnera
 function generateHTMLReport(data, filename = "unknown") {
-  const meta = data?.metadata || {};
-  const vulns = Array.isArray(data?.vulnerabilities) ? data.vulnerabilities : [];
-  const pagination = data?.pagination || {};
-  const sev = meta.severity_breakdown || { critical: 0, high: 0, medium: 0, low: 0 };
-  const reportDate = new Date().toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
+    const meta = data?.metadata || {};
+    const vulns = Array.isArray(data?.vulnerabilities) ? data.vulnerabilities : [];
+    const pagination = data?.pagination || {};
+    const sev = meta.severity_breakdown || { critical: 0, high: 0, medium: 0, low: 0 };
+    const reportDate = new Date().toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+    });
 
-  // Group vulnerabilities by affected packages
-  const packageMap = new Map();
-  
-  vulns.forEach(vuln => {
-    if (Array.isArray(vuln.affected_packages)) {
-      vuln.affected_packages.forEach(pkg => {
-        const key = `${pkg.name}@${pkg.version}`;
-        if (!packageMap.has(key)) {
-          packageMap.set(key, {
-            name: pkg.name,
-            version: pkg.version,
-            ecosystem: pkg.ecosystem,
-            vulnerabilities: [],
-            maxSeverity: 'low'
-          });
+    const recommendations = Array.isArray(data?.version_recommendations)
+        ? data.version_recommendations
+        : [];
+
+    // Group vulnerabilities by affected packages
+    const packageMap = new Map();
+
+    vulns.forEach((vuln) => {
+        if (Array.isArray(vuln.affected_packages)) {
+            vuln.affected_packages.forEach((pkg) => {
+                const key = `${pkg.name}@${pkg.version}`;
+                if (!packageMap.has(key)) {
+                    packageMap.set(key, {
+                        name: pkg.name,
+                        version: pkg.version,
+                        ecosystem: pkg.ecosystem,
+                        vulnerabilities: [],
+                        maxSeverity: "low",
+                    });
+                }
+
+                const packageData = packageMap.get(key);
+                packageData.vulnerabilities.push(vuln);
+
+                // Update max severity
+                const severityOrder = { critical: 4, high: 3, medium: 2, low: 1, unknown: 0 };
+                const vulnSeverity = safeSeverity(vuln.severity);
+                if (severityOrder[vulnSeverity] > severityOrder[packageData.maxSeverity]) {
+                    packageData.maxSeverity = vulnSeverity;
+                }
+            });
         }
-        
-        const packageData = packageMap.get(key);
-        packageData.vulnerabilities.push(vuln);
-        
-        // Update max severity
+    });
+
+    const packages = Array.from(packageMap.values()).sort((a, b) => {
         const severityOrder = { critical: 4, high: 3, medium: 2, low: 1, unknown: 0 };
-        const vulnSeverity = safeSeverity(vuln.severity);
-        if (severityOrder[vulnSeverity] > severityOrder[packageData.maxSeverity]) {
-          packageData.maxSeverity = vulnSeverity;
-        }
-      });
-    }
-  });
+        return severityOrder[b.maxSeverity] - severityOrder[a.maxSeverity];
+    });
 
-  const packages = Array.from(packageMap.values()).sort((a, b) => {
-    const severityOrder = { critical: 4, high: 3, medium: 2, low: 1, unknown: 0 };
-    return severityOrder[b.maxSeverity] - severityOrder[a.maxSeverity];
-  });
+    const getSeverityColor = (severity) => {
+        const s = safeSeverity(severity);
+        if (s === "critical") return "#dc2626"; // red-600
+        if (s === "high") return "#ea580c"; // orange-600
+        if (s === "medium") return "#d97706"; // amber-600
+        if (s === "low") return "#6b7280"; // gray-500
+        return "#6366f1";
+    };
 
-  const getSeverityColor = (severity) => {
-    const s = safeSeverity(severity);
-    if (s === "critical") return "#dc2626"; // red-600
-    if (s === "high") return "#ea580c"; // orange-600
-    if (s === "medium") return "#d97706"; // amber-600
-    if (s === "low") return "#6b7280"; // gray-500
-    return '#6366f1';
-  };
+    const getSeverityBg = (severity) => {
+        const s = safeSeverity(severity);
+        if (s === "critical") return "#fef2f2"; // red-50
+        if (s === "high") return "#fff7ed"; // orange-50
+        if (s === "medium") return "#fffbeb"; // amber-50
+        if (s === "low") return "#f9fafb"; // gray-50
+        return "#eef2ff";
+    };
 
-  const getSeverityBg = (severity) => {
-    const s = safeSeverity(severity);
-    if (s === "critical") return "#fef2f2"; // red-50
-    if (s === "high") return "#fff7ed"; // orange-50
-    if (s === "medium") return "#fffbeb"; // amber-50
-    if (s === "low") return "#f9fafb"; // gray-50
-    return '#eef2ff';
-  };
+    const packageCards = packages
+        .map((pkg) => {
+            const severitySafe = safeSeverity(pkg.maxSeverity);
 
-  const packageCards = packages.map(pkg => {
-    const severitySafe = safeSeverity(pkg.maxSeverity);
-    
-    // Create collapsible vulnerability sections for better UX
-    const vulnItems = pkg.vulnerabilities.map((v, index) => `
-      <details class="vulnerability-item" ${index === 0 ? 'open' : ''}>
+            // Create collapsible vulnerability sections for better UX
+            const vulnItems = pkg.vulnerabilities
+                .map(
+                    (v, index) => `
+      <details class="vulnerability-item" ${index === 0 ? "open" : ""}>
         <summary class="vulnerability-summary" style="border-left: 3px solid ${getSeverityColor(safeSeverity(v.severity))}; background: ${getSeverityBg(safeSeverity(v.severity))};">
           <div class="vulnerability-item-header">
             <span class="severity-badge" style="background: ${getSeverityColor(safeSeverity(v.severity))}; color: white;">${escapeHtml(safeSeverity(v.severity).toUpperCase())}</span>
@@ -82,20 +89,32 @@ function generateHTMLReport(data, filename = "unknown") {
         <div class="vulnerability-content">
           <p class="vulnerability-item-summary"><strong>Summary:</strong> ${escapeHtml(v.summary || "No summary available")}</p>
           ${v.description ? `<p class="vulnerability-item-description"><strong>Description:</strong> ${escapeHtml(v.description)}</p>` : ""}
-          ${Array.isArray(v.references) && v.references.length ? `
+          ${
+              Array.isArray(v.references) && v.references.length
+                  ? `
             <div class="references">
               <h5>References:</h5>
               <ul>
-                ${v.references.slice(0, 5).map(r => `<li><a href="${encodeURI(r)}" target="_blank" rel="noreferrer noopener">${escapeHtml(r)}</a></li>`).join("")}
-                ${v.references.length > 5 ? `<li><em>... and ${v.references.length - 5} more references</em></li>` : ''}
+                ${v.references
+                    .slice(0, 5)
+                    .map(
+                        (r) =>
+                            `<li><a href="${encodeURI(r)}" target="_blank" rel="noreferrer noopener">${escapeHtml(r)}</a></li>`,
+                    )
+                    .join("")}
+                ${v.references.length > 5 ? `<li><em>... and ${v.references.length - 5} more references</em></li>` : ""}
               </ul>
             </div>
-          ` : ""}
+          `
+                  : ""
+          }
         </div>
       </details>
-    `).join("");
+    `,
+                )
+                .join("");
 
-    return `
+            return `
     <details class="package-card" style="border-left: 4px solid ${getSeverityColor(severitySafe)};">
       <summary class="package-header">
         <div class="package-info">
@@ -104,16 +123,33 @@ function generateHTMLReport(data, filename = "unknown") {
         </div>
         <div class="package-meta">
           <span class="severity-badge" style="background: ${getSeverityColor(severitySafe)}; color: white;">${escapeHtml(severitySafe).toUpperCase()}</span>
-          <span class="vuln-count">${pkg.vulnerabilities.length} vulnerability${pkg.vulnerabilities.length !== 1 ? 's' : ''}</span>
+          <span class="vuln-count">${pkg.vulnerabilities.length} vulnerability${pkg.vulnerabilities.length !== 1 ? "s" : ""}</span>
         </div>
       </summary>
       <div class="package-vulnerabilities">
+        ${(() => {
+            const r = (recommendations || []).find(
+                (x) => x.package === pkg.name && x.ecosystem === pkg.ecosystem,
+            );
+            return r
+                ? `
+          <div class="recommendation-inline" style="margin-bottom: 0.75rem;">
+            ${r.current_version ? `<span class="rec-pill" style="margin-right: 0.5rem;">Current: ${escapeHtml(r.current_version)}</span>` : ""}
+            ${r.nearest_safe_above_current ? `<span class="rec-pill" style="margin-right: 0.5rem;">Nearest: ${escapeHtml(r.nearest_safe_above_current)}${r.nearest_impact ? ` (${escapeHtml(r.nearest_impact)})` : ""}</span>` : ""}
+            ${r.most_up_to_date_safe ? `<span class="rec-pill" style="margin-right: 0.5rem;">Latest: ${escapeHtml(r.most_up_to_date_safe)}${r.most_up_to_date_impact ? ` (${escapeHtml(r.most_up_to_date_impact)})` : ""}</span>` : ""}
+            ${r.prerelease_exclusion_applied ? `<span class="rec-pill">Prereleases excluded</span>` : ""}
+          </div>
+          `
+                : "";
+        })()}
         ${vulnItems}
       </div>
     </details>
-  `;}).join("");
+  `;
+        })
+        .join("");
 
-  return `<!DOCTYPE html>
+    return `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -617,30 +653,42 @@ function generateHTMLReport(data, filename = "unknown") {
                 <div class="stat-label">Total Vulnerabilities</div>
                 <div class="stat-desc">Security issues found</div>
             </div>
-            ${pagination.total_pages ? `
+            ${
+                pagination.total_pages
+                    ? `
             <div class="stat-card">
                 <div class="stat-value" style="color: #8b5cf6;">Page ${pagination.page || 1} of ${pagination.total_pages}</div>
                 <div class="stat-label">Report Pagination</div>
                 <div class="stat-desc">${pagination.per_page || 50} items per page</div>
             </div>
-            ` : ''}
+            `
+                    : ""
+            }
         </div>
 
-        ${pagination.total_pages > 1 ? `
+        ${
+            pagination.total_pages > 1
+                ? `
         <div class="pagination-info">
             <div class="pagination-card">
                 <h3>📄 Pagination Information</h3>
                 <p>This report shows <strong>page ${pagination.page || 1} of ${pagination.total_pages}</strong> pages.</p>
-                <p>Displaying <strong>${packages.length} vulnerable packages</strong> out of <strong>${meta.total_packages || 'unknown'} total packages</strong>.</p>
+                <p>Displaying <strong>${packages.length} vulnerable packages</strong> out of <strong>${meta.total_packages || "unknown"} total packages</strong>.</p>
                 <p>Each page contains up to <strong>${pagination.per_page || 50} packages</strong> for optimal loading performance.</p>
-                ${pagination.page < pagination.total_pages ? `
+                ${
+                    pagination.page < pagination.total_pages
+                        ? `
                 <div class="pagination-note">
                     <strong>💡 Note:</strong> To see additional vulnerable packages, generate reports for pages ${(pagination.page || 1) + 1}-${pagination.total_pages}.
                 </div>
-                ` : ''}
+                `
+                        : ""
+                }
             </div>
         </div>
-        ` : ''}
+        `
+                : ""
+        }
 
         <div class="severity-summary">
             <h2 class="section-title">🛡️ Security Risk Breakdown</h2>
@@ -690,16 +738,20 @@ function generateHTMLReport(data, filename = "unknown") {
 
         <div class="vulnerabilities-section">
             <h2 class="section-title">
-                ${packages.length > 0 ? `Vulnerable Packages (${packages.length})` : 'No Vulnerable Packages Found'}
+                ${packages.length > 0 ? `Vulnerable Packages (${packages.length})` : "No Vulnerable Packages Found"}
             </h2>
 
-            ${packages.length > 0 ? packageCards : `
+            ${
+                packages.length > 0
+                    ? packageCards
+                    : `
                 <div class="no-vulnerabilities">
                     <h3>🎉 Great News!</h3>
                     <p>No known vulnerabilities were found in your dependencies.</p>
                     <p>Your project appears to be secure based on current vulnerability databases.</p>
                 </div>
-            `}
+            `
+            }
         </div>
 
         <div class="metadata">
@@ -713,19 +765,23 @@ function generateHTMLReport(data, filename = "unknown") {
                     <span>Analysis Duration:</span>
                     <strong>${meta.analysis_duration_ms || 0}ms</strong>
                 </div>
-                ${pagination.total_pages ? `
+                ${
+                    pagination.total_pages
+                        ? `
                 <div class="metadata-item">
                     <span>Pagination Info:</span>
                     <strong>Page ${pagination.page || 1} of ${pagination.total_pages} (${pagination.per_page || 50} per page)</strong>
                 </div>
-                ` : ''}
+                `
+                        : ""
+                }
                 <div class="metadata-item">
                     <span>Sources Queried:</span>
-                    <strong>${(meta.sources_queried || ['OSV', 'NVD', 'GHSA']).join(', ')}</strong>
+                    <strong>${(meta.sources_queried || ["OSV", "NVD", "GHSA"]).join(", ")}</strong>
                 </div>
                 <div class="metadata-item">
                     <span>Report ID:</span>
-                    <strong>${data.id || 'N/A'}</strong>
+                    <strong>${data.id || "N/A"}</strong>
                 </div>
             </div>
         </div>
