@@ -13,17 +13,17 @@ function getEnvironmentConfig() {
     if (import.meta.env && import.meta.env[viteKey]) {
       return import.meta.env[viteKey];
     }
-    
+
     // Priority 2: Window object (runtime configuration)
-    if (typeof window !== "undefined" && window[windowKey]) {
+    if (typeof window !== 'undefined' && window[windowKey]) {
       return window[windowKey];
     }
-    
+
     // Priority 3: Process environment (Node.js environments)
-    if (typeof process !== "undefined" && process.env && process.env[processKey]) {
+    if (typeof process !== 'undefined' && process.env && process.env[processKey]) {
       return process.env[processKey];
     }
-    
+
     // Priority 4: Default fallback
     return defaultValue;
   };
@@ -31,25 +31,25 @@ function getEnvironmentConfig() {
   const config = {
     API_BASE_URL: getEnvVar(
       'VITE_API_BASE_URL',
-      'VULNERA_API_BASE_URL', 
+      'VULNERA_API_BASE_URL',
       'API_BASE_URL',
       'http://localhost:3000'
     ),
-    
+
     API_VERSION: getEnvVar(
       'VITE_API_VERSION',
       'VULNERA_API_VERSION',
       'API_VERSION',
       'v1'
     ),
-    
+
     APP_NAME: getEnvVar(
       'VITE_APP_NAME',
       'VULNERA_APP_NAME',
       'APP_NAME',
       'Vulnera'
     ),
-    
+
     APP_VERSION: getEnvVar(
       'VITE_APP_VERSION',
       'VULNERA_APP_VERSION',
@@ -82,17 +82,21 @@ function getEnvironmentConfig() {
 
   // Validate API_BASE_URL format & whitelist
   const allowedOrigins = [
-    /^http:\/\/localhost:\d+$/, 
-    /^https:\/\/api\.vulnera\.dev$/, 
+    /^http:\/\/localhost:\d+$/,
+    /^https:\/\/api\.vulnera\.dev$/,
     /^https:\/\/staging\.vulnera\.dev$/,
     /^https:\/\/vulnera-back\.politeisland-d68133bc\.switzerlandnorth\.azurecontainerapps\.io$/
   ];
-  try { new URL(config.API_BASE_URL); } catch { config.API_BASE_URL = 'http://localhost:3000'; }
+  try {
+    new URL(config.API_BASE_URL);
+  } catch {
+    config.API_BASE_URL = 'http://localhost:3000';
+  }
   if (!allowedOrigins.some(r => r.test(config.API_BASE_URL))) {
     console.warn('Blocked unsafe API_BASE_URL value:', config.API_BASE_URL);
     config.API_BASE_URL = 'http://localhost:3000';
   }
-  
+
   // Remove trailing slash from API_BASE_URL
   config.API_BASE_URL = config.API_BASE_URL.replace(/\/$/, '');
 

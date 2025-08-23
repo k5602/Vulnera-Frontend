@@ -3,7 +3,9 @@ import { sanitizeMessage } from '../utils/sanitize.js';
 let notyfInstance; // allow re-init without const reassignment errors
 
 function createNotyf() {
-  if (notyfInstance) return notyfInstance; // idempotent
+  if (notyfInstance) {
+    return notyfInstance;
+  } // idempotent
   const existing = document.getElementById('notyf-container');
   const container = existing || document.createElement('div');
   if (!existing) {
@@ -20,7 +22,7 @@ function createNotyf() {
       { type: 'info', background: 'hsl(var(--in))', icon: { className: 'fas fa-info-circle', tagName: 'i', color: 'hsl(var(--inc))' } },
       { type: 'warning', background: 'hsl(var(--wa))', icon: { className: 'fas fa-exclamation-triangle', tagName: 'i', color: 'hsl(var(--wac))' } },
       { type: 'success', background: '#10B981', icon: { className: 'fas fa-check-circle', tagName: 'i', color: 'white' } },
-      { type: 'github', background: '#1F2937', icon: { className: 'fab fa-github', tagName: 'i', color: 'white' } },
+      { type: 'github', background: '#1F2937', icon: { className: 'fab fa-github', tagName: 'i', color: 'white' } }
     ],
     container
   });
@@ -31,11 +33,31 @@ export function initNotyf() {
   return createNotyf();
 }
 
-function getNotyf() { return notyfInstance || createNotyf(); }
+function getNotyf() {
+  return notyfInstance || createNotyf();
+}
 
-export function showError(message) { try { getNotyf().open({ type: 'warning', message: sanitizeMessage(message) }); } catch { alert(message); } }
-export function showSuccess(message) { try { getNotyf().open({ type: 'success', message: sanitizeMessage(message) }); } catch { alert(message); } }
-export function showInfo(message) { try { getNotyf().open({ type: 'info', message: sanitizeMessage(message) }); } catch { alert(message); } }
+export function showError(message) {
+  try {
+    getNotyf().open({ type: 'warning', message: sanitizeMessage(message) });
+  } catch {
+    alert(message);
+  }
+}
+export function showSuccess(message) {
+  try {
+    getNotyf().open({ type: 'success', message: sanitizeMessage(message) });
+  } catch {
+    alert(message);
+  }
+}
+export function showInfo(message) {
+  try {
+    getNotyf().open({ type: 'info', message: sanitizeMessage(message) });
+  } catch {
+    alert(message);
+  }
+}
 export function showGitHubComingSoon() {
   const n = getNotyf();
   n.open({ type: 'github', message: '🚀 GitHub Repository Scanning - Coming Soon! Scan entire repos for vulnerabilities across all dependency files.' });

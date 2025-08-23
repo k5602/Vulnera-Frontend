@@ -2,9 +2,13 @@
 const FOCUSABLE_SELECTOR = 'a[href], button:not([disabled]), textarea, input[type="text"], input[type="file"], input[type="checkbox"], select, [tabindex]:not([tabindex="-1"])';
 
 export function trapFocus(modalRoot) {
-  if (!modalRoot) return () => {};
+  if (!modalRoot) {
+    return () => {};
+  }
   const focusable = Array.from(modalRoot.querySelectorAll(FOCUSABLE_SELECTOR)).filter(el => el.offsetParent !== null);
-  if (focusable.length) focusable[0].focus();
+  if (focusable.length) {
+    focusable[0].focus();
+  }
   function handleKey(e) {
     if (e.key === 'Tab') {
       const first = focusable[0];
@@ -31,19 +35,27 @@ export function trapFocus(modalRoot) {
 
 export function onModalToggle(modalCheckboxId, { onOpen, onClose } = {}) {
   const checkbox = document.getElementById(modalCheckboxId);
-  if (!checkbox) return;
+  if (!checkbox) {
+    return;
+  }
   const modalBox = checkbox.nextElementSibling; // DaisyUI structure
   let release = null;
   let lastFocused = null;
   checkbox.addEventListener('change', () => {
     if (checkbox.checked) {
       lastFocused = document.activeElement;
-      if (onOpen) onOpen(modalBox);
+      if (onOpen) {
+        onOpen(modalBox);
+      }
       release = trapFocus(modalBox);
     } else {
-      if (release) release();
+      if (release) {
+        release();
+      }
       if (onClose && onClose(modalBox) !== false) {
-        if (lastFocused && lastFocused.focus) lastFocused.focus();
+        if (lastFocused && lastFocused.focus) {
+          lastFocused.focus();
+        }
       } else if (lastFocused && lastFocused.focus) {
         lastFocused.focus();
       }

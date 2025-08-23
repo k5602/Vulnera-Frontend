@@ -1,13 +1,18 @@
-import { escapeHtml } from "./sanitize.js";
+// escapeHtml import removed as it's not used in this file
 
 /**
  * Generates fixed versions of dependency files based on vulnerability analysis results
  * Now prefers server-provided version recommendations when available and deduplicates fix logs.
  */
 
-export function generateFixedPackageJson(originalContent, vulnerabilities, recommendations = null) {
+export function generateFixedPackageJson(
+    originalContent,
+    vulnerabilities,
+    recommendations = null,
+    strategy = "nearest",
+) {
     try {
-        const packageData = JSON.parse(originalContent);
+        JSON.parse(originalContent); // Validate JSON format
         const fixedPackageData = JSON.parse(originalContent); // Clone
 
         let fixedCount = 0;
@@ -26,10 +31,15 @@ export function generateFixedPackageJson(originalContent, vulnerabilities, recom
                 );
                 if (rec) {
                     v =
-                        rec.nearest_safe_above_current ||
-                        rec.next_safe_minor_within_current_major ||
-                        rec.most_up_to_date_safe ||
-                        null;
+                        strategy === "latest"
+                            ? rec.most_up_to_date_safe ||
+                              rec.nearest_safe_above_current ||
+                              rec.next_safe_minor_within_current_major ||
+                              null
+                            : rec.nearest_safe_above_current ||
+                              rec.next_safe_minor_within_current_major ||
+                              rec.most_up_to_date_safe ||
+                              null;
                 }
             }
             if (!v && Array.isArray(fixedVersions) && fixedVersions.length > 0) {
@@ -108,6 +118,7 @@ export function generateFixedRequirementsTxt(
     originalContent,
     vulnerabilities,
     recommendations = null,
+    strategy = "nearest",
 ) {
     try {
         const lines = originalContent.split("\n");
@@ -128,10 +139,15 @@ export function generateFixedRequirementsTxt(
                 );
                 if (rec) {
                     v =
-                        rec.nearest_safe_above_current ||
-                        rec.next_safe_minor_within_current_major ||
-                        rec.most_up_to_date_safe ||
-                        null;
+                        strategy === "latest"
+                            ? rec.most_up_to_date_safe ||
+                              rec.nearest_safe_above_current ||
+                              rec.next_safe_minor_within_current_major ||
+                              null
+                            : rec.nearest_safe_above_current ||
+                              rec.next_safe_minor_within_current_major ||
+                              rec.most_up_to_date_safe ||
+                              null;
                 }
             }
             if (!v && Array.isArray(fixedVersions) && fixedVersions.length > 0) {
@@ -158,7 +174,9 @@ export function generateFixedRequirementsTxt(
         for (let i = 0; i < fixedLines.length; i++) {
             const rawLine = fixedLines[i];
             const line = rawLine.trim();
-            if (!line || line.startsWith("#")) continue;
+            if (!line || line.startsWith("#")) {
+                continue;
+            }
             const pkgName = line.split(/[<>=~! ]/)[0];
             if (targetVersionByPackage.has(pkgName) && !updatedPackages.has(pkgName)) {
                 const version = targetVersionByPackage.get(pkgName);
@@ -187,7 +205,12 @@ export function generateFixedRequirementsTxt(
     }
 }
 
-export function generateFixedPomXml(originalContent, vulnerabilities, recommendations = null) {
+export function generateFixedPomXml(
+    originalContent,
+    vulnerabilities,
+    recommendations = null,
+    strategy = "nearest",
+) {
     try {
         let fixedContent = originalContent;
         let fixedCount = 0;
@@ -205,10 +228,15 @@ export function generateFixedPomXml(originalContent, vulnerabilities, recommenda
                 );
                 if (rec) {
                     v =
-                        rec.nearest_safe_above_current ||
-                        rec.next_safe_minor_within_current_major ||
-                        rec.most_up_to_date_safe ||
-                        null;
+                        strategy === "latest"
+                            ? rec.most_up_to_date_safe ||
+                              rec.nearest_safe_above_current ||
+                              rec.next_safe_minor_within_current_major ||
+                              null
+                            : rec.nearest_safe_above_current ||
+                              rec.next_safe_minor_within_current_major ||
+                              rec.most_up_to_date_safe ||
+                              null;
                 }
             }
             if (!v && Array.isArray(fixedVersions) && fixedVersions.length > 0) {
@@ -269,16 +297,16 @@ export function generateFixLog(fixLogs, fileName) {
     const timestamp = new Date().toISOString();
     const totalFixes = fixLogs.reduce((sum, log) => sum + log.fixedCount, 0);
 
-    let content = `# Vulnera Fix Log\n`;
+    let content = "# Vulnera Fix Log\n";
     content += `Generated: ${timestamp}\n`;
     content += `Original File: ${fileName}\n`;
     content += `Total Fixes Applied: ${totalFixes}\n\n`;
 
     if (totalFixes === 0) {
-        content += `## No Fixes Applied\n`;
-        content += `No vulnerable packages found with available fixed versions.\n\n`;
+        content += "## No Fixes Applied\n";
+        content += "No vulnerable packages found with available fixed versions.\n\n";
     } else {
-        content += `## Applied Fixes\n\n`;
+        content += "## Applied Fixes\n\n";
         fixLogs.forEach((log) => {
             if (log.fixLog.length > 0) {
                 log.fixLog.forEach((entry) => {
@@ -288,26 +316,26 @@ export function generateFixLog(fixLogs, fileName) {
         });
     }
 
-    content += `\n## Next Steps\n`;
-    content += `1. Review the updated dependency file\n`;
-    content += `2. Test your application with the new versions\n`;
-    content += `3. Run your package manager to install updates:\n`;
+    content += "\n## Next Steps\n";
+    content += "1. Review the updated dependency file\n";
+    content += "2. Test your application with the new versions\n";
+    content += "3. Run your package manager to install updates:\n";
 
     if (fileName.endsWith(".json")) {
-        content += `   - npm install (for npm)\n`;
-        content += `   - yarn install (for Yarn)\n`;
+        content += "   - npm install (for npm)\n";
+        content += "   - yarn install (for Yarn)\n";
     } else if (fileName.includes("requirements")) {
-        content += `   - pip install -r requirements.txt\n`;
+        content += "   - pip install -r requirements.txt\n";
     } else if (fileName.endsWith(".xml")) {
-        content += `   - mvn clean install\n`;
+        content += "   - mvn clean install\n";
     }
 
-    content += `4. Re-run Vulnera to verify fixes\n\n`;
-    content += `## Important Notes\n`;
-    content += `- Always test thoroughly before deploying to production\n`;
-    content += `- Some fixes may introduce breaking changes\n`;
-    content += `- Consider semantic versioning compatibility\n`;
-    content += `- Review changelogs for updated packages\n`;
+    content += "4. Re-run Vulnera to verify fixes\n\n";
+    content += "## Important Notes\n";
+    content += "- Always test thoroughly before deploying to production\n";
+    content += "- Some fixes may introduce breaking changes\n";
+    content += "- Consider semantic versioning compatibility\n";
+    content += "- Review changelogs for updated packages\n";
 
     return content;
 }
@@ -339,13 +367,24 @@ export function generateFixedDependencyFile(
     fileName,
     vulnerabilities,
     recommendations = null,
+    strategy = "nearest",
 ) {
     if (fileName.endsWith(".json")) {
-        return generateFixedPackageJson(originalContent, vulnerabilities, recommendations);
+        return generateFixedPackageJson(
+            originalContent,
+            vulnerabilities,
+            recommendations,
+            strategy,
+        );
     } else if (fileName.includes("requirements") && fileName.endsWith(".txt")) {
-        return generateFixedRequirementsTxt(originalContent, vulnerabilities, recommendations);
+        return generateFixedRequirementsTxt(
+            originalContent,
+            vulnerabilities,
+            recommendations,
+            strategy,
+        );
     } else if (fileName.endsWith(".xml")) {
-        return generateFixedPomXml(originalContent, vulnerabilities, recommendations);
+        return generateFixedPomXml(originalContent, vulnerabilities, recommendations, strategy);
     } else {
         return {
             content: originalContent,

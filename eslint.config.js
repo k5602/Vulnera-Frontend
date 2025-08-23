@@ -1,0 +1,37 @@
+export default [
+    {
+        files: ["src/**/*.js", "*.js"],
+        languageOptions: {
+            ecmaVersion: "latest",
+            sourceType: "module",
+            globals: {
+                window: "readonly",
+                document: "readonly",
+                console: "readonly",
+                process: "readonly",
+            },
+        },
+        rules: {
+            indent: "off",
+            "linebreak-style": "off",
+            quotes: "off",
+            semi: "off",
+            "no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
+            "no-console": "off",
+            "no-debugger": "error",
+            "prefer-const": "off",
+            "no-var": "off",
+            eqeqeq: "off",
+            curly: "off",
+            "brace-style": "off",
+            "comma-dangle": "off",
+            "object-curly-spacing": "off",
+            "array-bracket-spacing": "off",
+            "space-before-function-paren": "off",
+            "keyword-spacing": "off",
+            "space-infix-ops": "off",
+            "eol-last": "off",
+            "no-trailing-spaces": "off",
+        },
+    },
+];

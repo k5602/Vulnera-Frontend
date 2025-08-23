@@ -11,7 +11,7 @@ export function escapeHtml(str) {
 }
 
 export function safeSeverity(sev) {
-  const s = String(sev||'').toLowerCase();
+  const s = String(sev || '').toLowerCase();
   return SEVERITY_WHITELIST.includes(s) ? s : 'unknown';
 }
 

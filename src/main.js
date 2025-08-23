@@ -1,65 +1,65 @@
-import "./style.css";
-import { CONFIG } from "./config.js";
-import { initThemeToggle } from "./ui/theme.js";
-import { initDragAndDrop } from "./features/dragDrop.js";
+import './style.css';
+import { CONFIG } from './config.js';
+import { initThemeToggle } from './ui/theme.js';
+import { initDragAndDrop } from './features/dragDrop.js';
 // Defer rarely used features to reduce initial JS payload
 let initSampleFile;
 let initGitHubScanning;
-import { initNotyf, showVsCodeExtensionPreview } from "./ui/notifications.js";
-import { onModalToggle } from "./ui/focus.js";
+import { initNotyf, showVsCodeExtensionPreview } from './ui/notifications.js';
+import { onModalToggle } from './ui/focus.js';
 
 // Enhanced logging for debugging
-if (CONFIG.ENABLE_DEBUG === "true" || import.meta.env?.DEV) {
-    console.group("🔧 Vulnera Configuration");
-    console.log("Environment:", CONFIG.ENVIRONMENT);
-    console.log("API Base URL:", CONFIG.API_BASE_URL);
-    console.log("API Endpoint:", CONFIG.API_ENDPOINT);
-    console.log("App Name:", CONFIG.APP_NAME);
-    console.log("App Version:", CONFIG.APP_VERSION);
-    console.log("API Timeout:", CONFIG.API_TIMEOUT + "ms");
-    console.log("Debug Mode:", CONFIG.ENABLE_DEBUG);
+if (CONFIG.ENABLE_DEBUG === 'true' || import.meta.env?.DEV) {
+  console.group('🔧 Vulnera Configuration');
+  console.log('Environment:', CONFIG.ENVIRONMENT);
+  console.log('API Base URL:', CONFIG.API_BASE_URL);
+  console.log('API Endpoint:', CONFIG.API_ENDPOINT);
+  console.log('App Name:', CONFIG.APP_NAME);
+  console.log('App Version:', CONFIG.APP_VERSION);
+  console.log('API Timeout:', CONFIG.API_TIMEOUT + 'ms');
+  console.log('Debug Mode:', CONFIG.ENABLE_DEBUG);
 
-    // Show environment variable sources
-    console.group("Environment Variable Sources:");
-    console.log("Vite Env:", import.meta.env || "Not available");
-    console.log(
-        "Window Vars:",
-        typeof window !== "undefined"
-            ? {
-                  VULNERA_API_BASE_URL: window.VULNERA_API_BASE_URL,
-                  VULNERA_API_VERSION: window.VULNERA_API_VERSION,
-                  VULNERA_APP_NAME: window.VULNERA_APP_NAME,
-              }
-            : "Not available",
-    );
-    console.groupEnd();
-    console.groupEnd();
+  // Show environment variable sources
+  console.group('Environment Variable Sources:');
+  console.log('Vite Env:', import.meta.env || 'Not available');
+  console.log(
+    'Window Vars:',
+    typeof window !== 'undefined'
+      ? {
+        VULNERA_API_BASE_URL: window.VULNERA_API_BASE_URL,
+        VULNERA_API_VERSION: window.VULNERA_API_VERSION,
+        VULNERA_APP_NAME: window.VULNERA_APP_NAME
+      }
+      : 'Not available'
+  );
+  console.groupEnd();
+  console.groupEnd();
 
-    // Test API connectivity in development
-    if (CONFIG.ENVIRONMENT === "development") {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 2500);
-        fetch(`${CONFIG.API_BASE_URL}/health`, { signal: controller.signal })
-            .then((r) =>
-                r.ok
-                    ? console.log("✅ Backend health check passed")
-                    : console.warn("⚠️ Backend health check failed"),
-            )
-            .catch((err) =>
-                console.warn(
-                    "⚠️ Backend not reachable at",
-                    CONFIG.API_BASE_URL,
-                    "-",
-                    err?.name === "AbortError" ? "timeout" : err.message,
-                ),
-            )
-            .finally(() => clearTimeout(timeout));
-    }
+  // Test API connectivity in development
+  if (CONFIG.ENVIRONMENT === 'development') {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 2500);
+    fetch(`${CONFIG.API_BASE_URL}/health`, { signal: controller.signal })
+      .then((r) =>
+        r.ok
+          ? console.log('✅ Backend health check passed')
+          : console.warn('⚠️ Backend health check failed')
+      )
+      .catch((err) =>
+        console.warn(
+          '⚠️ Backend not reachable at',
+          CONFIG.API_BASE_URL,
+          '-',
+          err?.name === 'AbortError' ? 'timeout' : err.message
+        )
+      )
+      .finally(() => clearTimeout(timeout));
+  }
 }
 
 // Initialize the app
-document.addEventListener("DOMContentLoaded", function () {
-    document.querySelector("#app").innerHTML = `
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelector('#app').innerHTML = `
     <!-- Navigation -->
     <div class="navbar bg-base-100 shadow-lg px-2 sm:px-4">
       <div class="flex-1">
@@ -449,6 +449,11 @@ document.addEventListener("DOMContentLoaded", function () {
         <div class="flex justify-between items-center mb-4 flex-shrink-0">
           <h3 id="result-title" class="font-bold text-lg">Analysis Result</h3>
           <div class="flex items-center gap-2">
+            <label for="fix-strategy-select" class="sr-only">Fix strategy</label>
+            <select id="fix-strategy-select" class="select select-bordered select-xs sm:select-sm" aria-label="Fix version selection">
+              <option value="nearest" selected>Nearest safe</option>
+              <option value="latest">Latest safe</option>
+            </select>
             <button
               id="download-report-btn"
               class="btn btn-sm btn-outline btn-primary"
@@ -473,140 +478,167 @@ document.addEventListener("DOMContentLoaded", function () {
 
   `;
 
-    initThemeToggle();
-    initDragAndDrop();
+  initThemeToggle();
+  initDragAndDrop();
 
-    // Lazy-load non-critical modules on idle or first interaction
-    const loadSample = async () => {
-        if (!initSampleFile) {
-            ({ initSampleFile } = await import(
-                /* webpackChunkName: "sample-file" */ "./features/sample-file.js"
-            ));
-            initSampleFile();
-        }
-    };
-    const loadGithubScan = async () => {
-        if (!initGitHubScanning && typeof Notyf !== "undefined") {
-            ({ initGitHubScanning } = await import(
-                /* webpackChunkName: "github-scan" */ "./features/github-scan.js"
-            ));
-            initGitHubScanning();
-        }
-    };
+  // Lazy-load non-critical modules on idle or first interaction
+  const loadSample = async() => {
+    if (!initSampleFile) {
+      ({ initSampleFile } = await import(
+        /* webpackChunkName: "sample-file" */ './features/sample-file.js'
+      ));
+      initSampleFile();
+    }
+  };
+  const loadGithubScan = async() => {
+    if (!initGitHubScanning && typeof Notyf !== 'undefined') {
+      ({ initGitHubScanning } = await import(
+        /* webpackChunkName: "github-scan" */ './features/github-scan.js'
+      ));
+      initGitHubScanning();
+    }
+  };
     // Warm up lazily after first paint without blocking
-    if ("requestIdleCallback" in window) {
-        requestIdleCallback(
-            () => {
-                loadSample();
-                loadGithubScan();
-            },
-            { timeout: 3000 },
-        );
-    } else {
-        setTimeout(() => {
-            loadSample();
-            loadGithubScan();
-        }, 800);
-    }
+  if ('requestIdleCallback' in window) {
+    requestIdleCallback(
+      () => {
+        loadSample();
+        loadGithubScan();
+      },
+      { timeout: 3000 }
+    );
+  } else {
+    setTimeout(() => {
+      loadSample();
+      loadGithubScan();
+    }, 800);
+  }
 
-    // Ensure first-click works before modules load
-    const sampleBtn = document.getElementById("sample-btn");
-    if (sampleBtn) {
-        const stub = async (e) => {
-            e.preventDefault();
-            sampleBtn.removeEventListener("click", stub);
-            await loadSample();
-            // Re-dispatch to hit the real handler
-            sampleBtn.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-        };
-        sampleBtn.addEventListener("click", stub, { once: true });
-    }
-    const ghScanBtn = document.getElementById("github-scan-btn");
-    if (ghScanBtn) {
-        const stub2 = async (e) => {
-            e.preventDefault();
-            ghScanBtn.removeEventListener("click", stub2);
-            await loadGithubScan();
-            ghScanBtn.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-        };
-        ghScanBtn.addEventListener("click", stub2, { once: true });
-    }
-
-    // Preview button for upcoming VS Code Extension
-    const vsPrev = document.getElementById("vscode-ext-preview");
-    if (vsPrev) {
-        vsPrev.addEventListener("click", () => showVsCodeExtensionPreview());
-    }
-
-    // Hero CTA scrolls to GitHub input
-    const ghCta = document.getElementById("github-scan-cta");
-    if (ghCta) {
-        ghCta.addEventListener("click", () => {
-            const input = document.getElementById("github-url-input");
-            if (input) {
-                input.scrollIntoView({ behavior: "smooth", block: "center" });
-                setTimeout(() => input.focus(), 400);
-            }
-            // Ensure GitHub scanning code is ready after CTA
-            loadGithubScan();
-        });
-    }
-
-    // Prefill GitHub token from session storage if available
-    const tokenInput = document.getElementById("gh-token");
-    const rememberCb = document.getElementById("gh-remember-token");
-    if (tokenInput && rememberCb && typeof sessionStorage !== "undefined") {
-        const storedToken = sessionStorage.getItem("vulnera.gh.token");
-        if (storedToken) {
-            tokenInput.value = storedToken;
-            rememberCb.checked = true;
-        }
-    }
-
-    // Modal focus management
-    onModalToggle("loading-modal", {
-        onOpen: (modal) => {
-            const h = modal.querySelector("#loading-title");
-            h && h.focus();
-        },
-        onClose: () => {},
-    });
-    // Modal handlers and global functions
-    window.closeResultModal = function () {
-        const resultModal = document.getElementById("result-modal");
-        if (resultModal) {
-            resultModal.checked = false;
-        }
+  // Ensure first-click works before modules load
+  const sampleBtn = document.getElementById('sample-btn');
+  if (sampleBtn) {
+    const stub = async(e) => {
+      e.preventDefault();
+      sampleBtn.removeEventListener('click', stub);
+      await loadSample();
+      // Re-dispatch to hit the real handler
+      sampleBtn.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     };
+    sampleBtn.addEventListener('click', stub, { once: true });
+  }
+  const ghScanBtn = document.getElementById('github-scan-btn');
+  if (ghScanBtn) {
+    const stub2 = async(e) => {
+      e.preventDefault();
+      ghScanBtn.removeEventListener('click', stub2);
+      await loadGithubScan();
+      ghScanBtn.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    };
+    ghScanBtn.addEventListener('click', stub2, { once: true });
+  }
 
-    // Add keyboard support for closing modals
-    document.addEventListener("keydown", function (event) {
-        if (event.key === "Escape") {
-            // Close package modal if open (higher priority)
-            const packageModal = document.getElementById("package-vuln-modal-container");
-            if (packageModal) {
-                window.closePackageModal && window.closePackageModal();
-                event.preventDefault();
-                return;
-            }
+  // Preview button for upcoming VS Code Extension
+  const vsPrev = document.getElementById('vscode-ext-preview');
+  if (vsPrev) {
+    vsPrev.addEventListener('click', () => showVsCodeExtensionPreview());
+  }
 
-            // Close result modal if open
-            const resultModal = document.getElementById("result-modal");
-            if (resultModal && resultModal.checked) {
-                closeResultModal();
-                event.preventDefault();
-                return;
-            }
+  // Hero CTA scrolls to GitHub input
+  const ghCta = document.getElementById('github-scan-cta');
+  if (ghCta) {
+    ghCta.addEventListener('click', () => {
+      const input = document.getElementById('github-url-input');
+      if (input) {
+        input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(() => input.focus(), 400);
+      }
+      // Ensure GitHub scanning code is ready after CTA
+      loadGithubScan();
+    });
+  }
+
+  // Prefill GitHub token from session storage if available
+  const tokenInput = document.getElementById('gh-token');
+  const rememberCb = document.getElementById('gh-remember-token');
+  if (tokenInput && rememberCb && typeof sessionStorage !== 'undefined') {
+    const storedToken = sessionStorage.getItem('vulnera.gh.token');
+    if (storedToken) {
+      tokenInput.value = storedToken;
+      rememberCb.checked = true;
+    }
+  }
+
+  // Modal focus management
+  onModalToggle('loading-modal', {
+    onOpen: (modal) => {
+      const h = modal.querySelector('#loading-title');
+      h && h.focus();
+    },
+    onClose: () => {}
+  });
+  // Modal handlers and global functions
+  window.closeResultModal = function() {
+    const resultModal = document.getElementById('result-modal');
+    if (resultModal) {
+      resultModal.checked = false;
+    }
+  };
+
+  // Add keyboard support for closing modals
+  document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+      // Close package modal if open (higher priority)
+      const packageModal = document.getElementById('package-vuln-modal-container');
+      if (packageModal) {
+        window.closePackageModal && window.closePackageModal();
+        event.preventDefault();
+        return;
+      }
+
+      // Close result modal if open
+      const resultModal = document.getElementById('result-modal');
+      if (resultModal && resultModal.checked) {
+        closeResultModal();
+        event.preventDefault();
+        return;
+      }
+    }
+  });
+
+  onModalToggle('result-modal', {
+    onOpen: (modal) => {
+      const h = modal.querySelector('#result-title');
+      h && h.focus();
+    },
+    onClose: () => {}
+  });
+
+  // Fix strategy preference control
+  (function initFixStrategyPreference() {
+    const fixSelect = document.getElementById('fix-strategy-select');
+    const downloadBtn = document.getElementById('download-report-btn');
+    const savedStrategy =
+            (typeof sessionStorage !== 'undefined' &&
+                sessionStorage.getItem('vulnera.fix.strategy')) ||
+            'nearest';
+    if (fixSelect) {
+      fixSelect.value = savedStrategy;
+      window.VULNERA_FIX_STRATEGY = fixSelect.value;
+      if (downloadBtn) {
+        downloadBtn.dataset.fixStrategy = fixSelect.value;
+      }
+      fixSelect.addEventListener('change', () => {
+        const val = fixSelect.value === 'latest' ? 'latest' : 'nearest';
+        window.VULNERA_FIX_STRATEGY = val;
+        try {
+          sessionStorage.setItem('vulnera.fix.strategy', val);
+        } catch {}
+        if (downloadBtn) {
+          downloadBtn.dataset.fixStrategy = val;
         }
-    });
-
-    onModalToggle("result-modal", {
-        onOpen: (modal) => {
-            const h = modal.querySelector("#result-title");
-            h && h.focus();
-        },
-        onClose: () => {},
-    });
+      });
+    }
+  })();
 });
 
 // Initialize Notyf for notifications

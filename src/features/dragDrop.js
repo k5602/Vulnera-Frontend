@@ -3,87 +3,87 @@ import { handleAnalyze } from './analysis.js';
 import { escapeHtml, MAX_FILE_BYTES } from '../utils/sanitize.js';
 
 export function initDragAndDrop() {
-    const dropZone = document.getElementById("drop-zone");
-    const fileInput = document.getElementById("file-input");
-    const fileInfo = document.getElementById("file-info");
-    const analyzeBtn = document.getElementById("analyze-btn");
+  const dropZone = document.getElementById('drop-zone');
+  const fileInput = document.getElementById('file-input');
+  const fileInfo = document.getElementById('file-info');
+  const analyzeBtn = document.getElementById('analyze-btn');
 
-    // Make dropZone focusable & add keyboard trigger
-    dropZone.setAttribute('tabindex','0');
-    dropZone.setAttribute('role','button');
-    dropZone.setAttribute('aria-label','Upload dependency file');
-    dropZone.addEventListener('keydown', (e)=> {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        fileInput.click();
-      }
-    });
-  
-    // Handle drag events
-    ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
-      dropZone.addEventListener(eventName, preventDefaults, false);
-      document.body.addEventListener(eventName, preventDefaults, false);
-    });
-  
-    ["dragenter", "dragover"].forEach((eventName) => {
-      dropZone.addEventListener(eventName, highlight, false);
-    });
-  
-    ["dragleave", "drop"].forEach((eventName) => {
-      dropZone.addEventListener(eventName, unhighlight, false);
-    });
-  
-    dropZone.addEventListener("drop", handleDrop, false);
-    dropZone.addEventListener("click", () => fileInput.click());
-    fileInput.addEventListener("change", handleFileSelect);
-    analyzeBtn.addEventListener("click", handleAnalyze);
-  
-    function preventDefaults(e) {
+  // Make dropZone focusable & add keyboard trigger
+  dropZone.setAttribute('tabindex','0');
+  dropZone.setAttribute('role','button');
+  dropZone.setAttribute('aria-label','Upload dependency file');
+  dropZone.addEventListener('keydown', (e)=> {
+    if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
-      e.stopPropagation();
+      fileInput.click();
     }
-  
-    function highlight() {
-      dropZone.classList.add("border-primary", "bg-primary/5");
-    }
-  
-    function unhighlight() {
-      dropZone.classList.remove("border-primary", "bg-primary/5");
-    }
-  
-    function handleDrop(e) {
-      const dt = e.dataTransfer;
-      const files = dt.files;
-      handleFiles(files);
-    }
-  
-    function handleFileSelect(e) {
-      const files = e.target.files;
-      handleFiles(files);
-    }
-  
-    function handleFiles(files) {
-      if (files.length > 0) {
-        const file = files[0];
-        if (file.size > MAX_FILE_BYTES) {
-          alert('File too large (>1MB).');
-          return;
-        }
-        
-        // Create a new FileList and assign it to the input
-        const dt = new DataTransfer();
-        dt.items.add(file);
-        fileInput.files = dt.files;
-        
-        displayFileInfo(file);
-      }
-    }
-  
-    function displayFileInfo(file) {
-      const ecosystem = getEcosystem(file.name);
-      const supported = isSupported(file.name);
+  });
 
-      fileInfo.innerHTML = `
+  // Handle drag events
+  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach((eventName) => {
+    dropZone.addEventListener(eventName, preventDefaults, false);
+    document.body.addEventListener(eventName, preventDefaults, false);
+  });
+
+  ['dragenter', 'dragover'].forEach((eventName) => {
+    dropZone.addEventListener(eventName, highlight, false);
+  });
+
+  ['dragleave', 'drop'].forEach((eventName) => {
+    dropZone.addEventListener(eventName, unhighlight, false);
+  });
+
+  dropZone.addEventListener('drop', handleDrop, false);
+  dropZone.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', handleFileSelect);
+  analyzeBtn.addEventListener('click', handleAnalyze);
+
+  function preventDefaults(e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+
+  function highlight() {
+    dropZone.classList.add('border-primary', 'bg-primary/5');
+  }
+
+  function unhighlight() {
+    dropZone.classList.remove('border-primary', 'bg-primary/5');
+  }
+
+  function handleDrop(e) {
+    const dt = e.dataTransfer;
+    const files = dt.files;
+    handleFiles(files);
+  }
+
+  function handleFileSelect(e) {
+    const files = e.target.files;
+    handleFiles(files);
+  }
+
+  function handleFiles(files) {
+    if (files.length > 0) {
+      const file = files[0];
+      if (file.size > MAX_FILE_BYTES) {
+        alert('File too large (>1MB).');
+        return;
+      }
+
+      // Create a new FileList and assign it to the input
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      fileInput.files = dt.files;
+
+      displayFileInfo(file);
+    }
+  }
+
+  function displayFileInfo(file) {
+    const ecosystem = getEcosystem(file.name);
+    const supported = isSupported(file.name);
+
+    fileInfo.innerHTML = `
         <div class="alert ${supported ? 'alert-success' : 'alert-warning'} mb-4">
           <i class="fas ${supported ? 'fa-check-circle' : 'fa-exclamation-triangle'}"></i>
           <div class="flex-1 min-w-0">
@@ -96,14 +96,14 @@ export function initDragAndDrop() {
         </div>
       `;
 
-      analyzeBtn.disabled = !supported;
-      analyzeBtn.classList.toggle("btn-disabled", !supported);
-      
-      // Auto-analyze if the file is supported
-      if (supported) {
-        setTimeout(() => {
-          handleAnalyze();
-        }, 500); // Small delay to show the file info first
-      }
+    analyzeBtn.disabled = !supported;
+    analyzeBtn.classList.toggle('btn-disabled', !supported);
+
+    // Auto-analyze if the file is supported
+    if (supported) {
+      setTimeout(() => {
+        handleAnalyze();
+      }, 500); // Small delay to show the file info first
     }
   }
+}

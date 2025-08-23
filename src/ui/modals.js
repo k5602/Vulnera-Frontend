@@ -1,8 +1,4 @@
 export function initModals() {
-    // Loading Modal
-    const loadingModal = document.getElementById("loading-modal");
-  
-    // Result Modal
-    const resultModal = document.getElementById("result-modal");
-  }
-  
+  // Modal initialization logic can be added here if needed
+  // Currently, modals are managed directly by their respective features
+}
