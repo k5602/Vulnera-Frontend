@@ -1,8 +1,5 @@
 /**
- * Environment Configuration System (patched)
- * - Adds explicit allowlist entry for back.ashycliff-f83ff693.italynorth.azurecontainerapps.io
- * - Keeps a safe wildcard for *.azurecontainerapps.io
- * - Supports Vite env, window.VulneraRuntimeConfig, process.env, and defaults
+ * Environment Configuration System (patched for basck-valnera)
  */
 function getEnvironmentConfig() {
   const readImportMeta = (key) => (typeof import.meta !== "undefined" ? import.meta.env?.[key] : undefined);
@@ -87,7 +84,7 @@ function getEnvironmentConfig() {
     ),
   };
 
-  // Allowed origins - accept either env patterns or sensible defaults (including explicit back.ashycliff and azurecontainerapps wildcard)
+  // Allowed origins - accept either env patterns or sensible defaults (including explicit basck-valnera and azurecontainerapps wildcard)
   const rawAllowedOrigins = getEnvVar(
     "VITE_ALLOWED_ORIGINS",
     "VULNERA_ALLOWED_ORIGINS",
@@ -100,13 +97,13 @@ function getEnvironmentConfig() {
     "^https://api\\.vulnera\\.dev$",
     "^https://staging\\.vulnera\\.dev$",
     // explicit backend URL (your provided backend)
-    "^https://back\\.ashycliff-f83ff693\\.italynorth\\.azurecontainerapps\\.io$",
+    "^https://basck-valnera\\.ashycliff-f83ff693\\.italynorth\\.azurecontainerapps\\.io$",
     // safe wildcard for apps under azurecontainerapps
     "^https://.*\\.azurecontainerapps\\.io(:\\d+)?$",
   ];
 
   const originPatterns = (rawAllowedOrigins || "")
-    .split(/[,\s]+/)
+    .split(/[,\\s]+/)
     .map((s) => s.trim())
     .filter(Boolean);
 
@@ -116,13 +113,13 @@ function getEnvironmentConfig() {
     .map((p) => {
       try {
         if (/^https?:\/\//i.test(p)) {
-          const escaped = p.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&").replace(/\\\\\*/g, ".*");
+          const escaped = p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\\\*/g, ".*");
           return new RegExp(`^${escaped}$`);
         }
         if (/^\^|[\$\(\)\[\]\?\\]/.test(p)) {
           return new RegExp(p);
         }
-        const domain = p.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&").replace(/\\\\\*/g, ".*");
+        const domain = p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\\\*/g, ".*");
         return new RegExp(`^https?://${domain}(?::\\d+)?$`);
       } catch (err) {
         console.warn("Ignored invalid allowed origin pattern:", p, err?.message || "");
