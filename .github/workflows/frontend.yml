@@ -29,7 +29,7 @@ on:
       skip_build:
         description: "Skip build and quality checks"
         required: false
-        default: false
+        default: true
         type: boolean
 
 env:
@@ -56,28 +56,28 @@ jobs:
 
       # Only run build steps if we're not skipping build
       - name: Setup Node.js
-        if: github.event.inputs.skip_build != 'true'
+        if: github.event.inputs.skip_build == 'false'
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: "npm"
 
       - name: Install dependencies
-        if: github.event.inputs.skip_build != 'true'
+        if: github.event.inputs.skip_build == 'false'
         run: npm ci --prefer-offline --no-audit
 
       - name: Run linting
-        if: github.event.inputs.skip_build != 'true'
+        if: github.event.inputs.skip_build == 'false'
         run: npm run lint
         continue-on-error: true
 
       - name: Run tests
-        if: github.event.inputs.skip_build != 'true'
+        if: github.event.inputs.skip_build == 'false'
         run: npm run test:ci
         continue-on-error: false
 
       - name: Build application
-        if: github.event.inputs.skip_build != 'true'
+        if: github.event.inputs.skip_build == 'false'
         run: npm run build
         env:
           VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
@@ -90,7 +90,7 @@ jobs:
           VITE_ALLOWED_ORIGINS: ${{ secrets.VITE_ALLOWED_ORIGINS }}
 
       - name: Upload build artifacts
-        if: github.event.inputs.skip_build != 'true'
+        if: github.event.inputs.skip_build == 'false'
         uses: actions/upload-artifact@v4
         with:
           name: build-files-${{ github.sha }}
@@ -105,20 +105,10 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
           # Only skip app build if we built it ourselves in previous steps
-          skip_app_build: ${{ github.event.inputs.skip_build != 'true' }}
+          skip_app_build: ${{ github.event.inputs.skip_build == 'false' }}
           app_location: "/"
           api_location: ""
           output_location: "dist"
-          # Pass environment variables for Azure's build process (when not skipping)
-          env: |
-            VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }}
-            VITE_API_VERSION=${{ env.VITE_API_VERSION }}
-            VITE_API_TIMEOUT=${{ env.VITE_API_TIMEOUT }}
-            VITE_APP_NAME=${{ env.VITE_APP_NAME }}
-            VITE_APP_VERSION=${{ env.VITE_APP_VERSION }}
-            VITE_ENVIRONMENT=${{ github.event.inputs.environment || 'production' }}
-            VITE_ENABLE_DEBUG=${{ env.VITE_ENABLE_DEBUG }}
-            VITE_ALLOWED_ORIGINS=${{ secrets.VITE_ALLOWED_ORIGINS }}
 
       - name: Add deployment summary
         run: |
