@@ -1,32 +1,67 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" data-theme="light">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vulnera </title>
-    <!-- Resource Hints -->
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
-    <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-    <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+    <head>
+        <meta charset="UTF-8" />
+        <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Vulnera</title>
+        <!-- Resource Hints -->
+        <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
+        <link rel="dns-prefetch" href="//cdnjs.cloudflare.com" />
+        <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+        <link rel="dns-prefetch" href="//cdn.jsdelivr.net" />
 
-    <!-- Preload LCP image (hero logo) -->
-    <link rel="preload" as="image" href="/images/logo.png" imagesizes="(min-width: 640px) 280px, 160px" fetchpriority="high">
+        <!-- Preload LCP image (hero logo) -->
+        <link
+            rel="preload"
+            as="image"
+            href="/images/logo.png"
+            imagesizes="(min-width: 640px) 280px, 160px"
+            fetchpriority="high"
+        />
 
-    <!-- Load third-party CSS without render-blocking -->
-    <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript>
-      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    </noscript>
-    <link rel="preload" as="style" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript>
-      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
-    </noscript>
-  </head>
-  <body>
-    <div id="app"></div>
-    <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
-    <script type="module" src="/src/main.js"></script>
-  </body>
+        <!-- Load third-party CSS without render-blocking -->
+        <link
+            rel="preload"
+            as="style"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+            onload="this.onload=null;this.rel='stylesheet'"
+        />
+        <noscript>
+            <link
+                rel="stylesheet"
+                href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+            />
+        </noscript>
+        <link
+            rel="preload"
+            as="style"
+            href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css"
+            onload="this.onload=null;this.rel='stylesheet'"
+        />
+        <noscript>
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css" />
+        </noscript>
+    </head>
+    <body>
+        <div id="app"></div>
+        <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+        <!-- Runtime config (optional): load BEFORE the app to override env without rebuild
+         <script src="/runtime-config.js"></script>
+         <script>
+           // Example:
+           // window.VulneraRuntimeConfig.setConfig({
+           //   apiBaseUrl: 'https://api.example.com',
+           //   apiVersion: 'v1',
+           //   appName: 'Vulnera',
+           //   appVersion: '1.0.0',
+           //   enableDebug: false,
+           //   apiTimeout: 60000,
+           //   environment: 'production'
+           // });
+           // Or: window.VulneraRuntimeConfig.useExample('staging');
+         </script>
+    -->
+        <script type="module" src="/src/main.js"></script>
+    </body>
 </html>

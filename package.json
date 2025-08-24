@@ -17,7 +17,8 @@
     "env:init": "cp .env.example .env && echo 'Created .env from .env.example'",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
-    "test:ci": "vitest run --coverage"
+    "test:ci": "vitest run --coverage",
+    "clean": "rm -rf dist dist-ssr coverage"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^3.2.4",
