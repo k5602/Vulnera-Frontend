@@ -45,23 +45,47 @@
     </head>
     <body>
         <div id="app"></div>
+
         <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
-        <!-- Runtime config (optional): load BEFORE the app to override env without rebuild
-         <script src="/runtime-config.js"></script>
-         <script>
-           // Example:
-           // window.VulneraRuntimeConfig.setConfig({
-           //   apiBaseUrl: 'https://api.example.com',
-           //   apiVersion: 'v1',
-           //   appName: 'Vulnera',
-           //   appVersion: '1.0.0',
-           //   enableDebug: false,
-           //   apiTimeout: 60000,
-           //   environment: 'production'
-           // });
-           // Or: window.VulneraRuntimeConfig.useExample('staging');
-         </script>
-    -->
+
+        <!-- Runtime config: load BEFORE the app bundle to override env without rebuild -->
+        <script src="/runtime-config.js"></script>
+        <script>
+          // Preferred: use the provided runtime helper to set config at deploy time.
+          // This will be read by src/config.js (the improved version) before the app starts.
+          (function(){
+            try {
+              const cfg = {
+                apiBaseUrl: "https://back.ashycliff-f83ff693.italynorth.azurecontainerapps.io",
+                apiVersion: "v1",
+                appName: "Vulnera",
+                appVersion: "1.0.0",
+                enableDebug: false,
+                apiTimeout: 30000,
+                environment: "production"
+              };
+
+              if (window.VulneraRuntimeConfig && typeof window.VulneraRuntimeConfig.setConfig === 'function') {
+                window.VulneraRuntimeConfig.setConfig(cfg);
+              } else {
+                // If runtime-config helper is not present, expose a minimal object so src/config.js can read it.
+                window.VulneraRuntimeConfig = window.VulneraRuntimeConfig || {};
+                window.VulneraRuntimeConfig.config = Object.assign(window.VulneraRuntimeConfig.config || {}, cfg);
+                // provide a simple getConfig for compatibility
+                if (typeof window.VulneraRuntimeConfig.getConfig !== 'function') {
+                  window.VulneraRuntimeConfig.getConfig = function(){ return window.VulneraRuntimeConfig.config; };
+                }
+              }
+
+              // helpful debug log (only visible if enableDebug true)
+              if (cfg.enableDebug) console.info('[runtime-config] applied', cfg);
+            } catch (e) {
+              console.warn('[runtime-config] failed to apply runtime config', e);
+            }
+          })();
+        </script>
+
+        <!-- App bundle (load after runtime config) -->
         <script type="module" src="/src/main.js"></script>
     </body>
 </html>
