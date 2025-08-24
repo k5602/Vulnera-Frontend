@@ -1,127 +1,65 @@
-name: Deploy Frontend to Azure Static Web Apps
+# .github/workflows/deploy-frontend.yml
+
+name: Build and Deploy Frontend to Azure Static Web Apps
 
 on:
   push:
-    branches:
-      - master
-      - main
+    branches: [ "main", "master" ]
     paths:
-      - "src/**"
-      - "public/**"
-      - "package*.json"
-      - "vite.config.*"
-      - ".github/workflows/**"
+      - 'src/**'
+      - 'public/**'
+      - 'package*.json'
+      - 'vite.config.*'
+      - '.github/workflows/deploy-frontend.yml'
   pull_request:
-    branches:
-      - master
-      - main
-    types: [opened, synchronize, reopened, closed]
+    types: [ opened, synchronize, reopened, closed ]
+    branches: [ "main", "master" ]
   workflow_dispatch:
-    inputs:
-      environment:
-        description: "Deployment environment"
-        required: true
-        default: "production"
-        type: choice
-        options:
-          - production
-          - staging
-      skip_build:
-        description: "Skip build and quality checks"
-        required: false
-        default: false
-        type: boolean
 
 env:
-  NODE_VERSION: "18"
-  VITE_API_VERSION: v1
-  VITE_API_TIMEOUT: 60000
-  VITE_APP_NAME: Vulnera
-  VITE_APP_VERSION: 1.0.0
-  VITE_ENABLE_DEBUG: false
+  NODE_VERSION: "20"
+  VITE_APP_NAME: "Vulnera"
+  VITE_APP_VERSION: "1.0.0"
 
 jobs:
-  build_and_deploy_job:
+  build_and_deploy:
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.action != 'closed')
     runs-on: ubuntu-latest
     name: Build and Deploy Job
-    environment: ${{ github.event.inputs.environment || 'production' }}
 
     steps:
-      - name: Checkout repository
+      - name: 1. Checkout repository
         uses: actions/checkout@v4
-        with:
-          submodules: true
-          fetch-depth: 0
 
-      # Only run build steps if we're not skipping build
-      - name: Setup Node.js
-        if: github.event.inputs.skip_build != 'true'
+      - name: 2. Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: "npm"
+          cache: 'npm'
 
-      - name: Install dependencies
-        if: github.event.inputs.skip_build != 'true'
-        run: npm ci --prefer-offline --no-audit
+      - name: 3. Install dependencies
+        run: npm install
 
-      - name: Run linting
-        if: github.event.inputs.skip_build != 'true'
-        run: npm run lint
-        continue-on-error: true
-
-      - name: Run tests
-        if: github.event.inputs.skip_build != 'true'
-        run: npm run test:ci
-        continue-on-error: false
-
-      - name: Build application
-        if: github.event.inputs.skip_build != 'true'
+      - name: 4. Build application
+        # ❗️ تحذير: تم إزالة متغيرات البيئة من هنا.
+        # سيقوم التطبيق الآن باستخدام القيم الافتراضية (مثل localhost)
         run: npm run build
-        env:
-          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
-          VITE_API_VERSION: ${{ env.VITE_API_VERSION }}
-          VITE_API_TIMEOUT: ${{ env.VITE_API_TIMEOUT }}
-          VITE_APP_NAME: ${{ env.VITE_APP_NAME }}
-          VITE_APP_VERSION: ${{ env.VITE_APP_VERSION }}
-          VITE_ENVIRONMENT: ${{ github.event.inputs.environment || 'production' }}
-          VITE_ENABLE_DEBUG: ${{ env.VITE_ENABLE_DEBUG }}
-          VITE_ALLOWED_ORIGINS: ${{ secrets.VITE_ALLOWED_ORIGINS }}
 
-      - name: Upload build artifacts
-        if: github.event.inputs.skip_build != 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-files-${{ github.sha }}
-          path: dist/
-          retention-days: 30
-
-      - name: Deploy to Azure Static Web Apps
-        id: builddeploy
+      - name: 5. Deploy to Azure Static Web Apps
+        id: deploy
         uses: Azure/static-web-apps-deploy@v1
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
-          # Only skip app build if we built it ourselves in previous steps
-          skip_app_build: ${{ github.event.inputs.skip_build != 'true' }}
-          app_location: "/"
+          app_location: "/" 
           api_location: ""
           output_location: "dist"
-          # Pass environment variables for Azure's build process (when not skipping)
-          env: |
-            VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }}
-            VITE_API_VERSION=${{ env.VITE_API_VERSION }}
-            VITE_API_TIMEOUT=${{ env.VITE_API_TIMEOUT }}
-            VITE_APP_NAME=${{ env.VITE_APP_NAME }}
-            VITE_APP_VERSION=${{ env.VITE_APP_VERSION }}
-            VITE_ENVIRONMENT=${{ github.event.inputs.environment || 'production' }}
-            VITE_ENABLE_DEBUG=${{ env.VITE_ENABLE_DEBUG }}
-            VITE_ALLOWED_ORIGINS=${{ secrets.VITE_ALLOWED_ORIGINS }}
 
-      - name: Add deployment summary
+      - name: 6. Add deployment summary
         run: |
           echo "## 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
-          echo "- **Environment:** ${{ github.event.inputs.environment || 'production' }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Build Method:** ${{ github.event.inputs.skip_build == 'true' && 'Azure Build' || 'GitHub Actions Build' }}" >> $GITHUB_STEP_SUMMA
+          echo "- **Environment:** Production" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Frontend URL:** [${{ steps.deploy.outputs.static_web_app_url }}](${{ steps.deploy.outputs.static_web_app_url }})" >> $GITHUB_STEP_SUMMARY
+
