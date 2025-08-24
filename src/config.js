@@ -1,139 +1,171 @@
 /**
- * Environment Configuration System
- * Supports multiple environment variable sources with priority:
- * 1. Vite environment variables (VITE_*)
- * 2. Window object variables (for runtime configuration)
- * 3. Process environment variables (for Node.js environments)
- * 4. Default fallback values
+ * Environment Configuration System (patched)
+ * - Adds explicit allowlist entry for back.ashycliff-f83ff693.italynorth.azurecontainerapps.io
+ * - Keeps a safe wildcard for *.azurecontainerapps.io
+ * - Supports Vite env, window.VulneraRuntimeConfig, process.env, and defaults
  */
 function getEnvironmentConfig() {
-    // Helper function to get environment variable with fallback
-    const getEnvVar = (viteKey, windowKey, processKey, defaultValue) => {
-        // Priority 1: Vite environment variables (build-time)
-        if (import.meta.env && import.meta.env[viteKey]) {
-            return import.meta.env[viteKey];
+  const readImportMeta = (key) => (typeof import.meta !== "undefined" ? import.meta.env?.[key] : undefined);
+
+  const getEnvVar = (viteKey, windowKey, processKey, defaultValue) => {
+    // 1) Vite build-time env
+    const v = readImportMeta(viteKey);
+    if (v !== undefined && v !== "") return v;
+
+    // 2) Window runtime: support both direct window.<KEY> and VulneraRuntimeConfig
+    if (typeof window !== "undefined") {
+      const w = window[windowKey];
+      if (w !== undefined && w !== null && w !== "") return w;
+
+      try {
+        const runtime = window.VulneraRuntimeConfig;
+        if (runtime) {
+          let rc = null;
+          if (typeof runtime.getConfig === "function") rc = runtime.getConfig();
+          else if (runtime.config) rc = runtime.config;
+
+          if (rc) {
+            const map = {
+              VITE_API_BASE_URL: "apiBaseUrl",
+              VITE_API_VERSION: "apiVersion",
+              VITE_APP_NAME: "appName",
+              VITE_APP_VERSION: "appVersion",
+              VITE_ENABLE_DEBUG: "enableDebug",
+              VITE_API_TIMEOUT: "apiTimeout",
+              VITE_ENVIRONMENT: "environment",
+              VITE_ALLOWED_ORIGINS: "allowedOrigins",
+            };
+            const mapped = map[viteKey];
+            if (mapped && rc[mapped] !== undefined && rc[mapped] !== "") return rc[mapped];
+          }
         }
-
-        // Priority 2: Window object (runtime configuration)
-        if (typeof window !== "undefined" && window[windowKey]) {
-            return window[windowKey];
-        }
-
-        // Priority 3: Process environment (Node.js environments)
-        if (typeof process !== "undefined" && process.env && process.env[processKey]) {
-            return process.env[processKey];
-        }
-
-        // Priority 4: Default fallback
-        return defaultValue;
-    };
-
-    const config = {
-        API_BASE_URL: getEnvVar(
-            "VITE_API_BASE_URL",
-            "VULNERA_API_BASE_URL",
-            "API_BASE_URL",
-            "http://localhost:3000",
-        ),
-
-        API_VERSION: getEnvVar("VITE_API_VERSION", "VULNERA_API_VERSION", "API_VERSION", "v1"),
-
-        APP_NAME: getEnvVar("VITE_APP_NAME", "VULNERA_APP_NAME", "APP_NAME", "Vulnera"),
-
-        APP_VERSION: getEnvVar("VITE_APP_VERSION", "VULNERA_APP_VERSION", "APP_VERSION", "1.0.0"),
-
-        // Additional configuration options
-        ENABLE_DEBUG: getEnvVar(
-            "VITE_ENABLE_DEBUG",
-            "VULNERA_ENABLE_DEBUG",
-            "ENABLE_DEBUG",
-            import.meta.env?.DEV ? "true" : "false",
-        ),
-
-        API_TIMEOUT: parseInt(
-            getEnvVar("VITE_API_TIMEOUT", "VULNERA_API_TIMEOUT", "API_TIMEOUT", "30000"),
-        ),
-
-        ENVIRONMENT: getEnvVar(
-            "VITE_ENVIRONMENT",
-            "VULNERA_ENVIRONMENT",
-            "NODE_ENV",
-            import.meta.env?.MODE || "development",
-        ),
-    };
-
-    // Validate API_BASE_URL format & allowlist (supports env: VITE_ALLOWED_ORIGINS, VULNERA_ALLOWED_ORIGINS, ALLOWED_ORIGINS)
-    const rawAllowedOrigins = getEnvVar(
-        "VITE_ALLOWED_ORIGINS",
-        "VULNERA_ALLOWED_ORIGINS",
-        "ALLOWED_ORIGINS",
-        "",
-    );
-
-    const defaultOriginPatterns = [
-        "^http://localhost:\\d+$",
-        "^https://api\\.vulnera\\.dev$",
-        "^https://staging\\.vulnera\\.dev$",
-        "^https://vulnera-back\\.politeisland-d68133bc\\.switzerlandnorth\\.azurecontainerapps\\.io$",
-    ];
-
-    const originPatterns = (rawAllowedOrigins || "")
-        .split(/[,\s]+/)
-        .map((s) => s.trim())
-        .filter(Boolean);
-
-    const patternsToUse = originPatterns.length ? originPatterns : defaultOriginPatterns;
-
-    // Build an allowlist of RegExp from patterns. Supports:
-    // - Full URLs (http[s]://...) with optional '*' wildcards
-    // - Raw regex (starting with ^ or ending with $)
-    // - Domain-only patterns (e.g. *.example.com), optional port
-    const allowedOrigins = patternsToUse
-        .map((p) => {
-            try {
-                if (p.startsWith("http://") || p.startsWith("https://")) {
-                    const escaped = p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\\\*/g, ".*");
-                    return new RegExp(`^${escaped}$`);
-                }
-                if (p.startsWith("^") || p.endsWith("$")) {
-                    return new RegExp(p);
-                }
-                const domain = p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\\\*/g, ".*");
-                return new RegExp(`^https?://${domain}(?::\\d+)?$`);
-            } catch {
-                console.warn("Ignored invalid allowed origin pattern:", p);
-                return null;
-            }
-        })
-        .filter(Boolean);
-    try {
-        new URL(config.API_BASE_URL);
-    } catch {
-        config.API_BASE_URL = "http://localhost:3000";
-    }
-    if (!allowedOrigins.some((r) => r.test(config.API_BASE_URL))) {
-        console.warn("Blocked unsafe API_BASE_URL value:", config.API_BASE_URL);
-        config.API_BASE_URL = "http://localhost:3000";
+      } catch (e) {
+        // ignore runtime-config read errors
+      }
     }
 
-    // Remove trailing slash from API_BASE_URL
-    config.API_BASE_URL = config.API_BASE_URL.replace(/\/$/, "");
-
-    // Build complete API endpoint
-    config.API_ENDPOINT = `${config.API_BASE_URL}/api/${config.API_VERSION}`;
-
-    // Only freeze in production AND only if we're not in a container/cloud environment
-    if (
-        config.ENVIRONMENT === "production" &&
-        !config.API_BASE_URL.includes("azurecontainerapps.io")
-    ) {
-        Object.freeze(config);
+    // 3) Node process.env (for SSR / node builds)
+    if (typeof process !== "undefined" && process.env && process.env[processKey]) {
+      return process.env[processKey];
     }
 
-    return config;
+    // 4) default
+    return defaultValue;
+  };
+
+  const config = {
+    API_BASE_URL: getEnvVar(
+      "VITE_API_BASE_URL",
+      "VULNERA_API_BASE_URL",
+      "API_BASE_URL",
+      "http://localhost:3000"
+    ),
+
+    API_VERSION: getEnvVar("VITE_API_VERSION", "VULNERA_API_VERSION", "API_VERSION", "v1"),
+
+    APP_NAME: getEnvVar("VITE_APP_NAME", "VULNERA_APP_NAME", "APP_NAME", "Vulnera"),
+
+    APP_VERSION: getEnvVar("VITE_APP_VERSION", "VULNERA_APP_VERSION", "APP_VERSION", "1.0.0"),
+
+    ENABLE_DEBUG: getEnvVar(
+      "VITE_ENABLE_DEBUG",
+      "VULNERA_ENABLE_DEBUG",
+      "ENABLE_DEBUG",
+      typeof import.meta !== "undefined" && import.meta.env?.DEV ? "true" : "false"
+    ),
+
+    API_TIMEOUT: parseInt(
+      getEnvVar("VITE_API_TIMEOUT", "VULNERA_API_TIMEOUT", "API_TIMEOUT", "30000"),
+      10
+    ),
+
+    ENVIRONMENT: getEnvVar(
+      "VITE_ENVIRONMENT",
+      "VULNERA_ENVIRONMENT",
+      "NODE_ENV",
+      typeof import.meta !== "undefined" ? import.meta.env?.MODE || "development" : "development"
+    ),
+  };
+
+  // Allowed origins - accept either env patterns or sensible defaults (including explicit back.ashycliff and azurecontainerapps wildcard)
+  const rawAllowedOrigins = getEnvVar(
+    "VITE_ALLOWED_ORIGINS",
+    "VULNERA_ALLOWED_ORIGINS",
+    "ALLOWED_ORIGINS",
+    ""
+  );
+
+  const defaultOriginPatterns = [
+    "^http://localhost:\\d+$",
+    "^https://api\\.vulnera\\.dev$",
+    "^https://staging\\.vulnera\\.dev$",
+    // explicit backend URL (your provided backend)
+    "^https://back\\.ashycliff-f83ff693\\.italynorth\\.azurecontainerapps\\.io$",
+    // safe wildcard for apps under azurecontainerapps
+    "^https://.*\\.azurecontainerapps\\.io(:\\d+)?$",
+  ];
+
+  const originPatterns = (rawAllowedOrigins || "")
+    .split(/[,\s]+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  const patternsToUse = originPatterns.length ? originPatterns : defaultOriginPatterns;
+
+  const allowedOrigins = patternsToUse
+    .map((p) => {
+      try {
+        if (/^https?:\/\//i.test(p)) {
+          const escaped = p.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&").replace(/\\\\\*/g, ".*");
+          return new RegExp(`^${escaped}$`);
+        }
+        if (/^\^|[\$\(\)\[\]\?\\]/.test(p)) {
+          return new RegExp(p);
+        }
+        const domain = p.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&").replace(/\\\\\*/g, ".*");
+        return new RegExp(`^https?://${domain}(?::\\d+)?$`);
+      } catch (err) {
+        console.warn("Ignored invalid allowed origin pattern:", p, err?.message || "");
+        return null;
+      }
+    })
+    .filter(Boolean);
+
+  // Validate API_BASE_URL
+  try {
+    if (typeof config.API_BASE_URL === "string") {
+      config.API_BASE_URL = config.API_BASE_URL.trim();
+    }
+    new URL(config.API_BASE_URL);
+  } catch {
+    console.warn("Invalid API_BASE_URL, falling back to localhost:3000:", config.API_BASE_URL);
+    config.API_BASE_URL = "http://localhost:3000";
+  }
+
+  // If none of the allowed origin regexes match, fallback to localhost
+  if (!allowedOrigins.some((r) => r.test(config.API_BASE_URL))) {
+    console.warn("Blocked unsafe API_BASE_URL value (not in allowlist):", config.API_BASE_URL);
+    config.API_BASE_URL = "http://localhost:3000";
+  }
+
+  // Remove trailing slash
+  if (typeof config.API_BASE_URL === "string") {
+    config.API_BASE_URL = config.API_BASE_URL.replace(/\/+$/, "");
+  }
+
+  config.API_ENDPOINT = `${config.API_BASE_URL.replace(/\/+$/, "")}/api/${config.API_VERSION}`;
+
+  // Freeze only in production and only if using a non-cloud-host that you whitelist
+  if (
+    config.ENVIRONMENT === "production" &&
+    typeof config.API_BASE_URL === "string" &&
+    !/\.azurecontainerapps\.io$/.test(config.API_BASE_URL)
+  ) {
+    Object.freeze(config);
+  }
+
+  return config;
 }
 
-// Initialize configuration
 const CONFIG = getEnvironmentConfig();
-
 export { CONFIG };
