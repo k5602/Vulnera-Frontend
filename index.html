@@ -5,13 +5,11 @@
         <link rel="icon" type="image/svg+xml" href="/vite.svg" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Vulnera</title>
-        <!-- Resource Hints -->
         <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
         <link rel="dns-prefetch" href="//cdnjs.cloudflare.com" />
         <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
         <link rel="dns-prefetch" href="//cdn.jsdelivr.net" />
 
-        <!-- Preload LCP image (hero logo) -->
         <link
             rel="preload"
             as="image"
@@ -20,7 +18,6 @@
             fetchpriority="high"
         />
 
-        <!-- Load third-party CSS without render-blocking -->
         <link
             rel="preload"
             as="style"
@@ -48,13 +45,12 @@
 
         <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
 
-        <!-- Runtime config: load BEFORE the app bundle to override env without rebuild -->
         <script src="/runtime-config.js"></script>
         <script>
           (function(){
             try {
               const cfg = {
-                apiBaseUrl: "https://basck-valnera.ashycliff-f83ff693.italynorth.azurecontainerapps.io",
+                apiBaseUrl: ${ API_BASE_URL_PROD },
                 apiVersion: "v1",
                 appName: "Vulnera",
                 appVersion: "1.0.0",
@@ -80,7 +76,6 @@
           })();
         </script>
 
-        <!-- App bundle (load after runtime config) -->
         <script type="module" src="/src/main.js"></script>
     </body>
 </html>
