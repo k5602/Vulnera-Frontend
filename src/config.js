@@ -96,9 +96,7 @@ function getEnvironmentConfig() {
     "^http://localhost:\\d+$",
     "^https://api\\.vulnera\\.dev$",
     "^https://staging\\.vulnera\\.dev$",
-    // explicit backend URL (your provided backend)
-    "^https://basck-valnera\\.ashycliff-f83ff693\\.italynorth\\.azurecontainerapps\\.io$",
-    // safe wildcard for apps under azurecontainerapps
+    " ${ ALLOWED_ORIGINS_AZURE }",
     "^https://.*\\.azurecontainerapps\\.io(:\\d+)?$",
   ];
 
