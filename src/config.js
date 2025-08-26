@@ -84,7 +84,6 @@ function getEnvironmentConfig() {
     ),
   };
 
-  // Allowed origins - accept either env patterns or sensible defaults (including explicit basck-valnera and azurecontainerapps wildcard)
   const rawAllowedOrigins = getEnvVar(
     "VITE_ALLOWED_ORIGINS",
     "VULNERA_ALLOWED_ORIGINS",
