@@ -1,0 +1,23 @@
+---
+export interface Props {
+  title: string;
+  description: string;
+  icon: string;
+  hoverColorClass?: string;
+}
+
+const { 
+  title, 
+  description, 
+  icon,
+  hoverColorClass = "hover:bg-cyber-950/20 hover:shadow-cyber-400/20" 
+} = Astro.props;
+---
+
+<div class={`group p-8 rounded-xl bg-black terminal-border transition-all duration-300 transform hover:-translate-y-2 hover:shadow-lg ${hoverColorClass}`}>
+    <div class="w-16 h-16 bg-gradient-to-r from-cyber-500 to-matrix-500 rounded-lg mb-6 flex items-center justify-center">
+        <Fragment set:html={icon} />
+    </div>
+    <h3 class="text-xl font-semibold text-cyber-300 mb-4 font-mono">{title}</h3>
+    <p class="text-matrix-200 font-mono text-sm leading-relaxed">{description}</p>
+</div>
