@@ -12,7 +12,7 @@ const {
 } = Astro.props;
 ---
 
-<div class="text-white terminal-border p-6 rounded-lg bg-black/50">
-    <div class={`text-4xl font-bold mb-2 font-mono ${valueColor}`}>{value}</div>
-    <div class="text-matrix-300 font-mono text-sm">{label}</div>
+<div class="text-white terminal-border p-4 sm:p-6 rounded-lg bg-black/50">
+    <div class={`text-2xl sm:text-3xl lg:text-4xl font-bold mb-2 font-mono ${valueColor}`}>{value}</div>
+  <div class="text-matrix-300 font-mono text-xs sm:text-sm break-anywhere">{label}</div>
 </div>

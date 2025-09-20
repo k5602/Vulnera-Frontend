@@ -1,0 +1,138 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Navigation from "../components/Navigation.astro";
+import Footer from "../components/Footer.astro";
+---
+
+<Layout title="Scan — Vulnera" description="Upload manifests or import repositories for scanning.">
+  <Navigation />
+
+  <section id="main" class="relative min-h-screen overflow-hidden bg-black" aria-labelledby="scan-title" transition:animate="fade">
+    <!-- Background Layers -->
+    <div class="absolute inset-0 z-0">
+      <div class="absolute inset-0 matrix-rain opacity-20"></div>
+      <div class="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-black/60"></div>
+      <div class="absolute inset-0 bg-gradient-to-b from-transparent via-matrix-900/20 to-black/80"></div>
+    </div>
+
+    <!-- Content -->
+    <div class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 py-16">
+      <header class="mb-6 sm:mb-10">
+        <div class="text-cyber-400 font-mono text-xs sm:text-sm">root@vulnera:~$</div>
+  <h1 id="scan-title" class="text-2xl sm:text-3xl md:text-4xl font-bold text-white font-mono tracking-wider mt-6 mb-4 sm:mb-6">
+          <span class="text-cyber-400">&gt;</span> SCAN
+        </h1>
+        <p class="text-matrix-300 mt-2 text-sm sm:text-base">Upload dependency manifests or import a repository to analyze vulnerabilities.</p>
+      </header>
+
+      <!-- Upload area -->
+      <section class="terminal-border bg-black/70 rounded-xl p-4 sm:p-6">
+        <h2 class="text-cyber-400 font-mono text-lg mb-3">UPLOAD_FILES</h2>
+        <div id="dropzone" class="border-2 border-dashed border-cyber-400/40 rounded-xl p-6 sm:p-10 text-center bg-black/40 hover:bg-black/50 transition-colors">
+          <p class="text-matrix-300 text-sm sm:text-base mb-3">Drag & drop your files here</p>
+          <p class="text-gray-400 text-xs sm:text-sm">Supported: package.json, requirements.txt, pom.xml, Cargo.lock, etc.</p>
+          <div class="mt-4">
+            <input id="file-input" type="file" class="hidden" multiple />
+            <button id="btn-select" class="inline-flex items-center bg-gradient-to-r from-cyber-600 to-matrix-600 hover:from-cyber-500 hover:to-matrix-500 text-black px-4 py-2 rounded-lg font-mono text-sm terminal-border">
+              <span class="mr-2">&gt;</span> SELECT_FILES
+            </button>
+          </div>
+        </div>
+        <div class="mt-4">
+          <ul id="file-list" class="text-matrix-300 text-sm font-mono space-y-1"></ul>
+        </div>
+        <div class="mt-4 flex justify-end">
+          <button id="btn-scan" class="inline-flex items-center border border-cyber-400/40 text-cyber-300 px-4 py-2 rounded-lg font-mono text-sm">START_SCAN</button>
+        </div>
+      </section>
+
+      <!-- GitHub import -->
+      <section class="mt-8 sm:mt-10 terminal-border bg-black/70 rounded-xl p-4 sm:p-6">
+        <h2 class="text-cyber-400 font-mono text-lg mb-3">IMPORT_GITHUB_REPO</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-3">
+          <input id="repo-url" type="url" placeholder="https://github.com/owner/repo" class="w-full px-3 py-2 rounded-lg bg-black/60 border border-cyber-400/30 focus:border-cyber-400 focus:ring-2 focus:ring-cyber-400 text-white placeholder-gray-500 text-sm" />
+          <button id="btn-import" class="inline-flex items-center bg-gradient-to-r from-cyber-600 to-matrix-600 hover:from-cyber-500 hover:to-matrix-500 text-black px-4 py-2 rounded-lg font-mono text-sm terminal-border">
+            <span class="mr-2">&gt;</span> IMPORT_REPO
+          </button>
+        </div>
+        <p class="text-gray-400 text-xs mt-2">We’ll fetch manifest files and analyze dependencies.</p>
+      </section>
+    </div>
+  </section>
+
+  <Footer />
+
+  <script type="module">
+    // Basic auth gate: redirect to login if missing token
+    try {
+      const hasToken = !!localStorage.getItem('vulnera_token') || !!localStorage.getItem('token');
+      if (!hasToken) {
+        window.location.replace('/login?next=/scan');
+      }
+    } catch {}
+
+    // Drag & Drop
+    const dz = document.getElementById('dropzone');
+    const input = document.getElementById('file-input');
+    const list = document.getElementById('file-list');
+    const btnSelect = document.getElementById('btn-select');
+    const btnScan = document.getElementById('btn-scan');
+    const btnImport = document.getElementById('btn-import');
+    const repoUrl = document.getElementById('repo-url');
+    let pickedFiles = [];
+
+    function renderFiles() {
+      if (!list) return;
+      list.innerHTML = '';
+      pickedFiles.forEach((f) => {
+        const li = document.createElement('li');
+        li.textContent = `${f.name} (${Math.round(f.size/1024)} KB)`;
+        list.appendChild(li);
+      });
+    }
+
+    function handleFiles(files) {
+      pickedFiles = [...pickedFiles, ...Array.from(files ?? [])];
+      // Optional: filter by size or type
+      pickedFiles = pickedFiles.slice(0, 50);
+      renderFiles();
+    }
+
+    dz?.addEventListener('dragover', (e) => { e.preventDefault(); dz.classList.add('bg-black/50'); });
+    dz?.addEventListener('dragleave', () => dz.classList.remove('bg-black/50'));
+    dz?.addEventListener('drop', (e) => {
+      e.preventDefault(); dz.classList.remove('bg-black/50');
+      handleFiles(e.dataTransfer?.files);
+    });
+
+    btnSelect?.addEventListener('click', () => input?.click());
+    input?.addEventListener('change', () => handleFiles(input.files));
+
+    btnScan?.addEventListener('click', async () => {
+      if (!pickedFiles.length) { alert('Select files to scan.'); return; }
+      try {
+        const { default: http } = await import('/src/utils/http');
+        const form = new FormData();
+        pickedFiles.forEach((f) => form.append('files', f));
+        const res = await http.post('/scan/files', form, { headers: { 'Content-Type': 'multipart/form-data' } });
+        alert('Scan started: ' + (res?.data?.jobId ?? 'OK'));
+      } catch (e) {
+        console.error(e);
+        alert('Failed to start scan');
+      }
+    });
+
+    btnImport?.addEventListener('click', async () => {
+      const url = repoUrl?.value?.trim();
+      if (!url || !/^https?:\/\/github.com\//i.test(url)) { alert('Enter a valid GitHub repo URL.'); return; }
+      try {
+        const { default: http } = await import('/src/utils/http');
+        const res = await http.post('/scan/github', { url });
+        alert('GitHub import started: ' + (res?.data?.jobId ?? 'OK'));
+      } catch (e) {
+        console.error(e);
+        alert('Failed to import repo');
+      }
+    });
+  </script>
+</Layout>

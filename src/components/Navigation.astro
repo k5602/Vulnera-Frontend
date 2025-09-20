@@ -11,6 +11,10 @@
             <a href="/" aria-current="page" class="text-cyber-300 hover:text-cyber-400 transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyber-400 rounded px-2 py-1 terminal-border bg-black/50">
                 [HOME]
             </a>
+            <a href="/scan" class="auth-only hidden text-cyber-300 hover:text-cyber-400 transition-colors duration-200 px-2 py-1">[SCAN]</a>
+            <a href="/dashboard" class="auth-only hidden text-cyber-300 hover:text-cyber-400 transition-colors duration-200 px-2 py-1">
+                [DASHBOARD]
+            </a>
             <a href="https://github.com/k5602/Vulnera" target="_blank" rel="noopener" class="text-matrix-300 hover:text-matrix-400 transition-colors duration-200 px-2 py-1">
                 [GITHUB]
             </a>
@@ -33,6 +37,10 @@
         <div class="max-w-7xl mx-auto px-2">
             <div class="backdrop-blur-sm bg-black/90 rounded-xl terminal-border p-4 space-y-2">
                 <a href="/" class="mobile-link block px-4 py-2 rounded-lg text-cyber-300 hover:bg-cyber-500/10 hover:text-cyber-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyber-400">[HOME]</a>
+                <a href="/scan" class="auth-only hidden mobile-link block px-4 py-2 rounded-lg text-cyber-300 hover:bg-cyber-500/10 hover:text-cyber-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyber-400">[SCAN]</a>
+                <a href="/dashboard" class="auth-only hidden mobile-link block px-4 py-2 rounded-lg text-cyber-300 hover:bg-cyber-500/10 hover:text-cyber-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyber-400">[DASHBOARD]</a>
+                <a href="/login" class="mobile-link block px-4 py-2 rounded-lg text-cyber-300 hover:bg-cyber-500/10 hover:text-cyber-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyber-400">[LOGIN]</a>
+                <a href="/signup" class="mobile-link block px-4 py-2 rounded-lg text-matrix-300 hover:bg-matrix-500/10 hover:text-matrix-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-matrix-400">[SIGN_UP]</a>
                 <a href="https://github.com/k5602/Vulnera" target="_blank" rel="noopener" class="mobile-link block px-4 py-2 rounded-lg text-matrix-300 hover:bg-matrix-500/10 hover:text-matrix-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-matrix-400">[GITHUB]</a>
                 <a href="http://localhost:3000/docs" target="_blank" rel="noopener" class="mobile-link block px-4 py-2 rounded-lg text-matrix-300 hover:bg-matrix-500/10 hover:text-matrix-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-matrix-400">[API_DOCS]</a>
                 <a href="http://localhost:3000/health" target="_blank" rel="noopener" class="mobile-link block px-4 py-2 rounded-lg text-red-400 hover:bg-red-500/10 hover:text-red-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400">[STATUS]</a>
@@ -69,4 +77,14 @@
             if (e.key === 'Escape') closeMenu();
         });
     }
+
+    // Reveal auth-only links if token exists
+    try {
+      const hasToken = !!localStorage.getItem('vulnera_token') || !!localStorage.getItem('token');
+      if (hasToken) {
+        document.querySelectorAll('.auth-only').forEach((el) => {
+          el.classList.remove('hidden');
+        });
+      }
+    } catch {}
 </script>

@@ -1,0 +1,205 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Navigation from "../components/Navigation.astro";
+import Footer from "../components/Footer.astro";
+import OIDCProviderIsland from "../components/auth/OIDCProviderIsland.tsx";
+---
+
+<Layout title="Login — Vulnera" description="Access your Vulnera account to manage scans and reports.">
+  <OIDCProviderIsland client:load slot="oidc-provider" />
+  <Navigation />
+
+  <!-- Login Section -->
+  <section id="main" class="relative min-h-screen flex items-center justify-center overflow-hidden bg-black" aria-labelledby="login-title" transition:animate="fade">
+    <!-- Background Layers (inspired by home) -->
+    <div class="absolute inset-0 z-0">
+      <div class="absolute inset-0 matrix-rain opacity-20"></div>
+      <div class="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-black/60"></div>
+      <div class="absolute inset-0 bg-gradient-to-b from-transparent via-matrix-900/20 to-black/80"></div>
+    </div>
+
+    <!-- Content -->
+    <div class="relative z-10 w-full max-w-md px-4 sm:px-6">
+      <div class="mb-4 sm:mb-6 text-center">
+        <h1 id="login-title" class="text-2xl sm:text-3xl md:text-4xl font-bold text-white font-mono tracking-wider">
+          <span class="text-cyber-400">&gt;</span> LOGIN
+        </h1>
+        <p class="text-matrix-300 mt-2 text-sm sm:text-base">Authenticate to access the dashboard</p>
+      </div>
+
+      <!-- Form Card -->
+      <div class="terminal-border bg-black/80 rounded-xl p-4 sm:p-6 shadow-xl auth-form">
+        <!-- Terminal Header Bar -->
+        <div class="flex items-center space-x-2 mb-4">
+          <span class="w-3 h-3 rounded-full bg-red-500"></span>
+          <span class="w-3 h-3 rounded-full bg-yellow-500"></span>
+          <span class="w-3 h-3 rounded-full bg-green-500"></span>
+          <span class="ml-3 text-xs text-gray-400">vulnera@login:~</span>
+        </div>
+
+  <form id="login-form" class="space-y-3 sm:space-y-4" autocomplete="on" action="#" method="post" novalidate>
+          <div>
+            <label for="email" class="block text-xs sm:text-sm text-cyber-300 mb-1">EMAIL</label>
+            <input id="email" name="email" type="email" required
+              class="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg bg-black/60 border border-cyber-400/30 focus:border-cyber-400 focus:ring-2 focus:ring-cyber-400 text-white placeholder-gray-500 text-sm sm:text-base"
+              placeholder="you@example.com" aria-describedby="email-help" />
+            <p id="email-help" class="sr-only">Enter the email you used to register</p>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label for="password" class="block text-xs sm:text-sm text-cyber-300">PASSWORD</label>
+              <button type="button" id="toggle-password" class="text-xs text-cyber-400 hover:text-cyber-300">[SHOW]</button>
+            </div>
+            <input id="password" name="password" type="password" required minlength="8"
+              class="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg bg-black/60 border border-cyber-400/30 focus:border-cyber-400 focus:ring-2 focus:ring-cyber-400 text-white placeholder-gray-500 text-sm sm:text-base"
+              placeholder="********" />
+          </div>
+
+          <div class="flex items-center justify-between">
+            <label class="inline-flex items-center gap-2 text-xs sm:text-sm text-matrix-300">
+              <input id="remember" name="remember" type="checkbox" class="accent-cyber-400" />
+              Remember me
+            </label>
+            <a href="#" class="text-xs sm:text-sm text-cyber-400 hover:text-cyber-300">Forgot password?</a>
+          </div>
+
+          <button type="submit" id="login-submit"
+            class="w-full inline-flex items-center justify-center bg-gradient-to-r from-cyber-600 to-matrix-600 hover:from-cyber-500 hover:to-matrix-500 text-black px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg font-bold font-mono transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyber-400 text-sm sm:text-base">
+            <span class="mr-2">&gt;</span> INIT_LOGIN
+          </button>
+        </form>
+
+        <!-- OIDC Sign-In Option -->
+        <div class="mt-4">
+          <div class="relative">
+            <div class="absolute inset-0 flex items-center">
+              <div class="w-full border-t border-cyber-400/30"></div>
+            </div>
+            <div class="relative flex justify-center text-xs">
+              <span class="bg-black/80 px-2 text-gray-400">OR</span>
+            </div>
+          </div>
+          <div class="mt-4" id="oidc-signin-container">
+            <!-- OIDC button will be mounted here by React -->
+          </div>
+        </div>
+
+        <!-- Enhanced transition to signup -->
+        <div class="text-center text-green-300 mt-4 sm:mt-6">
+          <span class="text-gray-400 text-xs sm:text-sm">No account?</span>
+          <a href="/signup" class="auth-link text-cyan-300 hover:text-cyan-200 transition-colors ml-2 text-xs sm:text-sm" data-astro-prefetch>
+            Create one
+          </a>
+        </div>
+
+        <p class="mt-4 sm:mt-6 text-center text-xs text-gray-500">By continuing, you agree to our <a href="#" class="underline">Terms</a>.</p>
+      </div>
+
+      <!-- Footer hint -->
+      <p class="mt-6 text-center text-xs text-gray-500">Protected by enterprise-grade security.</p>
+    </div>
+  </section>
+
+  <Footer />
+
+  <script type="module">
+    console.log('Login page JavaScript loaded');
+    // Lazy import API to keep initial bundle lean if possible
+    let authApi;
+    import('/src/utils/api/auth').then(m => authApi = m).catch(() => {});
+
+    // Mount OIDC sign-in button
+    import('/src/components/auth/OIDCButtons.tsx').then(({ OIDCSignInButton }) => {
+      import('react').then(React => {
+        import('react-dom/client').then(ReactDOM => {
+          const container = document.getElementById('oidc-signin-container');
+          if (container) {
+            const root = ReactDOM.createRoot(container);
+            root.render(React.createElement(OIDCSignInButton));
+          }
+        });
+      });
+    }).catch(() => {
+      console.debug('OIDC components not available');
+    });
+
+    // Determine post-login target from query (?next=/path)
+    const params = new URLSearchParams(location.search);
+    const nextParam = params.get('next');
+    const safeNext = nextParam && /^\/[a-zA-Z0-9_\-/]*$/.test(nextParam) ? nextParam : '/dashboard';
+
+    // If already logged-in, bounce to target immediately
+    try {
+      const hasToken = !!localStorage.getItem('vulnera_token') || !!localStorage.getItem('token');
+      if (hasToken) {
+        window.location.replace(safeNext);
+      }
+    } catch {}
+
+    // Password toggle functionality
+    const toggle = document.getElementById('toggle-password');
+    const pw = document.getElementById('password');
+    toggle?.addEventListener('click', () => {
+      const isPw = pw?.getAttribute('type') === 'password';
+      pw?.setAttribute('type', isPw ? 'text' : 'password');
+      toggle.textContent = isPw ? '[HIDE]' : '[SHOW]';
+    });
+
+    // Form validation
+    const form = document.getElementById('login-form');
+    const submitBtn = document.getElementById('login-submit');
+    form?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      const email = document.getElementById('email');
+      const password = document.getElementById('password');
+      
+      if (!email?.value || !password?.value) {
+        alert('Please fill in all required fields.');
+        return;
+      }
+      
+      if (!email.value.includes('@')) {
+        alert('Please enter a valid email address');
+        return;
+      }
+      const original = submitBtn?.innerHTML;
+      if (submitBtn) {
+        submitBtn.setAttribute('disabled', 'true');
+        submitBtn.classList.add('opacity-70', 'cursor-not-allowed');
+        submitBtn.innerHTML = '<span class="mr-2">&gt;</span> AUTHENTICATING...';
+      }
+      const payload = { email: email.value, password: password.value, remember: document.getElementById('remember')?.checked };
+      (async () => {
+        try {
+          if (!authApi) authApi = await import('/src/utils/api/auth');
+          const res = await authApi.login(payload);
+          console.log('Login success', res);
+          // Navigate to dashboard/home or show success
+          window.location.href = safeNext;
+        } catch (err) {
+          console.error('Login failed', err);
+          const msg = err && typeof err === 'object' && 'message' in err ? err.message : 'Login failed';
+          alert(msg);
+        } finally {
+          if (submitBtn) {
+            submitBtn.removeAttribute('disabled');
+            submitBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+            submitBtn.innerHTML = original || '<span class="mr-2">&gt;</span> INIT_LOGIN';
+          }
+        }
+      })();
+    });
+
+    // Page entrance animation
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('DOM loaded, initializing login page...');
+      const authForm = document.querySelector('.auth-form');
+      if (authForm) {
+        authForm.classList.add('transitioning-in');
+        console.log('Added transitioning-in class for page entrance');
+      }
+    });
+  </script>
+</Layout>
