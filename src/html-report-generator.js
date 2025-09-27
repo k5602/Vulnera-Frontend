@@ -811,5 +811,5 @@ function generateHTMLReport(data, filename = 'unknown') {
 </html>`;
 }
 
-// Export the function for use in main.js
+// Export the function for use by client-side code
 export { generateHTMLReport };

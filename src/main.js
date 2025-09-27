@@ -37,23 +37,9 @@ if (CONFIG.ENABLE_DEBUG === 'true' || import.meta.env?.DEV) {
 
   // Test API connectivity in development
   if (CONFIG.ENVIRONMENT === 'development') {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 2500);
-    fetch(`${CONFIG.API_BASE_URL}/health`, { signal: controller.signal })
-      .then((r) =>
-        r.ok
-          ? console.log('✅ Backend health check passed')
-          : console.warn('⚠️ Backend health check failed')
-      )
-      .catch((err) =>
-        console.warn(
-          '⚠️ Backend not reachable at',
-          CONFIG.API_BASE_URL,
-          '-',
-          err?.name === 'AbortError' ? 'timeout' : err.message
-        )
-      )
-      .finally(() => clearTimeout(timeout));
+    // Backend health check removed in frontend-only mode. If you need to
+    // verify a backend during local development, re-enable the check.
+    console.info('Backend health check skipped (frontend-only mode)');
   }
 }
 

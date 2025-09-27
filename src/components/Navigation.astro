@@ -1,0 +1,121 @@
+---
+// Navigation component for the site
+---
+
+<nav class="absolute top-0 left-0 right-0 z-20 p-6 bg-black/80 backdrop-blur-sm border-b border-cyber-500/30" aria-label="Main">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+        <a href="/" class="text-cyber-400 font-bold text-xl font-mono tracking-wider focus:outline-none focus-visible:ring-2 focus-visible:ring-cyber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded" aria-label="Brand home">
+            &gt; VULNERA_
+        </a>
+        <div id="desktop-nav" class="hidden md:flex items-center space-x-8">
+            <a href="/" aria-current="page" class="text-cyber-300 hover:text-cyber-400 transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyber-400 rounded px-2 py-1 terminal-border bg-black/50">
+                [HOME]
+            </a>
+            <a href="/scan" class="auth-only text-cyber-300 hover:text-cyber-400 transition-colors duration-200 px-2 py-1">[SCAN]</a>
+            <a href="/dashboard" class="auth-only text-cyber-300 hover:text-cyber-400 transition-colors duration-200 px-2 py-1">
+                [DASHBOARD]
+            </a>
+            <a href="/about" class="auth-only text-cyber-300 hover:text-cyber-400 transition-colors duration-200 px-2 py-1">
+                [ABOUT]
+            </a>
+            <a href="https://github.com/k5602/Vulnera" target="_blank" rel="noopener" class="text-matrix-300 hover:text-matrix-400 transition-colors duration-200 px-2 py-1">
+                [GITHUB]
+            </a>
+            <a href="http://localhost:3000/docs" target="_blank" rel="noopener" class="text-matrix-300 hover:text-matrix-400 transition-colors duration-200 px-2 py-1">
+                [API_DOCS]
+            </a>
+            <a href="http://localhost:3000/health" target="_blank" rel="noopener" class="text-red-400 hover:text-red-300 transition-colors duration-200 px-2 py-1">
+                [STATUS]
+            </a>
+            <a href="/login" class="guest-only text-cyber-300 hover:text-cyber-400 transition-colors duration-200 px-2 py-1">[LOGIN]</a>
+            <button id="logout-btn" class="auth-only text-red-300 hover:text-red-400 transition-colors duration-200 px-2 py-1">[LOGOUT]</button>
+        </div>
+        <button id="menu-toggle" class="md:hidden text-cyber-400 terminal-border p-2 rounded bg-black/50" aria-label="Toggle menu" aria-controls="mobile-menu" aria-expanded="false">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+        </button>
+    </div>
+    
+    <!-- Mobile menu -->
+    <div id="mobile-menu" class="md:hidden hidden mt-4" role="dialog" aria-modal="true">
+        <div class="max-w-7xl mx-auto px-2">
+            <div class="backdrop-blur-sm bg-black/90 rounded-xl terminal-border p-4 space-y-2">
+                <a href="/" class="mobile-link block px-4 py-2 rounded-lg text-cyber-300 hover:bg-cyber-500/10 hover:text-cyber-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyber-400">[HOME]</a>
+                <a href="/scan" class="auth-only mobile-link block px-4 py-2 rounded-lg text-cyber-300 hover:bg-cyber-500/10 hover:text-cyber-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyber-400">[SCAN]</a>
+                <a href="/dashboard" class="auth-only mobile-link block px-4 py-2 rounded-lg text-cyber-300 hover:bg-cyber-500/10 hover:text-cyber-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyber-400">[DASHBOARD]</a>
+                <a href="/about" class="auth-only mobile-link block px-4 py-2 rounded-lg text-cyber-300 hover:bg-cyber-500/10 hover:text-cyber-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyber-400">[ABOUT]</a>
+                <a href="/login" class="guest-only mobile-link block px-4 py-2 rounded-lg text-cyber-300 hover:bg-cyber-500/10 hover:text-cyber-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyber-400">[LOGIN]</a>
+                <a href="/signup" class="guest-only mobile-link block px-4 py-2 rounded-lg text-matrix-300 hover:bg-matrix-500/10 hover:text-matrix-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-matrix-400">[SIGN_UP]</a>
+                <button id="mobile-logout-btn" class="auth-only mobile-link block w-full text-left px-4 py-2 rounded-lg text-red-400 hover:bg-red-500/10 hover:text-red-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400">[LOGOUT]</button>
+                <a href="https://github.com/k5602/Vulnera" target="_blank" rel="noopener" class="mobile-link block px-4 py-2 rounded-lg text-matrix-300 hover:bg-matrix-500/10 hover:text-matrix-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-matrix-400">[GITHUB]</a>
+                <a href="http://localhost:3000/docs" target="_blank" rel="noopener" class="mobile-link block px-4 py-2 rounded-lg text-matrix-300 hover:bg-matrix-500/10 hover:text-matrix-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-matrix-400">[API_DOCS]</a>
+                <a href="http://localhost:3000/health" target="_blank" rel="noopener" class="mobile-link block px-4 py-2 rounded-lg text-red-400 hover:bg-red-500/10 hover:text-red-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400">[STATUS]</a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<script>
+    // Mobile nav toggle (accessible)
+    const toggleBtn = document.getElementById('menu-toggle');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const mobileLinks = document.querySelectorAll('#mobile-menu .mobile-link');
+    
+    function openMenu() {
+        mobileMenu?.classList.remove('hidden');
+        toggleBtn?.setAttribute('aria-expanded', 'true');
+    }
+    
+    function closeMenu() {
+        mobileMenu?.classList.add('hidden');
+        toggleBtn?.setAttribute('aria-expanded', 'false');
+    }
+    
+    if (toggleBtn && mobileMenu) {
+        toggleBtn.addEventListener('click', () => {
+            const isHidden = mobileMenu.classList.contains('hidden');
+            isHidden ? openMenu() : closeMenu();
+        });
+        
+        mobileLinks.forEach((link) => link.addEventListener('click', closeMenu));
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeMenu();
+        });
+    }
+
+    // Auth-based navigation visibility
+    function updateNavVisibility() {
+        try {
+            const hasToken = !!(localStorage.getItem('token') || sessionStorage.getItem('token'));
+            const authElements = document.querySelectorAll('.auth-only');
+            const guestElements = document.querySelectorAll('.guest-only');
+            
+            authElements.forEach(el => {
+                el.style.display = hasToken ? '' : 'none';
+            });
+            
+            guestElements.forEach(el => {
+                el.style.display = hasToken ? 'none' : '';
+            });
+        } catch {}
+    }
+
+    // Logout functionality
+    function handleLogout() {
+        try {
+            localStorage.removeItem('token');
+            sessionStorage.removeItem('token');
+        } catch {}
+        window.location.href = '/login';
+    }
+
+    // Initialize on load and listen for storage changes
+    updateNavVisibility();
+    window.addEventListener('storage', updateNavVisibility);
+    
+    // Logout button handlers
+    document.getElementById('logout-btn')?.addEventListener('click', handleLogout);
+    document.getElementById('mobile-logout-btn')?.addEventListener('click', handleLogout);
+</script>
