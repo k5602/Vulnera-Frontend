@@ -1,0 +1,18 @@
+---
+export interface Props {
+  value: string;
+  label: string;
+  valueColor?: string;
+}
+
+const { 
+  value, 
+  label, 
+  valueColor = "text-cyber-400" 
+} = Astro.props;
+---
+
+<div class="text-white terminal-border p-4 sm:p-6 rounded-lg bg-black/50">
+    <div class={`text-2xl sm:text-3xl lg:text-4xl font-bold mb-2 font-mono ${valueColor}`}>{value}</div>
+  <div class="text-matrix-300 font-mono text-xs sm:text-sm break-anywhere">{label}</div>
+</div>

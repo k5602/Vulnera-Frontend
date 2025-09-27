@@ -1,0 +1,250 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Navigation from "../components/Navigation.astro";
+import Footer from "../components/Footer.astro";
+import ScanReportIsland from "../components/report/ScanReportIsland";
+---
+
+<Layout title="Scan — Vulnera" description="Upload manifests or import repositories for scanning.">
+  <Navigation />
+
+  <section id="main" class="relative min-h-screen overflow-hidden bg-black" aria-labelledby="scan-title" transition:animate="fade">
+    <!-- Background Layers -->
+    <div class="absolute inset-0 z-0">
+      <div class="absolute inset-0 matrix-rain opacity-20"></div>
+      <div class="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-black/60"></div>
+      <div class="absolute inset-0 bg-gradient-to-b from-transparent via-matrix-900/20 to-black/80"></div>
+    </div>
+
+    <!-- Content -->
+    <div class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 py-16">
+      <header class="mb-6 sm:mb-10">
+        <div class="text-cyber-400 font-mono text-xs sm:text-sm">root@vulnera:~$</div>
+        <h1 id="scan-title" class="text-2xl sm:text-3xl md:text-4xl font-bold text-white font-mono tracking-wider mt-6 mb-4 sm:mb-6">
+          <span class="text-cyber-400">&gt;</span> SCAN
+        </h1>
+        <p class="text-matrix-300 mt-2 text-sm sm:text-base">Upload dependency manifests or import a repository to analyze vulnerabilities.</p>
+      </header>
+
+      <!-- Upload area -->
+      <section class="terminal-border bg-black/70 rounded-xl p-4 sm:p-6">
+        <h2 class="text-cyber-400 font-mono text-lg mb-3">UPLOAD_FILES</h2>
+        <div id="dropzone" class="border-2 border-dashed border-cyber-400/40 rounded-xl p-6 sm:p-10 text-center bg-black/40 hover:bg-black/50 transition-colors">
+          <p class="text-matrix-300 text-sm sm:text-base mb-3">Drag & drop your files here</p>
+          <p class="text-gray-400 text-xs sm:text-sm">Supported: package.json, requirements.txt, pom.xml, Cargo.lock, etc.</p>
+          <div class="mt-4">
+            <input id="file-input" type="file" class="sr-only" multiple />
+            <label for="file-input" id="btn-select" role="button" tabindex="0" class="inline-flex items-center cursor-pointer bg-gradient-to-r from-cyber-600 to-matrix-600 hover:from-cyber-500 hover:to-matrix-500 text-black px-4 py-2 rounded-lg font-mono text-sm terminal-border">
+              <span class="mr-2">&gt;</span> SELECT_FILES
+            </label>
+          </div>
+        </div>
+        <div class="mt-4">
+          <ul id="file-list" class="text-matrix-300 text-sm font-mono space-y-1"></ul>
+        </div>
+        <div class="mt-4 flex flex-wrap items-center gap-2 justify-between">
+          <div class="flex flex-wrap items-center gap-2">
+            <button id="btn-load-demo" class="inline-flex items-center border border-matrix-400/40 text-matrix-300 px-4 py-2 rounded-lg font-mono text-sm">LOAD_DEMO_FILES</button>
+            <button id="btn-preview-report" type="button" class="inline-flex items-center border border-cyber-400/40 text-cyber-300 px-4 py-2 rounded-lg font-mono text-sm">PREVIEW_REPORT</button>
+          </div>
+          <button id="btn-scan" class="inline-flex items-center border border-cyber-400/40 text-cyber-300 px-4 py-2 rounded-lg font-mono text-sm">START_SCAN</button>
+        </div>
+      </section>
+
+      <!-- GitHub import -->
+      <section class="mt-8 sm:mt-10 terminal-border bg-black/70 rounded-xl p-4 sm:p-6">
+        <h2 class="text-cyber-400 font-mono text-lg mb-3">IMPORT_GITHUB_REPO</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-3">
+          <input id="repo-url" type="url" placeholder="https://github.com/owner/repo" class="w-full px-3 py-2 rounded-lg bg-black/60 border border-cyber-400/30 focus:border-cyber-400 focus:ring-2 focus:ring-cyber-400 text-white placeholder-gray-500 text-sm" />
+          <button id="btn-import" class="inline-flex items-center bg-gradient-to-r from-cyber-600 to-matrix-600 hover:from-cyber-500 hover:to-matrix-500 text-black px-4 py-2 rounded-lg font-mono text-sm terminal-border">
+            <span class="mr-2">&gt;</span> IMPORT_REPO
+          </button>
+        </div>
+        <p class="text-gray-400 text-xs mt-2">We’ll fetch manifest files and analyze dependencies.</p>
+      </section>
+
+      <!-- Report Island Mount -->
+      <div class="mt-4">
+        <ScanReportIsland client:idle />
+      </div>
+    </div>
+  </section>
+
+  <Footer />
+
+  <script type="module">
+    
+
+    // Disable browser default file-open on drop anywhere
+    document.addEventListener('dragover', (e) => e.preventDefault());
+    document.addEventListener('drop', (e) => e.preventDefault());
+    
+
+    // Drag & Drop
+    const dz = document.getElementById('dropzone');
+    const input = document.getElementById('file-input');
+    const list = document.getElementById('file-list');
+    const btnSelect = document.getElementById('btn-select');
+    const btnScan = document.getElementById('btn-scan');
+    const btnImport = document.getElementById('btn-import');
+    const btnLoadDemo = document.getElementById('btn-load-demo');
+    const btnPreview = document.getElementById('btn-preview-report');
+    const repoUrl = document.getElementById('repo-url');
+    let pickedFiles = [];
+
+    function renderFiles() {
+      if (!list) return;
+      list.innerHTML = '';
+      pickedFiles.forEach((f) => {
+        const li = document.createElement('li');
+        li.textContent = `${f.name} (${Math.round(f.size/1024)} KB)`;
+        list.appendChild(li);
+      });
+    }
+
+    function handleFiles(files) {
+      const incoming = files ? Array.from(files) : [];
+      if (!incoming.length) return;
+      pickedFiles = [...pickedFiles, ...incoming].slice(0, 50);
+      renderFiles();
+    }
+
+    dz?.addEventListener('dragenter', (e) => {
+      e.preventDefault();
+      dz.classList.add('bg-black/50');
+    });
+
+    dz?.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
+      dz.classList.add('bg-black/50');
+    });
+
+    dz?.addEventListener('dragleave', () => dz.classList.remove('bg-black/50'));
+
+    dz?.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dz.classList.remove('bg-black/50');
+      handleFiles(e.dataTransfer?.files ?? null);
+    });
+
+    btnSelect?.addEventListener('click', () => input?.click());
+    input?.addEventListener('change', () => handleFiles(input?.files));
+
+    function dispatchReport(mock) {
+      window.dispatchEvent(new CustomEvent('vulnera:scan-report', { detail: mock }));
+    }
+
+    btnScan?.addEventListener('click', async () => {
+      if (!pickedFiles.length) { alert('Select files to scan.'); return; }
+      try {
+        const now = new Date();
+        const mock = {
+          startedAt: now.toISOString(),
+          finishedAt: new Date(now.getTime() + 2300).toISOString(),
+          durationMs: 2300,
+          summary: { files: pickedFiles.length, dependencies: 124, vulnerabilities: 7, critical: 2, high: 3, medium: 2, low: 0 },
+          files: [
+            { file: 'package.json', ecosystem: 'npm', dependencies: 58, vulnerable: 3 },
+            { file: 'requirements.txt', ecosystem: 'pypi', dependencies: 41, vulnerable: 2 },
+            { file: 'Cargo.lock', ecosystem: 'crates', dependencies: 25, vulnerable: 2 },
+          ],
+          vulnerabilities: [
+            { id: '1', severity: 'CRITICAL', package: 'openssl', version: '1.1.1', title: 'Memory corruption in TLS handler', cve: 'CVE-2024-12345', cvss: 9.8, affectedFiles: ['Cargo.lock'], recommendation: 'Upgrade to 1.1.1u or 3.x.' },
+            { id: '2', severity: 'HIGH', package: 'lodash', version: '4.17.15', title: 'Prototype pollution', cve: 'CVE-2020-8203', cvss: 7.2, affectedFiles: ['package.json'], recommendation: 'Update to >= 4.17.21.' },
+            { id: '3', severity: 'HIGH', package: 'urllib3', version: '1.25.8', title: 'CRLF injection', cve: 'CVE-2020-26137', cvss: 7.5, affectedFiles: ['requirements.txt'], recommendation: 'Upgrade to >= 1.26.5.' },
+            { id: '4', severity: 'MEDIUM', package: 'moment', version: '2.24.0', title: 'Regex DoS', cvss: 5.3, affectedFiles: ['package.json'] },
+            { id: '5', severity: 'MEDIUM', package: 'requests', version: '2.19.0', title: 'Open redirect', cvss: 5.8, affectedFiles: ['requirements.txt'] },
+            { id: '6', severity: 'LOW', package: 'ansi-regex', version: '5.0.0', title: 'Potential ReDoS', cvss: 3.7, affectedFiles: ['package.json'] },
+            { id: '7', severity: 'INFO', package: 'debug', version: '2.6.8', title: 'Deprecated version', affectedFiles: ['package.json'] },
+          ],
+        };
+        dispatchReport(mock);
+        alert('Scan started (mock).');
+      } catch (e) {
+        console.error(e);
+        alert('Failed to start scan');
+      }
+    });
+
+    btnImport?.addEventListener('click', async () => {
+      const url = repoUrl?.value?.trim?.() ?? '';
+      if (!url || !/^https?:\/\/github.com\//i.test(url)) { alert('Enter a valid GitHub repo URL.'); return; }
+      try {
+        // Mock a quick report
+        const now = new Date();
+        const mock = {
+          startedAt: now.toISOString(),
+          finishedAt: new Date(now.getTime() + 1500).toISOString(),
+          durationMs: 1500,
+          summary: { files: 3, dependencies: 87, vulnerabilities: 4, critical: 1, high: 2, medium: 1, low: 0 },
+          files: [
+            { file: 'package.json', ecosystem: 'npm', dependencies: 58, vulnerable: 2 },
+            { file: 'requirements.txt', ecosystem: 'pypi', dependencies: 21, vulnerable: 1 },
+            { file: 'Cargo.lock', ecosystem: 'crates', dependencies: 8, vulnerable: 1 },
+          ],
+          vulnerabilities: [
+            { id: '1', severity: 'CRITICAL', package: 'openssl', version: '1.1.1', title: 'Memory corruption in TLS handler', cve: 'CVE-2024-12345', cvss: 9.8, affectedFiles: ['Cargo.lock'], recommendation: 'Upgrade to 1.1.1u or 3.x.' },
+            { id: '2', severity: 'HIGH', package: 'lodash', version: '4.17.15', title: 'Prototype pollution', cve: 'CVE-2020-8203', cvss: 7.2, affectedFiles: ['package.json'], recommendation: 'Update to >= 4.17.21.' },
+            { id: '3', severity: 'HIGH', package: 'urllib3', version: '1.25.8', title: 'CRLF injection', cve: 'CVE-2020-26137', cvss: 7.5, affectedFiles: ['requirements.txt'], recommendation: 'Upgrade to >= 1.26.5.' },
+            { id: '4', severity: 'MEDIUM', package: 'moment', version: '2.24.0', title: 'Regex DoS', cvss: 5.3, affectedFiles: ['package.json'] },
+          ],
+        };
+        dispatchReport(mock);
+        alert('GitHub import started (mock).');
+      } catch (e) {
+        console.error(e);
+        alert('Failed to import repo');
+      }
+    });
+
+    btnLoadDemo?.addEventListener('click', async () => {
+      try {
+        const demoFiles = [
+          { url: '/demo/package.json', name: 'package.json', type: 'application/json' },
+          { url: '/demo/requirements.txt', name: 'requirements.txt', type: 'text/plain' },
+          { url: '/demo/Cargo.lock', name: 'Cargo.lock', type: 'text/plain' },
+        ];
+        const fetched = await Promise.all(demoFiles.map(async (d) => {
+          const resp = await fetch(d.url);
+          if (!resp.ok) throw new Error(`Failed to fetch ${d.url}`);
+          const blob = await resp.blob();
+          return new File([blob], d.name, { type: d.type });
+        }));
+        pickedFiles = [...pickedFiles, ...fetched].slice(0, 50);
+        renderFiles();
+      } catch (err) {
+        console.error(err);
+        alert('Failed to load demo files');
+      }
+    });
+
+    btnPreview?.addEventListener('click', () => {
+      const now = new Date();
+      const mock = {
+        startedAt: new Date(now.getTime() - 2500).toISOString(),
+        finishedAt: now.toISOString(),
+        durationMs: 2500,
+        summary: { files: 3, dependencies: 120, vulnerabilities: 6, critical: 2, high: 2, medium: 2, low: 0 },
+        files: [
+          { file: 'package.json', ecosystem: 'npm', dependencies: 58, vulnerable: 3 },
+          { file: 'requirements.txt', ecosystem: 'pypi', dependencies: 41, vulnerable: 2 },
+          { file: 'Cargo.lock', ecosystem: 'crates', dependencies: 21, vulnerable: 1 },
+        ],
+        vulnerabilities: [
+          { id: '1', severity: 'CRITICAL', package: 'openssl', version: '1.1.1', title: 'Memory corruption in TLS handler', cve: 'CVE-2024-12345', cvss: 9.8, affectedFiles: ['Cargo.lock'], recommendation: 'Upgrade to 1.1.1u or 3.x.' },
+          { id: '2', severity: 'CRITICAL', package: 'glibc', version: '2.28', title: 'Stack smashing vulnerability', cve: 'CVE-2024-99999', cvss: 9.1, affectedFiles: ['requirements.txt'], recommendation: 'Patch to latest LTS.' },
+          { id: '3', severity: 'HIGH', package: 'lodash', version: '4.17.15', title: 'Prototype pollution', cve: 'CVE-2020-8203', cvss: 7.2, affectedFiles: ['package.json'], recommendation: 'Update to >= 4.17.21.' },
+          { id: '4', severity: 'HIGH', package: 'urllib3', version: '1.25.8', title: 'CRLF injection', cve: 'CVE-2020-26137', cvss: 7.5, affectedFiles: ['requirements.txt'], recommendation: 'Upgrade to >= 1.26.5.' },
+          { id: '5', severity: 'MEDIUM', package: 'moment', version: '2.24.0', title: 'Regex DoS', cvss: 5.3, affectedFiles: ['package.json'] },
+          { id: '6', severity: 'MEDIUM', package: 'requests', version: '2.19.0', title: 'Open redirect', cvss: 5.8, affectedFiles: ['requirements.txt'] },
+        ],
+      };
+      window.dispatchEvent(new CustomEvent('vulnera:scan-report', { detail: mock }));
+      // Scroll after dispatch to ensure visibility
+      setTimeout(() => {
+        document.getElementById('scan-report-anchor')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 50);
+    });
+  </script>
+</Layout>

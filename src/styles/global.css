@@ -1,0 +1,280 @@
+@import "tailwindcss";
+
+@theme {
+  /* Typography */
+  --font-family-sans: JetBrains Mono, Fira Code, Consolas, monospace;
+  --font-family-mono: JetBrains Mono, Fira Code, Consolas, monospace;
+  
+  /* Cyber Color Palette */
+  --color-cyber-50: #f0ffff;
+  --color-cyber-100: #ccfffe;
+  --color-cyber-200: #99fffc;
+  --color-cyber-300: #5cfffa;
+  --color-cyber-400: #1affef;
+  --color-cyber-500: #00e5d1;
+  --color-cyber-600: #00b8a6;
+  --color-cyber-700: #009688;
+  --color-cyber-800: #00766a;
+  --color-cyber-900: #004d40;
+  --color-cyber-950: #002e26;
+  
+  /* Matrix Color Palette */
+  --color-matrix-50: #f0fff4;
+  --color-matrix-100: #dcfce7;
+  --color-matrix-200: #bbf7d0;
+  --color-matrix-300: #86efac;
+  --color-matrix-400: #4ade80;
+  --color-matrix-500: #22c55e;
+  --color-matrix-600: #16a34a;
+  --color-matrix-700: #15803d;
+  --color-matrix-800: #166534;
+  --color-matrix-900: #14532d;
+  --color-matrix-950: #052e16;
+  
+  /* Custom Animations */
+  --animate-fade-in: fadeIn 0.8s ease-in-out;
+  --animate-slide-up: slideUp 0.6s ease-out;
+  --animate-glow: glow 2s ease-in-out infinite alternate;
+  --animate-scan: scan 3s linear infinite;
+  --animate-terminal: terminal 1s ease-in-out infinite;
+}
+
+/* === CYBERPUNK ANIMATIONS === */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes glow {
+    from { box-shadow: 0 0 5px #00e5d1, 0 0 10px #00e5d1, 0 0 15px #00e5d1; }
+    to { box-shadow: 0 0 10px #00e5d1, 0 0 20px #00e5d1, 0 0 30px #00e5d1; }
+}
+
+@keyframes scan {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100vw); }
+}
+
+@keyframes terminal {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+}
+
+/* === CYBERPUNK UTILITY CLASSES === */
+.cyber-grid {
+    background-image: 
+        linear-gradient(rgba(0, 229, 209, 0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 229, 209, 0.1) 1px, transparent 1px);
+    background-size: 50px 50px;
+}
+
+.terminal-border {
+    border: 1px solid #00e5d1;
+    box-shadow: 0 0 10px rgba(0, 229, 209, 0.3);
+}
+
+.matrix-rain {
+    background: linear-gradient(0deg, transparent 0%, rgba(34, 197, 94, 0.1) 50%, transparent 100%);
+}
+
+.glow {
+    /* Cyberpunk text glow effect for special elements */
+    text-shadow: 0 0 5px currentColor, 0 0 10px currentColor, 0 0 15px currentColor;
+}
+
+/* === ACCESSIBILITY === */
+@media (prefers-reduced-motion: reduce) {
+    .animate-bounce, 
+    .animate-fade-in, 
+    .animate-slide-up, 
+    .animate-glow, 
+    .animate-scan,
+    .animate-terminal { 
+        animation: none !important; 
+    }
+    * { 
+        transition: none !important; 
+    }
+}
+
+/* Print styling: output clean report-only PDF */
+@media print {
+  body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    /* Only print the cloned report in #print-container */
+    body.print-overlay *:not(#print-container):not(#print-container *) { display: none !important; }
+    #print-container { display: block !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  /* Remove animated/background layers that can cause dark pages */
+  .cyber-grid, .matrix-rain, .vt-overlay, .vt-backdrop { display: none !important; }
+  /* Ensure borders show on white background */
+    .terminal-border { border-color: #00e5d1 !important; }
+    /* Avoid breaking cards/tables awkwardly */
+    #print-container .terminal-border, #print-container table, #print-container tr, #print-container li { page-break-inside: avoid; break-inside: avoid; }
+    #print-container table { width: 100% !important; }
+  /* Use full width */
+  @page { size: A4; margin: 12mm; }
+}
+
+/* Enhanced link styling */
+.auth-link {
+  position: relative;
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 6px;
+  background: linear-gradient(45deg, rgba(26, 255, 239, 0.1), rgba(34, 197, 94, 0.1));
+  border: 1px solid rgba(26, 255, 239, 0.3);
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.auth-link:hover {
+  background: linear-gradient(45deg, rgba(26, 255, 239, 0.2), rgba(34, 197, 94, 0.2));
+  border-color: rgba(26, 255, 239, 0.6);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(26, 255, 239, 0.3);
+}
+
+.auth-link:active {
+  transform: translateY(0);
+}
+
+/* === FOCUS MANAGEMENT === */
+.focus-visible\:ring-cyber-400:focus-visible {
+    --tw-ring-color: #1affef;
+}
+
+.focus-visible\:ring-matrix-400:focus-visible {
+    --tw-ring-color: #4ade80;
+}
+
+/* === LIGHTWEIGHT PAGE TRANSITION OVERLAY === */
+/* Uses only opacity + transform (GPU-friendly). No layout thrash. */
+.vt-overlay {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 60; /* above background grid, below modals if any */
+    display: grid;
+    place-items: center;
+    opacity: 0.001; /* non-zero to ensure paint and avoid flash */
+}
+
+.vt-overlay.is-active {
+    animation: vtFadeIn 160ms ease-out forwards;
+}
+
+.vt-overlay.is-leaving {
+    animation: vtFadeOut 160ms ease-in forwards;
+}
+
+.vt-backdrop {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(1200px 600px at 50% 50%, rgba(20, 83, 45, 0.25), transparent 70%),
+                            linear-gradient(0deg, transparent 0%, rgba(74, 222, 128, 0.07) 50%, transparent 100%);
+    will-change: opacity;
+}
+
+.vt-terminal {
+    position: relative;
+    padding: 18px 22px;
+    border-radius: 10px;
+    background: rgba(0,0,0,0.75);
+    border: 1px solid rgba(26, 255, 239, 0.35);
+    box-shadow: 0 0 20px rgba(26, 255, 239, 0.2);
+    color: #e5fff6;
+    font-family: JetBrains Mono, Fira Code, Consolas, monospace;
+    transform: scale(0.98) translateY(6px);
+    opacity: 0;
+}
+
+.vt-overlay.is-active .vt-terminal {
+    animation: vtScaleIn 180ms ease-out forwards;
+}
+
+.vt-overlay.is-leaving .vt-terminal {
+    animation: vtScaleOut 140ms ease-in forwards;
+}
+
+.vt-prompt {
+    color: var(--color-cyber-400);
+    margin-right: 8px;
+}
+
+.vt-caret {
+    display: inline-block;
+    width: 8px;
+    margin-left: 2px;
+    color: var(--color-cyber-400);
+    animation: terminal 1s ease-in-out infinite;
+}
+
+.vt-log {
+    margin-top: 10px;
+    max-height: 32vh;
+    overflow: hidden;
+}
+
+.vt-line {
+    font-size: 12px;
+    line-height: 1.3;
+    color: #86efac; /* matrix-300 */
+    will-change: contents;
+}
+
+/* Utility: allow breaking anywhere to avoid mobile overflow of long tokens */
+.break-anywhere {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+/* Content visibility control: keep content hidden until transition finishes (JS-enabled only) */
+.vt-content {
+    opacity: 1;
+    transition: opacity 300ms ease-out;
+}
+
+.js .vt-content {
+    opacity: 0;
+}
+
+.vt-content.is-visible {
+    opacity: 1;
+}
+
+/* If JavaScript is disabled, show content normally */
+.no-js .vt-content {
+    opacity: 1 !important;
+}
+
+@keyframes vtFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes vtFadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+@keyframes vtScaleIn {
+    from { opacity: 0; transform: scale(0.98) translateY(6px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes vtScaleOut {
+    from { opacity: 1; transform: scale(1) translateY(0); }
+    to { opacity: 0; transform: scale(0.985) translateY(4px); }
+}
+
+/* Respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+    .vt-overlay,
+    .vt-terminal {
+        animation: none !important;
+    }
+}

@@ -1,0 +1,11 @@
+{
+  "name": "vulnera-demo-app",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "lodash": "4.17.15",
+    "moment": "2.24.0",
+    "debug": "2.6.8",
+    "ansi-regex": "5.0.0"
+  }
+}
