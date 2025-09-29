@@ -1,204 +1,279 @@
 ---
-// Sidebar.astro - Matrix-themed sidebar component with toggle functionality
-
-export interface Props {
-  /** Custom CSS classes for the sidebar container */
-  class?: string;
-}
-
-const { class: className = '' } = Astro.props;
+// Modern collapsible sidebar with mini icons
 ---
 
-<!-- Sidebar Container -->
-<aside id="sidebar" class={`fixed top-0 left-0 h-full w-80 z-50 group/sidebar bg-black/95 ${className}`} data-state="expanded" aria-label="Primary">
-  <!-- Matrix Background -->
-  <div class="absolute inset-0 bg-black/95 backdrop-blur-md">
-    <!-- Cyber Grid Background -->
-    <div class="absolute inset-0 cyber-grid opacity-20"></div>
+<aside 
+  id="sidebar" 
+  class="fixed left-0 top-0 h-screen bg-black/95 backdrop-blur-md terminal-border border-l-0 border-t-0 border-b-0 z-30 transition-all duration-300 ease-in-out"
+  aria-label="Main sidebar navigation"
+>
+  <!-- Toggle Button -->
+  <button 
+    id="sidebar-toggle"
+    class="absolute -right-3 top-6 w-6 h-6 rounded-full bg-gradient-to-r from-cyber-600 to-matrix-600 terminal-border flex items-center justify-center hover:scale-110 transition-transform duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyber-400 "
+    aria-label="Toggle sidebar"
+    aria-expanded="false"
+  >
+    <svg class="w-3 h-3 text-black transition-transform duration-300" id="toggle-icon" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </button>
 
-    <!-- Matrix Rain Effect -->
-    <div class="absolute inset-0 matrix-rain opacity-10"></div>
+  <!-- Logo Section -->
+  
 
-    <!-- Terminal Glow Gradient -->
-    <div class="absolute inset-0 bg-gradient-to-r from-matrix-900/30 via-transparent to-matrix-900/30"></div>
-  </div>
-
-  <!-- Sidebar Content -->
-  <div class="relative z-10 h-full flex flex-col">
-    <!-- Sidebar Header -->
-    <div class="relative p-4 sm:p-5 border-b border-matrix-500/30 flex items-start gap-3">
-      <div class="flex-1 min-w-0">
-        <h2 class="sidebar-label text-matrix-400 font-mono text-lg sm:text-xl font-bold tracking-wider glow truncate">
-          &gt; NAVIGATION_
-        </h2>
-        <p class="sidebar-label text-matrix-300/70 text-xs sm:text-[0.7rem] font-mono mt-1 truncate">
-          Matrix Protocol v2.0
-        </p>
+  <!-- Navigation Links -->
+  <nav class="flex flex-col gap-2 p-4" aria-label="Sidebar navigation">
+    <!-- Home -->
+    <a 
+      href="/" 
+      class="sidebar-link group relative flex items-center h-12 rounded-lg hover:bg-cyber-400/10 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyber-400"
+      data-label="Home"
+    >
+      <div class="flex items-center justify-center w-12 h-12">
+        <svg class="w-6 h-6 text-cyber-400 group-hover:text-cyber-300 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+        </svg>
       </div>
-      <!-- Collapse Toggle Button -->
-      <button id="collapse-toggle" class="mt-1 inline-flex items-center justify-center w-8 h-8 rounded-lg border border-matrix-500/30 text-matrix-400 hover:text-matrix-300 hover:bg-matrix-900/40 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-matrix-400" aria-label="Collapse sidebar" aria-expanded="true">
-        <svg id="collapse-icon" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" /></svg>
-      </button>
-    </div>
-
-    <!-- Navigation Links -->
-    <nav class="flex-1 p-3 sm:p-4 space-y-1.5" aria-label="Sidebar navigation">
-      <a href="/" aria-current="page" class="sidebar-link group flex items-center gap-3 px-3 py-3 rounded-lg text-matrix-300 hover:text-matrix-400 hover:bg-matrix-500/10 transition-all duration-200 font-mono border border-transparent hover:border-matrix-500/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-matrix-400 text-sm">
-        <span class="icon-wrapper w-6 h-6 flex items-center justify-center text-matrix-400">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M3 12l9-9 9 9" /><path d="M9 21V9h6v12" /></svg>
-        </span>
-        <span class="sidebar-label whitespace-nowrap">HOME</span>
-      </a>
-
-      <a href="/scan" class="sidebar-link group flex items-center gap-3 px-3 py-3 rounded-lg text-matrix-300 hover:text-matrix-400 hover:bg-matrix-500/10 transition-all duration-200 font-mono border border-transparent hover:border-matrix-500/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-matrix-400 text-sm">
-        <span class="icon-wrapper w-6 h-6 flex items-center justify-center text-matrix-400">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="M10 8l4 4-4 4" /></svg>
-        </span>
-        <span class="sidebar-label whitespace-nowrap">SCAN</span>
-      </a>
-
-      <a href="/dashboard" class="sidebar-link group flex items-center gap-3 px-3 py-3 rounded-lg text-matrix-300 hover:text-matrix-400 hover:bg-matrix-500/10 transition-all duration-200 font-mono border border-transparent hover:border-matrix-500/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-matrix-400 text-sm">
-        <span class="icon-wrapper w-6 h-6 flex items-center justify-center text-matrix-400">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" /><rect x="14" y="3" width="7" height="5" /><rect x="14" y="12" width="7" height="9" /><rect x="3" y="16" width="7" height="5" /></svg>
-        </span>
-        <span class="sidebar-label whitespace-nowrap">DASHBOARD</span>
-      </a>
-
-      <a href="/about" class="sidebar-link group flex items-center gap-3 px-3 py-3 rounded-lg text-matrix-300 hover:text-matrix-400 hover:bg-matrix-500/10 transition-all duration-200 font-mono border border-transparent hover:border-matrix-500/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-matrix-400 text-sm">
-        <span class="icon-wrapper w-6 h-6 flex items-center justify-center text-matrix-400">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" /></svg>
-        </span>
-        <span class="sidebar-label whitespace-nowrap">ABOUT</span>
-      </a>
-
-  <div class="border-t border-matrix-500/20 my-3"></div>
-
-      <a href="https://github.com/k5602/Vulnera" target="_blank" rel="noopener" class="sidebar-link group flex items-center gap-3 px-3 py-3 rounded-lg text-cyber-300 hover:text-cyber-400 hover:bg-cyber-500/10 transition-all duration-200 font-mono border border-transparent hover:border-cyber-500/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyber-400 text-sm">
-        <span class="icon-wrapper w-6 h-6 flex items-center justify-center text-cyber-400">
-          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.373 0 12a12 12 0 008.207 11.387c.6.111.793-.262.793-.579v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.108-.775.419-1.305.763-1.604-2.666-.305-5.468-1.334-5.468-5.931 0-1.311.47-2.381 1.237-3.221-.124-.303-.535-1.524.118-3.176 0 0 1.008-.322 3.3 1.23a11.52 11.52 0 013.003-.404c1.02.005 2.047.138 3.006.404 2.29-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.119 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.8.576A12.004 12.004 0 0024 12c0-6.627-5.373-12-12-12z" /></svg>
-        </span>
-        <span class="sidebar-label whitespace-nowrap">GITHUB</span>
-      </a>
-
-      <a href="http://localhost:3000/docs" target="_blank" rel="noopener" class="sidebar-link group flex items-center gap-3 px-3 py-3 rounded-lg text-cyber-300 hover:text-cyber-400 hover:bg-cyber-500/10 transition-all duration-200 font-mono border border-transparent hover:border-cyber-500/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyber-400 text-sm">
-        <span class="icon-wrapper w-6 h-6 flex items-center justify-center text-cyber-400">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M4 4h16v16H4z" /><path d="M8 4v16" /><path d="M16 4v16" /><path d="M4 8h16" /><path d="M4 16h16" /></svg>
-        </span>
-        <span class="sidebar-label whitespace-nowrap">API DOCS</span>
-      </a>
-
-      <a href="http://localhost:3000/health" target="_blank" rel="noopener" class="sidebar-link group flex items-center gap-3 px-3 py-3 rounded-lg text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all duration-200 font-mono border border-transparent hover:border-red-500/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400 text-sm">
-        <span class="icon-wrapper w-6 h-6 flex items-center justify-center text-red-400">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="M12 8v4" /><path d="M12 16h.01" /></svg>
-        </span>
-        <span class="sidebar-label whitespace-nowrap">STATUS</span>
-      </a>
-    </nav>
-
-    <!-- Sidebar Footer -->
-    <div class="p-3 sm:p-4 border-t border-matrix-500/30 mt-auto">
-      <div class="flex items-center gap-3 overflow-hidden">
-        <div class="w-2 h-2 bg-matrix-400 rounded-full animate-terminal flex-shrink-0"></div>
-        <p class="sidebar-label text-matrix-300/50 text-[10px] sm:text-xs font-mono tracking-wide truncate">Vulnera System Online</p>
+      <span class="sidebar-text ml-3 text-matrix-300 group-hover:text-cyber-300 whitespace-nowrap opacity-0 pointer-events-none transition-opacity duration-300">HOME</span>
+      <div class="sidebar-tooltip absolute left-full ml-2 px-3 py-2 bg-black/95 terminal-border rounded-lg text-cyber-400 text-sm whitespace-nowrap opacity-0 pointer-events-none transition-opacity duration-200 z-50">
+        Home
       </div>
-    </div>
-  </div>
+    </a>
+
+    <!-- Scan -->
+    <a 
+      href="/scan" 
+      class="sidebar-link auth-only group relative flex items-center h-12 rounded-lg hover:bg-cyber-400/10 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyber-400"
+      data-label="Scan"
+    >
+      <div class="flex items-center justify-center w-12 h-12">
+        <svg class="w-6 h-6 text-cyber-400 group-hover:text-cyber-300 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+        </svg>
+      </div>
+      <span class="sidebar-text ml-3 text-matrix-300 group-hover:text-cyber-300 whitespace-nowrap opacity-0 pointer-events-none transition-opacity duration-300">SCAN</span>
+      <div class="sidebar-tooltip absolute left-full ml-2 px-3 py-2 bg-black/95 terminal-border rounded-lg text-cyber-400 text-sm whitespace-nowrap opacity-0 pointer-events-none transition-opacity duration-200 z-50">
+        Scan Project
+      </div>
+    </a>
+
+    <!-- Dashboard -->
+    <a 
+      href="/dashboard" 
+      class="sidebar-link auth-only group relative flex items-center h-12 rounded-lg hover:bg-cyber-400/10 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyber-400"
+      data-label="Dashboard"
+    >
+      <div class="flex items-center justify-center w-12 h-12">
+        <svg class="w-6 h-6 text-cyber-400 group-hover:text-cyber-300 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+        </svg>
+      </div>
+      <span class="sidebar-text ml-3 text-matrix-300 group-hover:text-cyber-300 whitespace-nowrap opacity-0 pointer-events-none transition-opacity duration-300">DASHBOARD</span>
+      <div class="sidebar-tooltip absolute left-full ml-2 px-3 py-2 bg-black/95 terminal-border rounded-lg text-cyber-400 text-sm whitespace-nowrap opacity-0 pointer-events-none transition-opacity duration-200 z-50">
+        Dashboard
+      </div>
+    </a>
+
+    <!-- About -->
+    <a 
+      href="/about" 
+      class="sidebar-link group relative flex items-center h-12 rounded-lg hover:bg-cyber-400/10 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyber-400"
+      data-label="About"
+    >
+      <div class="flex items-center justify-center w-12 h-12">
+        <svg class="w-6 h-6 text-cyber-400 group-hover:text-cyber-300 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+      </div>
+      <span class="sidebar-text ml-3 text-matrix-300 group-hover:text-cyber-300 whitespace-nowrap opacity-0 pointer-events-none transition-opacity duration-300">ABOUT</span>
+      <div class="sidebar-tooltip absolute left-full ml-2 px-3 py-2 bg-black/95 terminal-border rounded-lg text-cyber-400 text-sm whitespace-nowrap opacity-0 pointer-events-none transition-opacity duration-200 z-50">
+        About
+      </div>
+    </a>
+
+    <!-- Divider -->
+    <div class="my-2 border-t border-cyber-400/20"></div>
+
+    <!-- Login (guest only) -->
+    <a 
+      href="/login" 
+      class="sidebar-link guest-only group relative flex items-center h-12 rounded-lg hover:bg-cyber-400/10 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyber-400"
+      data-label="Login"
+    >
+      <div class="flex items-center justify-center w-12 h-12">
+        <svg class="w-6 h-6 text-cyber-400 group-hover:text-cyber-300 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+        </svg>
+      </div>
+      <span class="sidebar-text ml-3 text-matrix-300 group-hover:text-cyber-300 whitespace-nowrap opacity-0 pointer-events-none transition-opacity duration-300">LOGIN</span>
+      <div class="sidebar-tooltip absolute left-full ml-2 px-3 py-2 bg-black/95 terminal-border rounded-lg text-cyber-400 text-sm whitespace-nowrap opacity-0 pointer-events-none transition-opacity duration-200 z-50">
+        Login
+      </div>
+    </a>
+
+    <!-- Logout (auth only) -->
+    <button 
+      id="sidebar-logout-btn"
+      class="sidebar-link auth-only group relative flex items-center h-12 rounded-lg hover:bg-red-500/10 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400 w-full"
+      data-label="Logout"
+    >
+      <div class="flex items-center justify-center w-12 h-12">
+        <svg class="w-6 h-6 text-red-400 group-hover:text-red-300 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+        </svg>
+      </div>
+      <span class="sidebar-text ml-3 text-red-300 group-hover:text-red-200 whitespace-nowrap opacity-0 pointer-events-none transition-opacity duration-300">LOGOUT</span>
+      <div class="sidebar-tooltip absolute left-full ml-2 px-3 py-2 bg-black/95 terminal-border rounded-lg text-red-400 text-sm whitespace-nowrap opacity-0 pointer-events-none transition-opacity duration-200 z-50">
+        Logout
+      </div>
+    </button>
+  </nav>
 </aside>
 
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const sidebar = document.getElementById('sidebar') as HTMLElement | null;
-    const collapseBtn = document.getElementById('collapse-toggle') as HTMLButtonElement | null;
-    const collapseIcon = document.getElementById('collapse-icon') as HTMLElement | null;
-    if (!sidebar || !collapseBtn) return; // bail if structure missing
-
-    // Restore persisted state
-    const saved = localStorage.getItem('vulnera.sidebar');
-    if (saved === 'collapsed') {
-      sidebar.dataset.state = 'collapsed';
-      sidebar.classList.add('mini');
-      collapseBtn.setAttribute('aria-expanded', 'false');
-      collapseBtn.setAttribute('aria-label', 'Expand sidebar');
-      if (collapseIcon) collapseIcon.style.transform = 'rotate(180deg)';
-    }
-
-    function setState(collapsed: boolean) {
-      if (!sidebar || !collapseBtn) return; // type guard
-      if (collapsed) {
-        sidebar.dataset.state = 'collapsed';
-        sidebar.classList.add('mini');
-        localStorage.setItem('vulnera.sidebar', 'collapsed');
-        collapseBtn.setAttribute('aria-expanded', 'false');
-        collapseBtn.setAttribute('aria-label', 'Expand sidebar');
-        if (collapseIcon) collapseIcon.style.transform = 'rotate(180deg)';
-      } else {
-        sidebar.dataset.state = 'expanded';
-        sidebar.classList.remove('mini');
-        localStorage.setItem('vulnera.sidebar', 'expanded');
-        collapseBtn.setAttribute('aria-expanded', 'true');
-        collapseBtn.setAttribute('aria-label', 'Collapse sidebar');
-        if (collapseIcon) collapseIcon.style.transform = 'rotate(0deg)';
-      }
-    }
-
-    collapseBtn.addEventListener('click', () => {
-      const collapsed = sidebar.classList.toggle('mini');
-      setState(collapsed);
-    });
-
-    // Keyboard shortcut: Ctrl+Shift+S to toggle
-    document.addEventListener('keydown', (e) => {
-      if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 's') {
-        e.preventDefault();
-        collapseBtn.click();
-      }
-    });
-  });
-</script>
-
 <style>
-  /* Collapse behavior */
-  #sidebar { transition: width 0.28s ease, backdrop-filter 0.3s ease; }
-  #sidebar .sidebar-label { transition: opacity 0.18s ease, transform 0.25s ease; }
-  #sidebar.mini { width: 4.5rem; }
-  #sidebar.mini .sidebar-label { opacity: 0; transform: translateX(-4px); pointer-events: none; }
-  #sidebar.mini nav { padding-left: 0.5rem; padding-right: 0.5rem; }
-  #sidebar.mini #collapse-icon { transform: rotate(180deg); }
-  #sidebar:not(.mini) #collapse-icon { transform: rotate(0deg); }
-  #collapse-icon { transition: transform 0.25s ease; }
-  #sidebar.mini .sidebar-link { padding-left: 0.5rem; padding-right: 0.5rem; justify-content: center; }
-  #sidebar.mini .icon-wrapper { margin: 0; }
-  #sidebar.mini .icon-wrapper svg { filter: drop-shadow(0 0 4px rgba(34,197,94,0.35)); }
-  #sidebar.mini .border-t { margin-left: 0.5rem; margin-right: 0.5rem; }
-  #sidebar.mini [aria-current="page"] { background: rgba(34,197,94,0.08); }
-  #sidebar.mini .animate-terminal { margin-left: 0.5rem; }
-
-  /* Additional matrix rain animation for sidebar */
-  #sidebar .matrix-rain {
-    background: linear-gradient(0deg, transparent 0%, rgba(34, 197, 94, 0.15) 50%, transparent 100%);
-    animation: matrixRain 20s linear infinite;
-  }
-
-  @keyframes matrixRain {
-    0% { transform: translateY(-100%); }
-    100% { transform: translateY(100vh); }
-  }
-
-  /* Enhanced glow for sidebar header */
-  #sidebar .glow {
-    text-shadow: 0 0 10px currentColor, 0 0 20px currentColor, 0 0 30px currentColor;
-  }
-
-  /* Ensure sidebar doesn't cause horizontal scroll on mobile */
+  /* Sidebar default (collapsed) state */
   #sidebar {
-    max-width: 100vw;
-    box-sizing: border-box;
+    width: 80px;
   }
 
-  /* Mobile: prefer full width, disable mini collapse */
-  @media (max-width: 800px) {
-    #sidebar { width: 100vw !important; }
-    #sidebar.mini { width: 100vw; }
-    #collapse-toggle { position: absolute; top: 0.5rem; right: 0.5rem; }
+  /* Sidebar expanded state */
+  #sidebar.expanded {
+    width: 140px;
+  }
+
+  #sidebar.expanded .sidebar-text {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  #sidebar.expanded #toggle-icon {
+    transform: rotate(180deg);
+  }
+
+  /* Tooltips only show when collapsed */
+  #sidebar:not(.expanded) .sidebar-link:hover .sidebar-tooltip {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* Hide tooltips when expanded */
+  #sidebar.expanded .sidebar-tooltip {
+    display: none;
+  }
+
+  /* Active link indicator */
+  .sidebar-link[aria-current="page"] {
+    background: linear-gradient(90deg, rgba(26, 255, 239, 0.15), transparent);
+    border-left: 3px solid #1affef;
+  }
+
+  /* Mobile responsive */
+  @media (max-width: 768px) {
+    #sidebar {
+      transform: translateX(-100%);
+      width: 140px !important;
+    }
+
+    #sidebar.mobile-open {
+      transform: translateX(0);
+    }
+
+    #sidebar.mobile-open .sidebar-text {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    #sidebar-toggle {
+      display: none;
+    }
+  }
+
+  /* Adjust main content padding when sidebar is present */
+  @media (min-width: 769px) {
+    :global(main), :global(section), :global(.relative) {
+      transition: padding-left 0.3s ease-in-out;
+    }
   }
 </style>
+
+<script>
+  // Sidebar toggle functionality
+  const sidebar = document.getElementById('sidebar');
+  const toggleBtn = document.getElementById('sidebar-toggle');
+  const sidebarLinks = document.querySelectorAll('.sidebar-link');
+
+  // Check if sidebar should be expanded from localStorage
+  const isExpanded = localStorage.getItem('sidebar-expanded') === 'true';
+  if (isExpanded && window.innerWidth >= 769) {
+    sidebar?.classList.add('expanded');
+    toggleBtn?.setAttribute('aria-expanded', 'true');
+  }
+
+  // Toggle sidebar
+  toggleBtn?.addEventListener('click', () => {
+    const expanded = sidebar?.classList.toggle('expanded');
+    toggleBtn?.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+    localStorage.setItem('sidebar-expanded', expanded ? 'true' : 'false');
+  });
+
+  // Highlight active page
+  const currentPath = window.location.pathname;
+  sidebarLinks.forEach(link => {
+    const href = link.getAttribute('href');
+    if (href === currentPath || (href === '/' && currentPath === '/')) {
+      link.setAttribute('aria-current', 'page');
+    }
+  });
+
+  // Auth-based visibility
+  import { isAuthenticated, logout } from '../utils/auth.js';
+
+  function updateSidebarVisibility() {
+    const isLoggedIn = isAuthenticated();
+    
+    const authElements = sidebar?.querySelectorAll('.auth-only');
+    const guestElements = sidebar?.querySelectorAll('.guest-only');
+    
+    authElements?.forEach(el => {
+      (el as HTMLElement).style.display = isLoggedIn ? '' : 'none';
+    });
+    
+    guestElements?.forEach(el => {
+      (el as HTMLElement).style.display = isLoggedIn ? 'none' : '';
+    });
+  }
+
+  // Logout functionality
+  function handleLogout() {
+    logout();
+    window.location.href = '/login';
+  }
+
+  // Initialize on load
+  updateSidebarVisibility();
+
+  // Setup logout button
+  const logoutBtn = document.getElementById('sidebar-logout-btn');
+  logoutBtn?.addEventListener('click', handleLogout);
+
+  // Listen for storage changes (multi-tab sync)
+  window.addEventListener('storage', updateSidebarVisibility);
+
+  // Mobile menu toggle (triggered from Navigation component)
+  window.addEventListener('toggle-mobile-sidebar', () => {
+    if (window.innerWidth < 769) {
+      sidebar?.classList.toggle('mobile-open');
+    }
+  });
+
+  // Close sidebar when clicking outside on mobile
+  document.addEventListener('click', (e) => {
+    if (window.innerWidth < 769 && 
+        sidebar?.classList.contains('mobile-open') && 
+        !sidebar.contains(e.target as Node) &&
+        !(e.target as HTMLElement)?.closest('#menu-toggle')) {
+      sidebar?.classList.remove('mobile-open');
+    }
+  });
+</script>

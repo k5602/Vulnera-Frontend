@@ -5,6 +5,17 @@ import Footer from "../components/Footer.astro";
 ---
 
 <Layout title="Dashboard — Vulnera" description="Overview of reports, projects, and recent activity.">
+  <!-- Inline Auth Guard (runs immediately) -->
+  <script is:inline>
+    (function() {
+      const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
+      if (!token) {
+        const currentPath = window.location.pathname + window.location.search;
+        window.location.href = '/login?next=' + encodeURIComponent(currentPath);
+      }
+    })();
+  </script>
+
   <Navigation />
 
   <section id="main" class="relative min-h-screen overflow-hidden bg-black" aria-labelledby="dash-title" transition:animate="fade">

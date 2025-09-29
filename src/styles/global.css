@@ -151,6 +151,25 @@
     --tw-ring-color: #4ade80;
 }
 
+/* === SIDEBAR CONTENT WRAPPER === */
+/* Desktop: offset content to account for fixed sidebar without moving elements */
+@media (min-width: 769px) {
+    .main-content-wrapper {
+        margin-left: 80px;
+        transition: margin-left 0.3s ease-in-out;
+    }
+
+    body:has(#sidebar.expanded) .main-content-wrapper {
+        margin-left: 280px;
+    }
+}
+
+@media (max-width: 768px) {
+    .main-content-wrapper {
+        margin-left: 0;
+    }
+}
+
 /* === LIGHTWEIGHT PAGE TRANSITION OVERLAY === */
 /* Uses only opacity + transform (GPU-friendly). No layout thrash. */
 .vt-overlay {
