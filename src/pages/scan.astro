@@ -6,6 +6,17 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
 ---
 
 <Layout title="Scan — Vulnera" description="Upload manifests or import repositories for scanning.">
+  <!-- Auth Guard - Redirect to login if not authenticated -->
+  <script is:inline>
+    (function() {
+      const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
+      if (!token) {
+        const currentPath = window.location.pathname + window.location.search;
+        window.location.href = '/login?next=' + encodeURIComponent(currentPath);
+      }
+    })();
+  </script>
+
   <Navigation />
 
   <section id="main" class="relative min-h-screen overflow-hidden bg-black" aria-labelledby="scan-title" transition:animate="fade">

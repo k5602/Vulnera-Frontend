@@ -105,7 +105,9 @@ export function generateFixedPackageJson(
             fixLog,
         };
     } catch (error) {
-        console.error("Error generating fixed package.json:", error);
+        if (import.meta?.env?.DEV) {
+            console.error("Error generating fixed package.json:", error);
+        }
         return {
             content: originalContent,
             fixedCount: 0,
@@ -196,7 +198,9 @@ export function generateFixedRequirementsTxt(
             fixLog,
         };
     } catch (error) {
-        console.error("Error generating fixed requirements.txt:", error);
+        if (import.meta?.env?.DEV) {
+            console.error("Error generating fixed requirements.txt:", error);
+        }
         return {
             content: originalContent,
             fixedCount: 0,
@@ -284,7 +288,9 @@ export function generateFixedPomXml(
             fixLog,
         };
     } catch (error) {
-        console.error("Error generating fixed pom.xml:", error);
+        if (import.meta?.env?.DEV) {
+            console.error("Error generating fixed pom.xml:", error);
+        }
         return {
             content: originalContent,
             fixedCount: 0,

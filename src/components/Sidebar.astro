@@ -227,10 +227,10 @@
   });
 
   // Auth-based visibility
-  import { isAuthenticated, logout } from '../utils/auth.js';
+  import { authService } from '../utils/api/index';
 
   function updateSidebarVisibility() {
-    const isLoggedIn = isAuthenticated();
+    const isLoggedIn = authService.isAuthenticated();
     
     const authElements = sidebar?.querySelectorAll('.auth-only');
     const guestElements = sidebar?.querySelectorAll('.guest-only');
@@ -246,7 +246,7 @@
 
   // Logout functionality
   function handleLogout() {
-    logout();
+    authService.logout();
     window.location.href = '/login';
   }
 

@@ -5,6 +5,16 @@ import Footer from "../components/Footer.astro";
 ---
 
 <Layout title="Sign Up — Vulnera" description="Create your Vulnera account to start scanning and reporting vulnerabilities.">
+  <!-- Guest Guard - Redirect to dashboard if already authenticated -->
+  <script is:inline>
+    (function() {
+      const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
+      if (token) {
+        window.location.href = '/dashboard';
+      }
+    })();
+  </script>
+
   <Navigation />
 
   <!-- Signup Section -->
@@ -138,12 +148,12 @@ import Footer from "../components/Footer.astro";
     form?.addEventListener('submit', (e) => {
       e.preventDefault();
       
-      const email = document.getElementById('email');
-      const password = document.getElementById('password');
-      const confirm = document.getElementById('confirm');
-      const firstName = document.getElementById('firstName');
-      const lastName = document.getElementById('lastName');
-      const terms = document.getElementById('terms');
+      const email = document.getElementById('email') as HTMLInputElement;
+      const password = document.getElementById('password') as HTMLInputElement;
+      const confirm = document.getElementById('confirm') as HTMLInputElement;
+      const firstName = document.getElementById('firstName') as HTMLInputElement;
+      const lastName = document.getElementById('lastName') as HTMLInputElement;
+      const terms = document.getElementById('terms') as HTMLInputElement;
 
       if (!email?.value || !password?.value || !confirm?.value || !firstName?.value || !lastName?.value || !terms?.checked) {
         alert('Please complete all fields and accept the terms.');

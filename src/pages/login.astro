@@ -5,6 +5,16 @@ import Footer from "../components/Footer.astro";
 ---
 
 <Layout title="Login — Vulnera" description="Access your Vulnera account">
+  <!-- Guest Guard - Redirect to dashboard if already authenticated -->
+  <script is:inline>
+    (function() {
+      const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
+      if (token) {
+        window.location.href = '/dashboard';
+      }
+    })();
+  </script>
+
   <Navigation />
 
   <section id="main" class="relative min-h-screen flex items-center justify-center overflow-hidden bg-black">
@@ -24,13 +34,6 @@ import Footer from "../components/Footer.astro";
         <p class="text-matrix-300 mt-2">Authenticate to access dashboard</p>
       </div>
 
-      <!-- Demo Credentials -->
-      <div class="terminal-border bg-cyber-900/20 border-cyber-400/40 rounded-lg p-3 mb-4">
-        <p class="text-cyber-300 text-sm font-mono text-center">
-          <span class="text-matrix-400">Demo:</span> demo@vulnera.com / demo123
-        </p>
-      </div>
-
       <!-- Login Card -->
       <div class="terminal-border bg-black/80 rounded-xl p-6 shadow-xl">
         <!-- Terminal Header -->
@@ -41,6 +44,12 @@ import Footer from "../components/Footer.astro";
           <span class="ml-3 text-xs text-gray-400">vulnera@auth:~</span>
         </div>
 
+        <!-- Error Message -->
+        <div id="error-message" class="hidden mb-4 p-3 bg-red-900/20 border border-red-500/50 rounded text-red-300 text-sm"></div>
+
+        <!-- Success Message -->
+        <div id="success-message" class="hidden mb-4 p-3 bg-green-900/20 border border-green-500/50 rounded text-green-300 text-sm"></div>
+
         <!-- Form -->
         <form id="login-form" class="space-y-4">
           <div>
@@ -49,8 +58,9 @@ import Footer from "../components/Footer.astro";
               id="email" 
               type="email"
               class="w-full px-4 py-3 rounded-lg bg-black/60 border border-cyber-400/30 focus:border-cyber-400 focus:ring-2 focus:ring-cyber-400 text-white placeholder-gray-500"
-              placeholder="you@example.com" 
+              placeholder="user@example.com" 
               required 
+              autocomplete="email"
             />
           </div>
 
@@ -60,9 +70,10 @@ import Footer from "../components/Footer.astro";
               id="password" 
               type="password"
               class="w-full px-4 py-3 rounded-lg bg-black/60 border border-cyber-400/30 focus:border-cyber-400 focus:ring-2 focus:ring-cyber-400 text-white placeholder-gray-500"
-              placeholder="********" 
+              placeholder="••••••••" 
               required 
-              minlength="4"
+              minlength="6"
+              autocomplete="current-password"
             />
           </div>
 
@@ -74,7 +85,7 @@ import Footer from "../components/Footer.astro";
           <button 
             type="submit" 
             id="submit-btn"
-            class="w-full bg-gradient-to-r from-cyber-600 to-matrix-600 hover:from-cyber-500 hover:to-matrix-500 text-black px-6 py-3 rounded-lg font-bold font-mono transition-all"
+            class="w-full bg-gradient-to-r from-cyber-600 to-matrix-600 hover:from-cyber-500 hover:to-matrix-500 text-black px-6 py-3 rounded-lg font-bold font-mono transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <span class="mr-2">&gt;</span> LOGIN
           </button>
@@ -93,67 +104,78 @@ import Footer from "../components/Footer.astro";
   <Footer />
 
   <script>
-    import { isAuthenticated, login } from '../utils/auth.js';
+    import { authService } from '../utils/api/index';
 
-    console.log('[Login] Script loaded');
+    const form = document.getElementById('login-form') as HTMLFormElement;
+    const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
+    const errorDiv = document.getElementById('error-message') as HTMLDivElement;
+    const successDiv = document.getElementById('success-message') as HTMLDivElement;
 
-    // Redirect if already logged in
-    if (isAuthenticated()) {
-      console.log('[Login] Already authenticated, redirecting...');
-      const params = new URLSearchParams(window.location.search);
-      const next = params.get('next') || '/dashboard';
-      window.location.href = next;
-    }
+    const showError = (message: string) => {
+      errorDiv.textContent = message;
+      errorDiv.classList.remove('hidden');
+      successDiv.classList.add('hidden');
+    };
 
-    // Handle form submission
-    const form = document.getElementById('login-form') as HTMLFormElement | null;
-    const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement | null;
+    const showSuccess = (message: string) => {
+      successDiv.textContent = message;
+      successDiv.classList.remove('hidden');
+      errorDiv.classList.add('hidden');
+    };
 
-    console.log('[Login] Form:', form, 'Submit button:', submitBtn);
+    const hideMessages = () => {
+      errorDiv.classList.add('hidden');
+      successDiv.classList.add('hidden');
+    };
 
-    form?.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      console.log('[Login] Form submitted');
+      hideMessages();
       
-      const emailEl = document.getElementById('email') as HTMLInputElement | null;
-      const passwordEl = document.getElementById('password') as HTMLInputElement | null;
-      const rememberEl = document.getElementById('remember') as HTMLInputElement | null;
+      const emailEl = document.getElementById('email') as HTMLInputElement;
+      const passwordEl = document.getElementById('password') as HTMLInputElement;
+      const rememberEl = document.getElementById('remember') as HTMLInputElement;
 
-      if (!emailEl || !passwordEl || !rememberEl || !submitBtn) {
-        console.error('[Login] Missing form elements');
-        return;
-      }
-
-      const email = emailEl.value;
+      const email = emailEl.value.trim();
       const password = passwordEl.value;
       const remember = rememberEl.checked;
 
-      console.log('[Login] Attempting login with:', { email, password: '***', remember });
+      // Validate inputs
+      if (!email || !password) {
+        showError('Email and password are required');
+        return;
+      }
 
-      // Show loading
+      // Disable submit button
       submitBtn.disabled = true;
       submitBtn.innerHTML = '<span class="mr-2">&gt;</span> AUTHENTICATING...';
 
-      // Try login
-      setTimeout(() => {
-        const success = login(email, password, remember);
-        console.log('[Login] Login result:', success);
-        
-        if (success) {
-          console.log('[Login] Login successful, redirecting...');
-          const params = new URLSearchParams(window.location.search);
-          const next = params.get('next') || '/dashboard';
-          console.log('[Login] Redirecting to:', next);
-          window.location.href = next;
+      try {
+        // Call the real API
+        const response = await authService.login(
+          { email, password },
+          remember
+        );
+
+        if (response.success) {
+          showSuccess('Login successful! Redirecting...');
+          
+          // Redirect after short delay
+          setTimeout(() => {
+            const params = new URLSearchParams(window.location.search);
+            const next = params.get('next') || '/dashboard';
+            window.location.href = next;
+          }, 500);
         } else {
-          console.log('[Login] Login failed');
-          alert('Invalid credentials. Use demo@vulnera.com / demo123');
-          if (submitBtn) {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = '<span class="mr-2">&gt;</span> LOGIN';
-          }
+          showError(response.error || 'Login failed. Please check your credentials.');
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<span class="mr-2">&gt;</span> LOGIN';
         }
-      }, 500);
+      } catch (err: any) {
+        showError('Network error: ' + (err?.message || 'Unable to connect to server'));
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<span class="mr-2">&gt;</span> LOGIN';
+      }
     });
   </script>
 </Layout>

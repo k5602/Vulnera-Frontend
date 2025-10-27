@@ -8,38 +8,40 @@ let initGitHubScanning;
 import { initNotyf, showVsCodeExtensionPreview } from './ui/notifications.js';
 import { onModalToggle } from './ui/focus.js';
 
-// Enhanced logging for debugging
-if (CONFIG.ENABLE_DEBUG === 'true' || import.meta.env?.DEV) {
-  console.group('🔧 Vulnera Configuration');
-  console.log('Environment:', CONFIG.ENVIRONMENT);
-  console.log('API Base URL:', CONFIG.API_BASE_URL);
-  console.log('API Endpoint:', CONFIG.API_ENDPOINT);
-  console.log('App Name:', CONFIG.APP_NAME);
-  console.log('App Version:', CONFIG.APP_VERSION);
-  console.log('API Timeout:', CONFIG.API_TIMEOUT + 'ms');
-  console.log('Debug Mode:', CONFIG.ENABLE_DEBUG);
+// Enhanced logging for debugging (development only)
+if ((CONFIG.ENABLE_DEBUG === 'true' || import.meta.env?.DEV) && typeof window !== 'undefined') {
+  if (window.__ENABLE_DEBUG_LOGS === true) {
+    console.group('🔧 Vulnera Configuration');
+    console.debug('Environment:', CONFIG.ENVIRONMENT);
+    console.debug('API Base URL:', CONFIG.API_BASE_URL);
+    console.debug('API Endpoint:', CONFIG.API_ENDPOINT);
+    console.debug('App Name:', CONFIG.APP_NAME);
+    console.debug('App Version:', CONFIG.APP_VERSION);
+    console.debug('API Timeout:', CONFIG.API_TIMEOUT + 'ms');
+    console.debug('Debug Mode:', CONFIG.ENABLE_DEBUG);
 
-  // Show environment variable sources
-  console.group('Environment Variable Sources:');
-  console.log('Vite Env:', import.meta.env || 'Not available');
-  console.log(
-    'Window Vars:',
-    typeof window !== 'undefined'
-      ? {
-        VULNERA_API_BASE_URL: window.VULNERA_API_BASE_URL,
-        VULNERA_API_VERSION: window.VULNERA_API_VERSION,
-        VULNERA_APP_NAME: window.VULNERA_APP_NAME
-      }
-      : 'Not available'
-  );
-  console.groupEnd();
-  console.groupEnd();
+    // Show environment variable sources
+    console.group('Environment Variable Sources:');
+    console.debug('Vite Env:', import.meta.env || 'Not available');
+    console.debug(
+      'Window Vars:',
+      typeof window !== 'undefined'
+        ? {
+          VULNERA_API_BASE_URL: window.VULNERA_API_BASE_URL,
+          VULNERA_API_VERSION: window.VULNERA_API_VERSION,
+          VULNERA_APP_NAME: window.VULNERA_APP_NAME,
+        }
+        : 'Not available'
+    );
+    console.groupEnd();
+    console.groupEnd();
+  }
 
   // Test API connectivity in development
   if (CONFIG.ENVIRONMENT === 'development') {
     // Backend health check removed in frontend-only mode. If you need to
     // verify a backend during local development, re-enable the check.
-    console.info('Backend health check skipped (frontend-only mode)');
+    console.debug('Backend health check skipped (frontend-only mode)');
   }
 }
 

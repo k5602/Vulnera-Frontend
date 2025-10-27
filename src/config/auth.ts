@@ -16,7 +16,9 @@ function readRuntimeEnv(name: string): string | undefined {
 const getEnvVar = (name: string, defaultValue?: string): string => {
   const value = readRuntimeEnv(name) ?? defaultValue;
   if (!value) {
-    console.warn(`Environment variable ${name} is not set`);
+    if (import.meta.env.DEV) {
+      console.warn(`Environment variable ${name} is not set`);
+    }
     return defaultValue || '';
   }
   return String(value);

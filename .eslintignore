@@ -1,6 +1,0 @@
-dist/
-node_modules/
-coverage/
-*.min.js
-public/runtime-config.js
-eslint.config.js
