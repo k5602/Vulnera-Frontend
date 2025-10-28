@@ -80,4 +80,15 @@ export const API_ENDPOINTS = {
     ANALYZE: '/api/v1/packages/analyze',
     LIST: '/api/v1/packages',
   },
+
+  // Repository endpoints
+  REPOSITORY: {
+    ANALYZE: '/api/v1/analyze/repository',
+  },
+
+  // Health endpoints
+  HEALTH: {
+    CHECK: '/health',
+    METRICS: '/metrics',
+  },
 } as const;

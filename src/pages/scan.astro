@@ -7,7 +7,7 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
 
 <Layout title="Scan — Vulnera" description="Upload manifests or import repositories for scanning.">
   <!-- Auth Guard - Redirect to login if not authenticated -->
-  <script is:inline>
+  <!-- <script is:inline>
     (function() {
       const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
       if (!token) {
@@ -15,7 +15,7 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
         window.location.href = '/login?next=' + encodeURIComponent(currentPath);
       }
     })();
-  </script>
+  </script> -->
 
   <Navigation />
 
@@ -84,178 +84,235 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
   <Footer />
 
   <script type="module">
-    
+    // API configuration - Backend running on port 3000
+    const API_BASE_URL = 'http://localhost:3000';
 
-    // Disable browser default file-open on drop anywhere
-    document.addEventListener('dragover', (e) => e.preventDefault());
-    document.addEventListener('drop', (e) => e.preventDefault());
-    
+    function initializeHandlers() {
+      // Disable browser default file-open on drop anywhere
+      document.addEventListener('dragover', (e) => e.preventDefault());
+      document.addEventListener('drop', (e) => e.preventDefault());
 
-    // Drag & Drop
-    const dz = document.getElementById('dropzone');
-    const input = document.getElementById('file-input');
-    const list = document.getElementById('file-list');
-    const btnSelect = document.getElementById('btn-select');
-    const btnScan = document.getElementById('btn-scan');
-    const btnImport = document.getElementById('btn-import');
-    const btnLoadDemo = document.getElementById('btn-load-demo');
-    const btnPreview = document.getElementById('btn-preview-report');
-    const repoUrl = document.getElementById('repo-url');
-    let pickedFiles = [];
+      // Get elements
+      const dz = document.getElementById('dropzone');
+      const input = document.getElementById('file-input');
+      const list = document.getElementById('file-list');
+      const btnSelect = document.getElementById('btn-select');
+      const btnScan = document.getElementById('btn-scan');
+      const btnImport = document.getElementById('btn-import');
+      const btnLoadDemo = document.getElementById('btn-load-demo');
+      const btnPreview = document.getElementById('btn-preview-report');
+      const repoUrl = document.getElementById('repo-url');
+      let pickedFiles = [];
 
-    function renderFiles() {
-      if (!list) return;
-      list.innerHTML = '';
-      pickedFiles.forEach((f) => {
-        const li = document.createElement('li');
-        li.textContent = `${f.name} (${Math.round(f.size/1024)} KB)`;
-        list.appendChild(li);
+      function renderFiles() {
+        if (!list) return;
+        list.innerHTML = '';
+        pickedFiles.forEach((f) => {
+          const li = document.createElement('li');
+          li.textContent = `${f.name} (${Math.round(f.size/1024)} KB)`;
+          list.appendChild(li);
+        });
+      }
+
+      function handleFiles(files) {
+        const incoming = files ? Array.from(files) : [];
+        if (!incoming.length) return;
+        pickedFiles = [...pickedFiles, ...incoming].slice(0, 50);
+        renderFiles();
+      }
+
+      // Drag and drop handlers
+      dz?.addEventListener('dragenter', (e) => {
+        e.preventDefault();
+        dz.classList.add('bg-black/50');
+      });
+
+      dz?.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
+        dz.classList.add('bg-black/50');
+      });
+
+      dz?.addEventListener('dragleave', () => dz.classList.remove('bg-black/50'));
+
+      dz?.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dz.classList.remove('bg-black/50');
+        handleFiles(e.dataTransfer?.files ?? null);
+      });
+
+      btnSelect?.addEventListener('click', () => input?.click());
+      input?.addEventListener('change', () => handleFiles(input?.files));
+
+      function dispatchReport(report) {
+        window.dispatchEvent(new CustomEvent('vulnera:scan-report', { detail: report }));
+      }
+
+      // START_SCAN handler
+      btnScan?.addEventListener('click', async () => {
+        if (!pickedFiles.length) { alert('Select files to scan.'); return; }
+        
+        try {
+          btnScan.disabled = true;
+          btnScan.textContent = '> SCANNING...';
+          
+          // Process each file individually and collect results
+          const fileAnalyses = [];
+          const allVulnerabilities = [];
+          
+          for (const file of pickedFiles) {
+            try {
+              const content = await file.text();
+              
+              // Detect ecosystem from filename
+              let ecosystem = 'npm';
+              if (file.name.includes('requirements.txt')) ecosystem = 'pypi';
+              else if (file.name.includes('pom.xml')) ecosystem = 'maven';
+              else if (file.name.includes('Cargo.lock') || file.name.includes('Cargo.toml')) ecosystem = 'cargo';
+              else if (file.name.includes('go.mod')) ecosystem = 'go';
+              else if (file.name.includes('composer.json')) ecosystem = 'packagist';
+              
+              const response = await fetch(`${API_BASE_URL}/api/v1/analyze`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  file_content: content,
+                  ecosystem: ecosystem,
+                  filename: file.name
+                })
+              });
+              
+              if (response.ok) {
+                const result = await response.json();
+                
+                // Build FileAnalysis for this file
+                const vulnerabilityCount = result.vulnerabilities?.length || 0;
+                fileAnalyses.push({
+                  file: file.name,
+                  ecosystem: ecosystem,
+                  dependencies: result.affected_packages?.length || 0,
+                  vulnerable: vulnerabilityCount
+                });
+                
+                // Add vulnerabilities
+                if (result.vulnerabilities) {
+                  allVulnerabilities.push(...result.vulnerabilities.map((v) => ({
+                    id: v.id,
+                    severity: v.severity.toUpperCase(),
+                    package: v.affected_packages?.[0]?.name || 'unknown',
+                    version: v.affected_packages?.[0]?.version || '',
+                    title: v.summary || v.description,
+                    cve: v.id,
+                    affectedFiles: [file.name],
+                    cvss: v.cvss_score
+                  })));
+                }
+              } else {
+                console.warn(`Failed to analyze ${file.name}:`, response.status);
+              }
+            } catch (e) {
+              console.error(`Error analyzing ${file.name}:`, e);
+            }
+          }
+          
+          // Dispatch combined report
+          const report = {
+            startedAt: new Date().toISOString(),
+            finishedAt: new Date().toISOString(),
+            durationMs: 0,
+            summary: {
+              files: pickedFiles.length,
+              dependencies: fileAnalyses.reduce((sum, f) => sum + (f.dependencies || 0), 0),
+              vulnerabilities: allVulnerabilities.length,
+              critical: allVulnerabilities.filter(v => v.severity === 'CRITICAL').length,
+              high: allVulnerabilities.filter(v => v.severity === 'HIGH').length,
+              medium: allVulnerabilities.filter(v => v.severity === 'MEDIUM').length,
+              low: allVulnerabilities.filter(v => v.severity === 'LOW').length,
+            },
+            files: fileAnalyses,
+            vulnerabilities: allVulnerabilities,
+          };
+          dispatchReport(report);
+        } catch (e) {
+          console.error('Scan error:', e);
+          alert('Failed to start scan: ' + (e?.message || 'Unknown error'));
+        } finally {
+          btnScan.disabled = false;
+          btnScan.textContent = '> START_SCAN';
+        }
+      });
+
+      // IMPORT_REPO handler
+      btnImport?.addEventListener('click', async () => {
+        const url = repoUrl?.value?.trim?.() ?? '';
+        if (!url || !/^https?:\/\/github.com\//i.test(url)) { alert('Enter a valid GitHub repo URL.'); return; }
+        
+        try {
+          btnImport.disabled = true;
+          btnImport.textContent = '> IMPORTING...';
+          alert('GitHub import will be available soon with backend support.');
+        } catch (e) {
+          console.error('GitHub import error:', e);
+          alert('Failed to import repo: ' + (e?.message || 'Unknown error'));
+        } finally {
+          btnImport.disabled = false;
+          btnImport.textContent = '> IMPORT_REPO';
+        }
+      });
+
+      // LOAD_DEMO_FILES handler
+      btnLoadDemo?.addEventListener('click', async () => {
+        try {
+          const demoFiles = [
+            { url: '/demo/package.json', name: 'package.json', type: 'application/json' },
+            { url: '/demo/requirements.txt', name: 'requirements.txt', type: 'text/plain' },
+            { url: '/demo/Cargo.lock', name: 'Cargo.lock', type: 'text/plain' },
+          ];
+          const fetched = await Promise.all(demoFiles.map(async (d) => {
+            const resp = await fetch(d.url);
+            if (!resp.ok) throw new Error(`Failed to fetch ${d.url}`);
+            const blob = await resp.blob();
+            return new File([blob], d.name, { type: d.type });
+          }));
+          pickedFiles = [...pickedFiles, ...fetched].slice(0, 50);
+          renderFiles();
+        } catch (err) {
+          console.error(err);
+          alert('Failed to load demo files');
+        }
+      });
+
+      // PREVIEW_REPORT handler
+      btnPreview?.addEventListener('click', () => {
+        const now = new Date();
+        const mock = {
+          startedAt: new Date(now.getTime() - 2500).toISOString(),
+          finishedAt: now.toISOString(),
+          durationMs: 2500,
+          summary: { files: 3, dependencies: 120, vulnerabilities: 6, critical: 2, high: 2, medium: 2, low: 0 },
+          vulnerabilities: [
+            { id: '1', severity: 'CRITICAL', package: 'openssl', version: '1.1.1', title: 'Memory corruption in TLS handler', cve: 'CVE-2024-12345', cvss: 9.8, affectedFiles: ['Cargo.lock'], recommendation: 'Upgrade to 1.1.1u or 3.x.' },
+            { id: '2', severity: 'CRITICAL', package: 'glibc', version: '2.28', title: 'Stack smashing vulnerability', cve: 'CVE-2024-99999', cvss: 9.1, affectedFiles: ['requirements.txt'], recommendation: 'Patch to latest LTS.' },
+            { id: '3', severity: 'HIGH', package: 'lodash', version: '4.17.15', title: 'Prototype pollution', cve: 'CVE-2020-8203', cvss: 7.2, affectedFiles: ['package.json'], recommendation: 'Update to >= 4.17.21.' },
+            { id: '4', severity: 'HIGH', package: 'urllib3', version: '1.25.8', title: 'CRLF injection', cve: 'CVE-2020-26137', cvss: 7.5, affectedFiles: ['requirements.txt'], recommendation: 'Upgrade to >= 1.26.5.' },
+            { id: '5', severity: 'MEDIUM', package: 'moment', version: '2.24.0', title: 'Regex DoS', cvss: 5.3, affectedFiles: ['package.json'] },
+            { id: '6', severity: 'MEDIUM', package: 'requests', version: '2.19.0', title: 'Open redirect', cvss: 5.8, affectedFiles: ['requirements.txt'] },
+          ],
+        };
+        window.dispatchEvent(new CustomEvent('vulnera:scan-report', { detail: mock }));
+        setTimeout(() => {
+          document.getElementById('scan-report-anchor')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 50);
       });
     }
 
-    function handleFiles(files) {
-      const incoming = files ? Array.from(files) : [];
-      if (!incoming.length) return;
-      pickedFiles = [...pickedFiles, ...incoming].slice(0, 50);
-      renderFiles();
+    // Initialize when DOM is ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initializeHandlers);
+    } else {
+      initializeHandlers();
     }
-
-    dz?.addEventListener('dragenter', (e) => {
-      e.preventDefault();
-      dz.classList.add('bg-black/50');
-    });
-
-    dz?.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
-      dz.classList.add('bg-black/50');
-    });
-
-    dz?.addEventListener('dragleave', () => dz.classList.remove('bg-black/50'));
-
-    dz?.addEventListener('drop', (e) => {
-      e.preventDefault();
-      dz.classList.remove('bg-black/50');
-      handleFiles(e.dataTransfer?.files ?? null);
-    });
-
-    btnSelect?.addEventListener('click', () => input?.click());
-    input?.addEventListener('change', () => handleFiles(input?.files));
-
-    function dispatchReport(mock) {
-      window.dispatchEvent(new CustomEvent('vulnera:scan-report', { detail: mock }));
-    }
-
-    btnScan?.addEventListener('click', async () => {
-      if (!pickedFiles.length) { alert('Select files to scan.'); return; }
-      try {
-        const now = new Date();
-        const mock = {
-          startedAt: now.toISOString(),
-          finishedAt: new Date(now.getTime() + 2300).toISOString(),
-          durationMs: 2300,
-          summary: { files: pickedFiles.length, dependencies: 124, vulnerabilities: 7, critical: 2, high: 3, medium: 2, low: 0 },
-          files: [
-            { file: 'package.json', ecosystem: 'npm', dependencies: 58, vulnerable: 3 },
-            { file: 'requirements.txt', ecosystem: 'pypi', dependencies: 41, vulnerable: 2 },
-            { file: 'Cargo.lock', ecosystem: 'crates', dependencies: 25, vulnerable: 2 },
-          ],
-          vulnerabilities: [
-            { id: '1', severity: 'CRITICAL', package: 'openssl', version: '1.1.1', title: 'Memory corruption in TLS handler', cve: 'CVE-2024-12345', cvss: 9.8, affectedFiles: ['Cargo.lock'], recommendation: 'Upgrade to 1.1.1u or 3.x.' },
-            { id: '2', severity: 'HIGH', package: 'lodash', version: '4.17.15', title: 'Prototype pollution', cve: 'CVE-2020-8203', cvss: 7.2, affectedFiles: ['package.json'], recommendation: 'Update to >= 4.17.21.' },
-            { id: '3', severity: 'HIGH', package: 'urllib3', version: '1.25.8', title: 'CRLF injection', cve: 'CVE-2020-26137', cvss: 7.5, affectedFiles: ['requirements.txt'], recommendation: 'Upgrade to >= 1.26.5.' },
-            { id: '4', severity: 'MEDIUM', package: 'moment', version: '2.24.0', title: 'Regex DoS', cvss: 5.3, affectedFiles: ['package.json'] },
-            { id: '5', severity: 'MEDIUM', package: 'requests', version: '2.19.0', title: 'Open redirect', cvss: 5.8, affectedFiles: ['requirements.txt'] },
-            { id: '6', severity: 'LOW', package: 'ansi-regex', version: '5.0.0', title: 'Potential ReDoS', cvss: 3.7, affectedFiles: ['package.json'] },
-            { id: '7', severity: 'INFO', package: 'debug', version: '2.6.8', title: 'Deprecated version', affectedFiles: ['package.json'] },
-          ],
-        };
-        dispatchReport(mock);
-        alert('Scan started (mock).');
-      } catch (e) {
-        console.error(e);
-        alert('Failed to start scan');
-      }
-    });
-
-    btnImport?.addEventListener('click', async () => {
-      const url = repoUrl?.value?.trim?.() ?? '';
-      if (!url || !/^https?:\/\/github.com\//i.test(url)) { alert('Enter a valid GitHub repo URL.'); return; }
-      try {
-        // Mock a quick report
-        const now = new Date();
-        const mock = {
-          startedAt: now.toISOString(),
-          finishedAt: new Date(now.getTime() + 1500).toISOString(),
-          durationMs: 1500,
-          summary: { files: 3, dependencies: 87, vulnerabilities: 4, critical: 1, high: 2, medium: 1, low: 0 },
-          files: [
-            { file: 'package.json', ecosystem: 'npm', dependencies: 58, vulnerable: 2 },
-            { file: 'requirements.txt', ecosystem: 'pypi', dependencies: 21, vulnerable: 1 },
-            { file: 'Cargo.lock', ecosystem: 'crates', dependencies: 8, vulnerable: 1 },
-          ],
-          vulnerabilities: [
-            { id: '1', severity: 'CRITICAL', package: 'openssl', version: '1.1.1', title: 'Memory corruption in TLS handler', cve: 'CVE-2024-12345', cvss: 9.8, affectedFiles: ['Cargo.lock'], recommendation: 'Upgrade to 1.1.1u or 3.x.' },
-            { id: '2', severity: 'HIGH', package: 'lodash', version: '4.17.15', title: 'Prototype pollution', cve: 'CVE-2020-8203', cvss: 7.2, affectedFiles: ['package.json'], recommendation: 'Update to >= 4.17.21.' },
-            { id: '3', severity: 'HIGH', package: 'urllib3', version: '1.25.8', title: 'CRLF injection', cve: 'CVE-2020-26137', cvss: 7.5, affectedFiles: ['requirements.txt'], recommendation: 'Upgrade to >= 1.26.5.' },
-            { id: '4', severity: 'MEDIUM', package: 'moment', version: '2.24.0', title: 'Regex DoS', cvss: 5.3, affectedFiles: ['package.json'] },
-          ],
-        };
-        dispatchReport(mock);
-        alert('GitHub import started (mock).');
-      } catch (e) {
-        console.error(e);
-        alert('Failed to import repo');
-      }
-    });
-
-    btnLoadDemo?.addEventListener('click', async () => {
-      try {
-        const demoFiles = [
-          { url: '/demo/package.json', name: 'package.json', type: 'application/json' },
-          { url: '/demo/requirements.txt', name: 'requirements.txt', type: 'text/plain' },
-          { url: '/demo/Cargo.lock', name: 'Cargo.lock', type: 'text/plain' },
-        ];
-        const fetched = await Promise.all(demoFiles.map(async (d) => {
-          const resp = await fetch(d.url);
-          if (!resp.ok) throw new Error(`Failed to fetch ${d.url}`);
-          const blob = await resp.blob();
-          return new File([blob], d.name, { type: d.type });
-        }));
-        pickedFiles = [...pickedFiles, ...fetched].slice(0, 50);
-        renderFiles();
-      } catch (err) {
-        console.error(err);
-        alert('Failed to load demo files');
-      }
-    });
-
-    btnPreview?.addEventListener('click', () => {
-      const now = new Date();
-      const mock = {
-        startedAt: new Date(now.getTime() - 2500).toISOString(),
-        finishedAt: now.toISOString(),
-        durationMs: 2500,
-        summary: { files: 3, dependencies: 120, vulnerabilities: 6, critical: 2, high: 2, medium: 2, low: 0 },
-        files: [
-          { file: 'package.json', ecosystem: 'npm', dependencies: 58, vulnerable: 3 },
-          { file: 'requirements.txt', ecosystem: 'pypi', dependencies: 41, vulnerable: 2 },
-          { file: 'Cargo.lock', ecosystem: 'crates', dependencies: 21, vulnerable: 1 },
-        ],
-        vulnerabilities: [
-          { id: '1', severity: 'CRITICAL', package: 'openssl', version: '1.1.1', title: 'Memory corruption in TLS handler', cve: 'CVE-2024-12345', cvss: 9.8, affectedFiles: ['Cargo.lock'], recommendation: 'Upgrade to 1.1.1u or 3.x.' },
-          { id: '2', severity: 'CRITICAL', package: 'glibc', version: '2.28', title: 'Stack smashing vulnerability', cve: 'CVE-2024-99999', cvss: 9.1, affectedFiles: ['requirements.txt'], recommendation: 'Patch to latest LTS.' },
-          { id: '3', severity: 'HIGH', package: 'lodash', version: '4.17.15', title: 'Prototype pollution', cve: 'CVE-2020-8203', cvss: 7.2, affectedFiles: ['package.json'], recommendation: 'Update to >= 4.17.21.' },
-          { id: '4', severity: 'HIGH', package: 'urllib3', version: '1.25.8', title: 'CRLF injection', cve: 'CVE-2020-26137', cvss: 7.5, affectedFiles: ['requirements.txt'], recommendation: 'Upgrade to >= 1.26.5.' },
-          { id: '5', severity: 'MEDIUM', package: 'moment', version: '2.24.0', title: 'Regex DoS', cvss: 5.3, affectedFiles: ['package.json'] },
-          { id: '6', severity: 'MEDIUM', package: 'requests', version: '2.19.0', title: 'Open redirect', cvss: 5.8, affectedFiles: ['requirements.txt'] },
-        ],
-      };
-      window.dispatchEvent(new CustomEvent('vulnera:scan-report', { detail: mock }));
-      // Scroll after dispatch to ensure visibility
-      setTimeout(() => {
-        document.getElementById('scan-report-anchor')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 50);
-    });
   </script>
 </Layout>

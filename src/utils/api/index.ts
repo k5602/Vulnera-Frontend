@@ -1,16 +1,12 @@
 /**
  * API Services Index
- * Export all API services and utilities
+ * Central export point for all API services
  */
 
-export * from './client';
-export * from './token-manager';
-export * from './auth-service';
-export * from './scan-service';
-export * from './vulnerability-service';
-
-export { apiClient } from './client';
+export { apiClient, type ApiResponse } from './client';
+export { authService, type LoginCredentials, type LoginResponse, type RegisterData, type AuthResponse } from './auth-service';
 export { tokenManager } from './token-manager';
-export { authService } from './auth-service';
+export { healthService } from './health-service';
+export { repositoryService } from './repository-service';
 export { scanService } from './scan-service';
 export { vulnerabilityService } from './vulnerability-service';
