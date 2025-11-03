@@ -6,7 +6,7 @@ import Footer from "../components/Footer.astro";
 
 <Layout title="Dashboard — Vulnera" description="Overview of reports, projects, and recent activity.">
   <!-- Inline Auth Guard (runs immediately) -->
-  <script is:inline>
+  <!-- <script is:inline>
     (function() {
       const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
       if (!token) {
@@ -14,7 +14,7 @@ import Footer from "../components/Footer.astro";
         window.location.href = '/login?next=' + encodeURIComponent(currentPath);
       }
     })();
-  </script>
+  </script> -->
 
   <Navigation />
 
