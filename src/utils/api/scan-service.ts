@@ -41,49 +41,32 @@ export interface ScanListResponse {
 
 class ScanService {
   /**
-   * Create a new vulnerability scan
+   * Analyze dependencies
    */
-  async createScan(request: ScanRequest): Promise<ApiResponse<ScanResult>> {
-    return apiClient.post<ScanResult>(API_ENDPOINTS.SCAN.CREATE, request);
+  async analyzeDependencies(request: ScanRequest): Promise<ApiResponse<ScanResult>> {
+    return apiClient.post<ScanResult>(API_ENDPOINTS.ANALYSIS.ANALYZE, request);
   }
 
   /**
-   * Get scan results by ID
+   * Get analysis report by ID
    */
-  async getScan(scanId: string): Promise<ApiResponse<ScanResult>> {
-    const endpoint = apiClient.replacePath(API_ENDPOINTS.SCAN.GET, { id: scanId });
+  async getReport(reportId: string): Promise<ApiResponse<ScanResult>> {
+    const endpoint = apiClient.replacePath(API_ENDPOINTS.ANALYSIS.GET_REPORT, { id: reportId });
     return apiClient.get<ScanResult>(endpoint);
   }
 
   /**
-   * List all scans
+   * Get popular packages with vulnerabilities
    */
-  async listScans(page: number = 1, pageSize: number = 10): Promise<ApiResponse<ScanListResponse>> {
-    const endpoint = `${API_ENDPOINTS.SCAN.LIST}?page=${page}&pageSize=${pageSize}`;
-    return apiClient.get<ScanListResponse>(endpoint);
-  }
-
-  /**
-   * Get scan status
-   */
-  async getScanStatus(scanId: string): Promise<ApiResponse<{ status: string; progress?: number }>> {
-    const endpoint = apiClient.replacePath(API_ENDPOINTS.SCAN.STATUS, { id: scanId });
-    return apiClient.get(endpoint);
-  }
-
-  /**
-   * Delete a scan
-   */
-  async deleteScan(scanId: string): Promise<ApiResponse<void>> {
-    const endpoint = apiClient.replacePath(API_ENDPOINTS.SCAN.DELETE, { id: scanId });
-    return apiClient.delete<void>(endpoint);
+  async getPopularPackages(): Promise<ApiResponse<any>> {
+    return apiClient.get(API_ENDPOINTS.ANALYSIS.POPULAR);
   }
 
   /**
    * Analyze a package.json file
    */
   async analyzePackageJson(packageJson: string): Promise<ApiResponse<ScanResult[]>> {
-    return apiClient.post<ScanResult[]>(API_ENDPOINTS.PACKAGES.ANALYZE, {
+    return apiClient.post<ScanResult[]>(API_ENDPOINTS.ANALYSIS.ANALYZE, {
       packageJson,
     });
   }
@@ -92,9 +75,16 @@ class ScanService {
    * Analyze multiple packages
    */
   async analyzePackages(packages: ScanRequest[]): Promise<ApiResponse<ScanResult[]>> {
-    return apiClient.post<ScanResult[]>(API_ENDPOINTS.PACKAGES.ANALYZE, {
+    return apiClient.post<ScanResult[]>(API_ENDPOINTS.ANALYSIS.ANALYZE, {
       packages,
     });
+  }
+
+  /**
+   * Refresh vulnerability cache
+   */
+  async refreshCache(): Promise<ApiResponse<void>> {
+    return apiClient.post<void>(API_ENDPOINTS.VULNERABILITIES.REFRESH_CACHE);
   }
 }
 

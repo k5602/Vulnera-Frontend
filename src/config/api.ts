@@ -17,17 +17,38 @@
  * - Production: PUBLIC_API_BASE=https://api.example.com
  */
 
-// Get API base URL from environment or use default
+// Get API base URL from environment or use safe same-origin fallback
 const getApiBase = (): string => {
-  if (typeof import.meta !== 'undefined' && import.meta.env) {
-    // Check for PUBLIC_API_BASE from environment variables
-    const baseUrl = import.meta.env.PUBLIC_API_BASE;
-    if (baseUrl) {
-      return baseUrl.replace(/\/$/, ''); // Remove trailing slash
+  const env = (typeof import.meta !== 'undefined' && import.meta.env) ? import.meta.env : ({} as any);
+  const publicBase = env.PUBLIC_API_BASE as string | undefined;
+  const forceDirect = (env.PUBLIC_FORCE_API_BASE as string | undefined)?.toLowerCase() === 'true';
+
+  // If PUBLIC_API_BASE is set and forceDirect is true, use it directly
+  if (publicBase && forceDirect) {
+    return publicBase.replace(/\/$/, '');
+  }
+
+  // In the browser during local dev, prefer same-origin (for proxy)
+  if (typeof window !== 'undefined') {
+    const isLocalhost = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(window.location.hostname);
+    const isDev = !!env?.DEV || isLocalhost;
+    if (isDev && !forceDirect) {
+      return window.location.origin.replace(/\/$/, '');
     }
   }
-  // Fallback default
-  return 'http://localhost:8000';
+
+  // Otherwise, use configured public base if provided
+  if (publicBase) {
+    return publicBase.replace(/\/$/, '');
+  }
+
+  // Last resort, same-origin if available
+  if (typeof window !== 'undefined' && window.location?.origin) {
+    return window.location.origin.replace(/\/$/, '');
+  }
+
+  // SSR/build-time fallback: empty string means relative requests
+  return '';
 };
 
 // Get timeout from environment or use default
@@ -52,33 +73,26 @@ export const API_ENDPOINTS = {
   // Auth endpoints
   AUTH: {
     LOGIN: '/api/v1/auth/login',
-    LOGOUT: '/api/v1/auth/logout',
     REGISTER: '/api/v1/auth/register',
     REFRESH: '/api/v1/auth/refresh',
-    VERIFY: '/api/v1/auth/verify',
-    ME: '/api/v1/auth/me',
+    LIST_API_KEYS: '/api/v1/auth/api-keys',
+    CREATE_API_KEY: '/api/v1/auth/api-keys',
+    REVOKE_API_KEY: '/api/v1/auth/api-keys/:key_id',
+    UPDATE_ME: '/api/v1/auth/me',
   },
   
-  // Scan endpoints
-  SCAN: {
-    CREATE: '/api/v1/scans',
-    GET: '/api/v1/scans/:id',
-    LIST: '/api/v1/scans',
-    DELETE: '/api/v1/scans/:id',
-    STATUS: '/api/v1/scans/:id/status',
+  // Analysis endpoints
+  ANALYSIS: {
+    ANALYZE: '/api/v1/analyze',
+    POPULAR: '/api/v1/popular',
+    GET_REPORT: '/api/v1/reports/:id',
   },
   
   // Vulnerability endpoints
   VULNERABILITIES: {
-    GET: '/api/v1/vulnerabilities/:id',
     LIST: '/api/v1/vulnerabilities',
-    SEARCH: '/api/v1/vulnerabilities/search',
-  },
-  
-  // Package endpoints
-  PACKAGES: {
-    ANALYZE: '/api/v1/packages/analyze',
-    LIST: '/api/v1/packages',
+    GET: '/api/v1/vulnerabilities/:id',
+    REFRESH_CACHE: '/api/v1/vulnerabilities/refresh-cache',
   },
 
   // Repository endpoints

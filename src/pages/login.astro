@@ -8,7 +8,19 @@ import Footer from "../components/Footer.astro";
   <!-- Guest Guard - Redirect to dashboard if already authenticated -->
   <script is:inline>
     (function() {
-      const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
+      function getCookie(name) {
+        const nameEQ = encodeURIComponent(name) + '=';
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+          cookie = cookie.trim();
+          if (cookie.startsWith(nameEQ)) {
+            return decodeURIComponent(cookie.substring(nameEQ.length));
+          }
+        }
+        return null;
+      }
+      
+      const token = getCookie('auth_token');
       if (token) {
         window.location.href = '/dashboard';
       }
@@ -95,6 +107,16 @@ import Footer from "../components/Footer.astro";
           <span class="text-gray-400 text-sm">No account?</span>
           <a href="/signup" class="text-cyan-300 hover:text-cyan-200 ml-2 text-sm">Create one</a>
         </div>
+
+        <!-- Debug: Clear session button -->
+        <div class="mt-4 text-center">
+          <button 
+            id="clear-session-btn"
+            class="text-xs text-gray-500 hover:text-gray-300 border border-gray-600 px-2 py-1 rounded"
+          >
+            Clear Session
+          </button>
+        </div>
       </div>
 
       <p class="mt-6 text-center text-xs text-gray-500">Protected by enterprise-grade security.</p>
@@ -110,6 +132,7 @@ import Footer from "../components/Footer.astro";
     const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
     const errorDiv = document.getElementById('error-message') as HTMLDivElement;
     const successDiv = document.getElementById('success-message') as HTMLDivElement;
+    const clearBtn = document.getElementById('clear-session-btn') as HTMLButtonElement;
 
     const showError = (message: string) => {
       errorDiv.textContent = message;
@@ -127,6 +150,15 @@ import Footer from "../components/Footer.astro";
       errorDiv.classList.add('hidden');
       successDiv.classList.add('hidden');
     };
+
+    // Clear session button
+    if (clearBtn) {
+      clearBtn.addEventListener('click', () => {
+        localStorage.clear();
+        sessionStorage.clear();
+        showSuccess('Session cleared. You can now log in again.');
+      });
+    }
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -167,6 +199,7 @@ import Footer from "../components/Footer.astro";
             window.location.href = next;
           }, 500);
         } else {
+          console.error('❌ Login failed:', response.error);
           showError(response.error || 'Login failed. Please check your credentials.');
           submitBtn.disabled = false;
           submitBtn.innerHTML = '<span class="mr-2">&gt;</span> LOGIN';

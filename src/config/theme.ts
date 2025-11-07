@@ -52,9 +52,12 @@ export const SITE_CONFIG = {
   year: 2025,
 } as const;
 
+import { API_CONFIG } from './api';
+
 export const API_ENDPOINTS = {
-  docs: 'http://localhost:3000/docs',
-  health: 'http://localhost:3000/health',
+  // Use configured base URL when available; otherwise fall back to same-origin
+  docs: (API_CONFIG.BASE_URL || '').replace(/\/$/, '') + '/docs',
+  health: (API_CONFIG.BASE_URL || '').replace(/\/$/, '') + '/health',
   analyze: '/api/v1/analyze',
   repository: '/api/v1/repository',
 } as const;

@@ -4,29 +4,31 @@
  */
 
 /**
+ * Get cookie value by name
+ */
+function getCookie(name: string): string | null {
+  if (typeof document === 'undefined') return null;
+  const nameEQ = encodeURIComponent(name) + '=';
+  const cookies = document.cookie.split(';');
+  for (let cookie of cookies) {
+    cookie = cookie.trim();
+    if (cookie.startsWith(nameEQ)) {
+      return decodeURIComponent(cookie.substring(nameEQ.length));
+    }
+  }
+  return null;
+}
+
+/**
  * Check if user is authenticated
- * Looks for auth token in localStorage or sessionStorage
+ * Looks for auth token in cookies
  */
 export function isTokenValid(): boolean {
   if (typeof window === 'undefined') return false;
   
-  const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
+  const token = getCookie('auth_token');
   
   if (!token) return false;
-  
-  // Optional: Check token expiry if stored with expiry time
-  const expiry = localStorage.getItem('auth_token_expiry') || sessionStorage.getItem('auth_token_expiry');
-  if (expiry) {
-    const expiryTime = parseInt(expiry, 10);
-    if (Date.now() > expiryTime) {
-      // Token expired, clear it
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('auth_token_expiry');
-      sessionStorage.removeItem('auth_token');
-      sessionStorage.removeItem('auth_token_expiry');
-      return false;
-    }
-  }
   
   return true;
 }
@@ -81,7 +83,18 @@ export function getNextPath(): string {
  */
 export const INLINE_AUTH_CHECK = `
   (function() {
-    const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
+    function getCookie(name) {
+      const nameEQ = encodeURIComponent(name) + '=';
+      const cookies = document.cookie.split(';');
+      for (let cookie of cookies) {
+        cookie = cookie.trim();
+        if (cookie.startsWith(nameEQ)) {
+          return decodeURIComponent(cookie.substring(nameEQ.length));
+        }
+      }
+      return null;
+    }
+    const token = getCookie('auth_token');
     if (!token) {
       const currentPath = window.location.pathname + window.location.search;
       window.location.href = '/login?next=' + encodeURIComponent(currentPath);
@@ -94,7 +107,18 @@ export const INLINE_AUTH_CHECK = `
  */
 export const INLINE_GUEST_CHECK = `
   (function() {
-    const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
+    function getCookie(name) {
+      const nameEQ = encodeURIComponent(name) + '=';
+      const cookies = document.cookie.split(';');
+      for (let cookie of cookies) {
+        cookie = cookie.trim();
+        if (cookie.startsWith(nameEQ)) {
+          return decodeURIComponent(cookie.substring(nameEQ.length));
+        }
+      }
+      return null;
+    }
+    const token = getCookie('auth_token');
     if (token) {
       window.location.href = '/dashboard';
     }

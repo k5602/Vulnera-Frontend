@@ -20,11 +20,10 @@ export const healthExamples = {
   async checkSystemHealth() {
     const response = await healthService.checkHealth();
     if (response.success && response.data) {
-      console.log('System Status:', response.data.status);
-      console.log('Uptime:', response.data.uptime, 'seconds');
+      console.log('✅ Health check completed');
       return response.data;
     }
-    console.error('Health check failed:', response.error);
+    console.error('❌ Health check failed');
     return null;
   },
 
@@ -34,11 +33,10 @@ export const healthExamples = {
   async getSystemMetrics() {
     const response = await healthService.getMetrics();
     if (response.success && response.data) {
-      console.log('Total Requests:', response.data.requests_total);
-      console.log('Cache Hit Rate:', `${(response.data.cache_hit_rate * 100).toFixed(2)}%`);
-      console.log('Average Response Time:', response.data.response_time_ms.avg, 'ms');
+      console.log('✅ Metrics retrieved');
       return response.data;
     }
+    console.error('❌ Failed to get metrics');
     return null;
   },
 
@@ -47,9 +45,8 @@ export const healthExamples = {
    */
   startHealthMonitor() {
     const stopMonitoring = healthService.startHealthMonitoring(30000, (status) => {
-      console.log('Health status changed:', status.status);
       if (status.status !== 'healthy') {
-        console.warn('⚠️ System health degraded:', status.message);
+        console.warn('⚠️ System health degraded');
       }
     });
     return stopMonitoring;
@@ -67,9 +64,10 @@ export const vulnerabilityExamples = {
   async listVulnerabilities(page = 1, pageSize = 20) {
     const response = await vulnerabilityService.listVulnerabilities(page, pageSize);
     if (response.success && response.data) {
-      console.log(`Found ${response.data.total} vulnerabilities`);
+      console.log('✅ Vulnerabilities retrieved');
       return response.data;
     }
+    console.error('❌ Failed to get vulnerabilities');
     return null;
   },
 
@@ -80,9 +78,10 @@ export const vulnerabilityExamples = {
   async refreshCache() {
     const response = await vulnerabilityService.refreshCache();
     if (response.success && response.data) {
-      console.log('Cache refreshed successfully');
+      console.log('✅ Cache refreshed successfully');
       return response.data;
     }
+    console.error('❌ Cache refresh failed');
     return null;
   },
 };
@@ -134,22 +133,22 @@ export const scanExamples = {
  * Integration Example: Full Workflow
  */
 export async function fullAnalysisWorkflow(repoUrl: string) {
-  console.log('🚀 Starting full analysis workflow...\n');
+  console.log('🚀 Starting analysis workflow');
 
   try {
-    console.log('1️⃣ Checking system health...');
+    console.log('1️⃣ Checking system health');
     await healthExamples.checkSystemHealth();
 
-    console.log('\n2️⃣ Refreshing vulnerability cache...');
+    console.log('2️⃣ Refreshing vulnerability cache');
     await vulnerabilityExamples.refreshCache();
 
-    console.log('\n3️⃣ Analyzing repository...');
+    console.log('3️⃣ Analyzing repository');
     const analysis = await repositoryExamples.analyzeRepository(repoUrl);
 
     if (analysis) {
-      console.log('\n✅ Analysis workflow completed!');
+      console.log('✅ Analysis workflow completed');
     }
   } catch (error) {
-    console.error('❌ Workflow error:', error);
+    console.error('❌ Workflow error');
   }
 }

@@ -5,8 +5,8 @@
 <nav class="absolute top-0 left-0 right-0 z-20 p-6 bg-black/80 backdrop-blur-sm border-b border-cyber-500/30" aria-label="Main">
     <div class="max-w-7xl mx-auto flex justify-between items-center">
         <div class="flex items-center gap-4">
-            <!-- Mobile Menu Toggle Button -->
-            <button id="menu-toggle" class="md:hidden text-cyber-400 hover:text-cyber-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyber-400 rounded p-2" aria-label="Toggle menu" aria-expanded="false">
+            <!-- Burger Menu Toggle Button (Hidden on screens >= 1400px) -->
+            <button id="menu-toggle" class="3xl:hidden text-cyber-400 hover:text-cyber-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyber-400 rounded p-2" aria-label="Toggle menu" aria-expanded="false">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
                     <line x1="3" y1="12" x2="21" y2="12"></line>
                     <line x1="3" y1="6" x2="21" y2="6"></line>
@@ -17,20 +17,7 @@
                 &gt; VULNERA_
             </a>
         </div>
-        <div id="desktop-nav" class="hidden md:flex items-center space-x-8">
-            <a href="/" aria-current="page" class="text-cyber-300 hover:text-cyber-400 transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyber-400 rounded px-2 py-1 terminal-border bg-black/50">
-                [HOME]
-            </a>
-            <a href="/scan" class="auth-only text-cyber-300 hover:text-cyber-400 transition-colors duration-200 px-2 py-1">[SCAN]</a>
-            <a href="/dashboard" class="auth-only text-cyber-300 hover:text-cyber-400 transition-colors duration-200 px-2 py-1">
-                [DASHBOARD]
-            </a>
-            <a href="/about" class=" text-cyber-300 hover:text-cyber-400 transition-colors duration-200 px-2 py-1">
-                [ABOUT]
-            </a>
-            <a href="/login" class="guest-only text-cyber-300 hover:text-cyber-400 transition-colors duration-200 px-2 py-1">[LOGIN]</a>
-            <button id="logout-btn" class="auth-only text-red-300 hover:text-red-400 transition-colors duration-200 px-2 py-1">[LOGOUT]</button>
-        </div>
+        <!-- Desktop nav removed - using sidebar instead -->
     </div>
     
 </nav>
@@ -41,7 +28,7 @@
     const sidebar = document.getElementById('sidebar');
     
     function toggleMobileSidebar() {
-        if (window.innerWidth < 769) {
+        if (window.innerWidth < 1400) {
             sidebar?.classList.toggle('mobile-open');
             const isOpen = sidebar?.classList.contains('mobile-open');
             toggleBtn?.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
@@ -54,7 +41,7 @@
 
     // Close sidebar when clicking outside on mobile
     document.addEventListener('click', (e) => {
-        if (window.innerWidth < 769 && 
+        if (window.innerWidth < 1400 && 
             sidebar?.classList.contains('mobile-open') && 
             !sidebar.contains(e.target as Node) && 
             !toggleBtn?.contains(e.target as Node)) {
@@ -63,37 +50,9 @@
         }
     });
 
-    // Auth-based navigation visibility
-    import { authService } from '../utils/api/index';
-
-    function updateNavVisibility() {
-        const isLoggedIn = authService.isAuthenticated();
-        
-        const authElements = document.querySelectorAll('.auth-only');
-        const guestElements = document.querySelectorAll('.guest-only');
-        
-        authElements.forEach(el => {
-            (el as HTMLElement).style.display = isLoggedIn ? '' : 'none';
-        });
-        
-        guestElements.forEach(el => {
-            (el as HTMLElement).style.display = isLoggedIn ? 'none' : '';
-        });
-    }
-
-    // Logout functionality
-    function handleLogout() {
-        authService.logout();
-        window.location.href = '/login';
-    }
-
-    // Initialize on load
-    updateNavVisibility();
-
-    // Setup logout button
-    const logoutBtn = document.getElementById('logout-btn');
-    logoutBtn?.addEventListener('click', handleLogout);
-
     // Listen for storage changes (multi-tab sync)
-    window.addEventListener('storage', updateNavVisibility);
+    window.addEventListener('storage', () => {
+        // Reload to update auth state
+        location.reload();
+    });
 </script>

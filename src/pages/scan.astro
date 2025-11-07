@@ -6,16 +6,27 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
 ---
 
 <Layout title="Scan — Vulnera" description="Upload manifests or import repositories for scanning.">
-  <!-- Auth Guard - Redirect to login if not authenticated -->
-  <!-- <script is:inline>
+  <!-- Auth Guard -->
+  <script is:inline>
     (function() {
-      const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
+      function getCookie(name) {
+        const nameEQ = encodeURIComponent(name) + '=';
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+          cookie = cookie.trim();
+          if (cookie.startsWith(nameEQ)) {
+            return decodeURIComponent(cookie.substring(nameEQ.length));
+          }
+        }
+        return null;
+      }
+      
+      const token = getCookie('auth_token');
       if (!token) {
-        const currentPath = window.location.pathname + window.location.search;
-        window.location.href = '/login?next=' + encodeURIComponent(currentPath);
+        window.location.href = '/login?next=/scan';
       }
     })();
-  </script> -->
+  </script>
 
   <Navigation />
 
@@ -28,50 +39,107 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
     </div>
 
     <!-- Content -->
-    <div class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 py-16">
-      <header class="mb-6 sm:mb-10">
-        <div class="text-cyber-400 font-mono text-xs sm:text-sm">root@vulnera:~$</div>
-        <h1 id="scan-title" class="text-2xl sm:text-3xl md:text-4xl font-bold text-white font-mono tracking-wider mt-6 mb-4 sm:mb-6">
+    <div class="relative z-10 max-w-4xl mx-auto px-3 sm:px-4 md:px-6 py-8 sm:py-12 md:py-16">
+      <header class="mb-6 sm:mb-8 md:mb-10">
+        <div class="text-cyber-400 font-mono text-xs sm:text-sm md:text-base">root@vulnera:~$</div>
+        <h1 id="scan-title" class="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white font-mono tracking-wider mt-4 sm:mt-5 md:mt-6 mb-3 sm:mb-4 md:mb-6">
           <span class="text-cyber-400">&gt;</span> SCAN
         </h1>
-        <p class="text-matrix-300 mt-2 text-sm sm:text-base">Upload dependency manifests or import a repository to analyze vulnerabilities.</p>
+        <p class="text-matrix-300 mt-2 text-xs sm:text-sm md:text-base">Upload dependency manifests or import a repository to analyze vulnerabilities.</p>
       </header>
 
       <!-- Upload area -->
-      <section class="terminal-border bg-black/70 rounded-xl p-4 sm:p-6">
-        <h2 class="text-cyber-400 font-mono text-lg mb-3">UPLOAD_FILES</h2>
-        <div id="dropzone" class="border-2 border-dashed border-cyber-400/40 rounded-xl p-6 sm:p-10 text-center bg-black/40 hover:bg-black/50 transition-colors">
-          <p class="text-matrix-300 text-sm sm:text-base mb-3">Drag & drop your files here</p>
-          <p class="text-gray-400 text-xs sm:text-sm">Supported: package.json, requirements.txt, pom.xml, Cargo.lock, etc.</p>
-          <div class="mt-4">
+      <section class="terminal-border bg-black/70 rounded-lg md:rounded-xl p-3 sm:p-4 md:p-6 overflow-hidden">
+        <h2 class="text-cyber-400 font-mono text-sm sm:text-base md:text-lg mb-3 flex items-center gap-2">
+          <span>📁</span> UPLOAD_FILES
+        </h2>
+        
+        <!-- Dropzone -->
+        <div id="dropzone" class="relative border-2 border-dashed border-cyber-400/40 rounded-lg p-6 sm:p-8 text-center bg-black/40 hover:bg-black/50 hover:border-cyber-400/60 transition-all group">
+          <div class="absolute inset-0 bg-gradient-to-br from-cyber-400/5 to-matrix-400/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="relative z-10">
+            <div class="text-4xl mb-3">📦</div>
+            <p class="text-matrix-300 text-sm sm:text-base font-medium mb-2">Drag & drop your files here</p>
+            <p class="text-gray-500 text-xs sm:text-sm mb-4">or click to browse</p>
+            <div class="flex flex-wrap gap-1 justify-center text-xs text-gray-600 mb-4">
+              <span class="px-2 py-1 bg-black/40 rounded border border-gray-700/30">package.json</span>
+              <span class="px-2 py-1 bg-black/40 rounded border border-gray-700/30">requirements.txt</span>
+              <span class="px-2 py-1 bg-black/40 rounded border border-gray-700/30">pom.xml</span>
+              <span class="px-2 py-1 bg-black/40 rounded border border-gray-700/30">Cargo.lock</span>
+            </div>
             <input id="file-input" type="file" class="sr-only" multiple />
-            <label for="file-input" id="btn-select" role="button" tabindex="0" class="inline-flex items-center cursor-pointer bg-gradient-to-r from-cyber-600 to-matrix-600 hover:from-cyber-500 hover:to-matrix-500 text-black px-4 py-2 rounded-lg font-mono text-sm terminal-border">
-              <span class="mr-2">&gt;</span> SELECT_FILES
+            <label for="file-input" id="btn-select" role="button" tabindex="0" class="inline-flex items-center cursor-pointer bg-gradient-to-r from-cyber-600 to-matrix-600 hover:from-cyber-500 hover:to-matrix-500 text-black font-bold px-4 sm:px-6 py-2.5 rounded-lg font-mono text-xs sm:text-sm terminal-border shadow-lg hover:shadow-cyber-400/20 transition-all">
+              <span class="mr-2">📂</span> SELECT_FILES
             </label>
           </div>
         </div>
-        <div class="mt-4">
-          <ul id="file-list" class="text-matrix-300 text-sm font-mono space-y-1"></ul>
+        
+        <!-- File List -->
+        <div class="mt-4 min-h-[40px]">
+          <ul id="file-list" class="text-matrix-300 text-xs sm:text-sm font-mono space-y-2 max-h-40 overflow-y-auto"></ul>
         </div>
-        <div class="mt-4 flex flex-wrap items-center gap-2 justify-between">
-          <div class="flex flex-wrap items-center gap-2">
-            <button id="btn-load-demo" class="inline-flex items-center border border-matrix-400/40 text-matrix-300 px-4 py-2 rounded-lg font-mono text-sm cursor-pointer hover:bg-matrix-400/10 transition-colors">LOAD_DEMO_FILES</button>
-            <button id="btn-preview-report" type="button" class="inline-flex items-center border border-cyber-400/40 text-cyber-300 px-4 py-2 rounded-lg font-mono text-sm cursor-pointer hover:bg-cyber-400/10 transition-colors">PREVIEW_REPORT</button>
+        
+        <!-- Action Buttons -->
+        <div class="mt-5 space-y-3">
+          <!-- Secondary Actions -->
+          <div class="flex flex-wrap gap-2">
+            <button id="btn-load-demo" class="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 border border-matrix-400/40 text-matrix-300 px-3 py-2 rounded-lg font-mono text-xs hover:bg-matrix-400/10 hover:border-matrix-400/60 transition-all">
+              <span>🎯</span> DEMO
+            </button>
+            <button id="btn-reset-files" class="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 border border-red-400/40 text-red-300 px-3 py-2 rounded-lg font-mono text-xs hover:bg-red-400/10 hover:border-red-400/60 transition-all">
+              <span>🗑️</span> RESET
+            </button>
+            <button id="btn-preview-report" type="button" class="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 border border-cyan-400/40 text-cyan-300 px-3 py-2 rounded-lg font-mono text-xs hover:bg-cyan-400/10 hover:border-cyan-400/60 transition-all">
+              <span>👁️</span> PREVIEW
+            </button>
           </div>
-          <button id="btn-scan" class="inline-flex items-center border border-cyber-400/40 text-cyber-300 px-4 py-2 rounded-lg font-mono text-sm cursor-pointer hover:bg-cyber-400/10 transition-colors">START_SCAN</button>
+          
+          <!-- Primary Action -->
+          <button id="btn-scan" class="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-cyber-500 to-matrix-500 hover:from-cyber-400 hover:to-matrix-400 text-black font-bold px-6 py-3 rounded-lg font-mono text-sm sm:text-base shadow-lg hover:shadow-cyber-400/30 transition-all transform hover:scale-[1.02]">
+            <span class="text-lg">🚀</span> START_SCAN
+          </button>
         </div>
       </section>
 
       <!-- GitHub import -->
-      <section class="mt-8 sm:mt-10 terminal-border bg-black/70 rounded-xl p-4 sm:p-6">
-        <h2 class="text-cyber-400 font-mono text-lg mb-3">IMPORT_GITHUB_REPO</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-3">
-          <input id="repo-url" type="url" placeholder="https://github.com/owner/repo" class="w-full px-3 py-2 rounded-lg bg-black/60 border border-cyber-400/30 focus:border-cyber-400 focus:ring-2 focus:ring-cyber-400 text-white placeholder-gray-500 text-sm" />
-          <button id="btn-import" class="inline-flex items-center bg-gradient-to-r from-cyber-600 to-matrix-600 hover:from-cyber-500 hover:to-matrix-500 text-black px-4 py-2 rounded-lg font-mono text-sm terminal-border cursor-pointer transition-colors">
-            <span class="mr-2">&gt;</span> IMPORT_REPO
+      <section id="github-import-section" class="mt-6 sm:mt-8 md:mt-10 terminal-border bg-black/70 rounded-lg md:rounded-xl p-3 sm:p-4 md:p-6 overflow-hidden">
+        <h2 class="text-cyber-400 font-mono text-sm sm:text-base md:text-lg mb-3">IMPORT_GITHUB_REPO</h2>
+        
+        <!-- GitHub Token Required Notice -->
+        <div id="github-token-notice" class="hidden mb-3 p-2 sm:p-3 bg-purple-900/20 border border-purple-500/40 rounded-lg">
+          <div class="flex flex-col gap-2">
+            <div class="flex items-center gap-2">
+              <span class="text-lg">🔐</span>
+              <h3 class="text-xs sm:text-sm text-purple-400 font-bold font-mono">GitHub Token Required</h3>
+            </div>
+            <p class="text-xs text-gray-300">
+              Add token in Settings to import repos.
+            </p>
+            <a 
+              href="/settings#api-keys" 
+              class="inline-flex items-center justify-center gap-1 bg-purple-500 hover:bg-purple-600 text-white px-3 py-1.5 rounded font-mono text-xs transition-all w-full sm:w-auto"
+            >
+              <span>⚙️</span>
+              <span>Add Token</span>
+            </a>
+          </div>
+        </div>
+        
+        <div id="github-import-controls" class="flex flex-col gap-2">
+          <input 
+            id="repo-url" 
+            type="url" 
+            placeholder="github.com/owner/repo" 
+            class="w-full px-3 py-2 rounded-lg bg-black/60 border border-cyber-400/30 focus:border-cyber-400 focus:ring-1 focus:ring-cyber-400 text-white placeholder-gray-500 text-xs sm:text-sm" 
+          />
+          <button 
+            id="btn-import" 
+            class="w-full inline-flex items-center justify-center bg-gradient-to-r from-cyber-600 to-matrix-600 hover:from-cyber-500 hover:to-matrix-500 text-black px-3 py-2 rounded-lg font-mono text-xs sm:text-sm terminal-border cursor-pointer transition-colors"
+          >
+            <span class="mr-1">&gt;</span> IMPORT_REPO
           </button>
         </div>
-        <p class="text-gray-400 text-xs mt-2">We’ll fetch manifest files and analyze dependencies.</p>
+        <p class="text-gray-400 text-xs mt-2">Fetch manifest files and analyze dependencies.</p>
       </section>
 
       <!-- Report Island Mount -->
@@ -84,8 +152,91 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
   <Footer />
 
   <script type="module">
-    // API configuration - Backend running on port 3000
-    const API_BASE_URL = 'http://localhost:3000';
+    // API configuration: use PUBLIC_API_BASE from environment
+    // When running with dev proxy, use relative URLs (/api)
+    // When building for production, use full URL from PUBLIC_API_BASE
+    const publicApiBase = (import.meta?.env?.PUBLIC_API_BASE || '').replace(/\/$/, '');
+    const forceApiBase = import.meta?.env?.PUBLIC_FORCE_API_BASE === 'true';
+    
+    // Check if we're in development by looking at the hostname
+    const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    
+    // In dev with proxy enabled and force not enabled, use relative URLs; otherwise use full URL
+    const API_BASE_URL = (isDev && !forceApiBase) 
+      ? '' 
+      : (publicApiBase || '');
+    
+    if (!API_BASE_URL && !isDev) {
+      console.error('API_BASE_URL not configured. Please set PUBLIC_API_BASE in environment.');
+    }
+
+    // Cookie helper function
+    function getCookie(name) {
+      const nameEQ = encodeURIComponent(name) + '=';
+      const cookies = document.cookie.split(';');
+      for (let cookie of cookies) {
+        cookie = cookie.trim();
+        if (cookie.startsWith(nameEQ)) {
+          return decodeURIComponent(cookie.substring(nameEQ.length));
+        }
+      }
+      return null;
+    }
+
+    // GitHub Token Management
+    function checkGithubToken() {
+      const token = getCookie('github_token');
+      const notice = document.getElementById('github-token-notice');
+      const controls = document.getElementById('github-import-controls');
+      const btnImport = document.getElementById('btn-import');
+      const repoUrl = document.getElementById('repo-url');
+      
+      if (!token) {
+        // No token - show notice and disable controls
+        notice?.classList.remove('hidden');
+        if (btnImport) {
+          btnImport.disabled = true;
+          btnImport.classList.add('opacity-50', 'cursor-not-allowed');
+          btnImport.classList.remove('cursor-pointer');
+        }
+        if (repoUrl) {
+          repoUrl.disabled = true;
+          repoUrl.classList.add('opacity-50', 'cursor-not-allowed');
+        }
+      } else {
+        // Token exists - hide notice and enable controls
+        notice?.classList.add('hidden');
+        if (btnImport) {
+          btnImport.disabled = false;
+          btnImport.classList.remove('opacity-50', 'cursor-not-allowed');
+          btnImport.classList.add('cursor-pointer');
+        }
+        if (repoUrl) {
+          repoUrl.disabled = false;
+          repoUrl.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+      }
+      
+      return token;
+    }
+
+    // Check token on page load
+    checkGithubToken();
+
+    // Listen for token updates from settings page
+    window.addEventListener('github-token-updated', () => {
+      checkGithubToken();
+    });
+
+    // Handle navigation to settings with hash
+    window.addEventListener('load', () => {
+      if (window.location.hash === '#api-keys') {
+        const apiKeysTab = document.querySelector('[data-tab="api-keys"]');
+        if (apiKeysTab && apiKeysTab.click) {
+          apiKeysTab.click();
+        }
+      }
+    });
 
     function initializeHandlers() {
       // Disable browser default file-open on drop anywhere
@@ -100,6 +251,7 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
       const btnScan = document.getElementById('btn-scan');
       const btnImport = document.getElementById('btn-import');
       const btnLoadDemo = document.getElementById('btn-load-demo');
+      const btnReset = document.getElementById('btn-reset-files');
       const btnPreview = document.getElementById('btn-preview-report');
       const repoUrl = document.getElementById('repo-url');
       let pickedFiles = [];
@@ -107,9 +259,44 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
       function renderFiles() {
         if (!list) return;
         list.innerHTML = '';
-        pickedFiles.forEach((f) => {
+        if (pickedFiles.length === 0) {
+          list.innerHTML = '<li class="text-gray-500 text-center py-2">No files selected</li>';
+          return;
+        }
+        pickedFiles.forEach((f, index) => {
           const li = document.createElement('li');
-          li.textContent = `${f.name} (${Math.round(f.size/1024)} KB)`;
+          li.className = 'flex items-center justify-between gap-2 bg-black/40 border border-matrix-500/30 rounded px-3 py-2 hover:bg-black/60 transition-colors';
+          
+          const fileInfo = document.createElement('div');
+          fileInfo.className = 'flex items-center gap-2 flex-1 min-w-0';
+          
+          const icon = document.createElement('span');
+          icon.textContent = '📄';
+          icon.className = 'text-sm';
+          
+          const text = document.createElement('span');
+          text.className = 'truncate text-xs sm:text-sm';
+          text.textContent = `${f.name}`;
+          
+          const size = document.createElement('span');
+          size.className = 'text-xs text-gray-500 whitespace-nowrap';
+          size.textContent = `(${Math.round(f.size/1024)} KB)`;
+          
+          fileInfo.appendChild(icon);
+          fileInfo.appendChild(text);
+          fileInfo.appendChild(size);
+          
+          const removeBtn = document.createElement('button');
+          removeBtn.className = 'text-red-400 hover:text-red-300 text-xs px-2 py-1 hover:bg-red-400/10 rounded transition-colors';
+          removeBtn.textContent = '✕';
+          removeBtn.title = 'Remove file';
+          removeBtn.onclick = () => {
+            pickedFiles.splice(index, 1);
+            renderFiles();
+          };
+          
+          li.appendChild(fileInfo);
+          li.appendChild(removeBtn);
           list.appendChild(li);
         });
       }
@@ -144,6 +331,13 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
       btnSelect?.addEventListener('click', () => input?.click());
       input?.addEventListener('change', () => handleFiles(input?.files));
 
+      // RESET_FILES handler
+      btnReset?.addEventListener('click', () => {
+        pickedFiles = [];
+        renderFiles();
+        repoUrl.value = '';
+      });
+
       function dispatchReport(report) {
         window.dispatchEvent(new CustomEvent('vulnera:scan-report', { detail: report }));
       }
@@ -164,25 +358,42 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
             try {
               const content = await file.text();
               
-              // Detect ecosystem from filename
-              let ecosystem = 'npm';
-              if (file.name.includes('requirements.txt')) ecosystem = 'pypi';
-              else if (file.name.includes('pom.xml')) ecosystem = 'maven';
-              else if (file.name.includes('Cargo.lock') || file.name.includes('Cargo.toml')) ecosystem = 'cargo';
-              else if (file.name.includes('go.mod')) ecosystem = 'go';
-              else if (file.name.includes('composer.json')) ecosystem = 'packagist';
+              // Detect ecosystem from filename (case-insensitive, flexible matching)
+              let ecosystem = 'npm'; // default
+              const lowerName = file.name.toLowerCase();
+              
+              // Check specific file patterns first
+              if (lowerName.includes('pom.xml')) ecosystem = 'maven';
+              else if (lowerName.includes('cargo.lock') || lowerName.includes('cargo.toml')) ecosystem = 'cargo';
+              else if (lowerName.includes('go.mod')) ecosystem = 'go';
+              else if (lowerName.includes('composer.json')) ecosystem = 'packagist';
+              else if (lowerName.includes('gemfile')) ecosystem = 'ruby';
+              else if (lowerName.includes('requirements') && lowerName.includes('.txt')) ecosystem = 'pypi';
+              else if (lowerName.endsWith('.json')) ecosystem = 'npm'; // Default JSON to npm
+              
+              // Get auth token from cookies
+              const token = getCookie('auth_token');
+              
+              const headers = {
+                'Content-Type': 'application/json',
+              };
+              if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+              } else {
+                alert('⚠️ Authentication required\n\nPlease log in first to scan files.');
+                return;
+              }
               
               const response = await fetch(`${API_BASE_URL}/api/v1/analyze`, {
                 method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
+                headers: headers,
                 body: JSON.stringify({
                   file_content: content,
                   ecosystem: ecosystem,
                   filename: file.name
                 })
               });
+              
               
               if (response.ok) {
                 const result = await response.json();
@@ -210,10 +421,31 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
                   })));
                 }
               } else {
-                console.warn(`Failed to analyze ${file.name}:`, response.status);
+                // Try to get error details from response body
+                let errorBody = null;
+                try {
+                  errorBody = await response.clone().json();
+                } catch {
+                  try {
+                    errorBody = await response.clone().text();
+                  } catch {
+                    errorBody = 'Could not read response body';
+                  }
+                }
+                
+                if (response.status === 401) {
+                  alert('⚠️ Authentication Error\n\nYour session has expired. Please log in again.');
+                  return;
+                }
+                if (response.status === 400) {
+                  console.error(`File format not supported: ${file.name}`);
+                }
               }
             } catch (e) {
               console.error(`Error analyzing ${file.name}:`, e);
+              if (e.message && e.message.includes('Failed to fetch')) {
+                alert('Cannot connect to backend server. Please check your connection or contact support.');
+              }
             }
           }
           
@@ -234,9 +466,36 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
             files: fileAnalyses,
             vulnerabilities: allVulnerabilities,
           };
+          
+          console.log('✅ Scan completed successfully');
+          
+          // Save scan result to localStorage for dashboard
+          try {
+            const scanHistory = JSON.parse(localStorage.getItem('scan_history') || '[]');
+            const scanRecord = {
+              id: `scan_${Date.now()}`,
+              timestamp: new Date().toISOString(),
+              filesCount: pickedFiles.length,
+              vulnerabilities: allVulnerabilities.length,
+              critical: report.summary.critical,
+              high: report.summary.high,
+              medium: report.summary.medium,
+              low: report.summary.low,
+              files: fileAnalyses.map(f => f.file),
+              ecosystems: [...new Set(fileAnalyses.map(f => f.ecosystem))],
+              report: report
+            };
+            scanHistory.unshift(scanRecord); // Add to beginning
+            // Keep only last 50 scans
+            if (scanHistory.length > 50) scanHistory.length = 50;
+            localStorage.setItem('scan_history', JSON.stringify(scanHistory));
+          } catch (e) {
+            console.error('Failed to save scan to history:', e);
+          }
+          
           dispatchReport(report);
         } catch (e) {
-          console.error('Scan error:', e);
+          console.error('❌ Scan error:', e);
           alert('Failed to start scan: ' + (e?.message || 'Unknown error'));
         } finally {
           btnScan.disabled = false;
@@ -247,15 +506,174 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
       // IMPORT_REPO handler
       btnImport?.addEventListener('click', async () => {
         const url = repoUrl?.value?.trim?.() ?? '';
-        if (!url || !/^https?:\/\/github.com\//i.test(url)) { alert('Enter a valid GitHub repo URL.'); return; }
+        if (!url || !/^https?:\/\/github.com\//i.test(url)) { 
+          alert('Please enter a valid GitHub repository URL.'); 
+          return; 
+        }
+        
+        // Check for GitHub token
+        const githubToken = checkGithubToken();
+        if (!githubToken) {
+          alert('⚠️ GitHub Token Required\n\nPlease add your GitHub Personal Access Token in Settings to import repositories.');
+          return;
+        }
         
         try {
           btnImport.disabled = true;
           btnImport.textContent = '> IMPORTING...';
-          alert('GitHub import will be available soon with backend support.');
+          
+          // Get auth token from cookies
+          const token = getCookie('auth_token');
+          
+          const headers = {
+            'Content-Type': 'application/json',
+            'X-GitHub-Token': githubToken, // Send GitHub token to backend
+          };
+          if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+          } else {
+            alert('⚠️ Authentication required\n\nPlease log in first to import repositories.');
+            return;
+          }
+          
+          // Call the backend API to analyze the repository
+          // Extract owner and repo from GitHub URL
+          // Expected format: https://github.com/owner/repo or https://github.com/owner/repo.git
+          const urlObj = new URL(url);
+          const pathParts = urlObj.pathname.split('/').filter(p => p);
+          const owner = pathParts[0];
+          const repo = pathParts[1]?.replace(/\.git$/, '');
+          
+          if (!owner || !repo) {
+            throw new Error('Invalid GitHub URL. Expected format: https://github.com/owner/repo');
+          }
+          
+          const requestBody = { 
+            owner: owner,
+            repo: repo,
+            branch: 'main'
+          };
+          const fullUrl = `${API_BASE_URL}/api/v1/analyze/repository`;
+          
+          // Use timeout for repository analysis
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 30000); // 1 minute timeout
+          
+          const response = await fetch(fullUrl, {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify(requestBody),
+            signal: controller.signal
+          });
+          
+          clearTimeout(timeoutId);
+          
+          if (response.ok) {
+            const result = await response.json();
+            
+            // Transform backend response to report format and display
+            const report = {
+              startedAt: new Date().toISOString(),
+              finishedAt: result.timestamp || new Date().toISOString(),
+              durationMs: 0,
+              project: result.repositoryUrl || `${owner}/${repo}`,
+              summary: result.summary || {
+                files: result.packages?.length || 0,
+                dependencies: result.summary?.totalDependencies || 0,
+                vulnerabilities: result.summary?.totalVulnerabilities || 0,
+                critical: result.summary?.criticalCount || 0,
+                high: result.summary?.highCount || 0,
+                medium: result.summary?.mediumCount || 0,
+                low: result.summary?.lowCount || 0,
+              },
+              files: result.packages?.map((pkg) => ({
+                file: pkg.files?.join(', ') || 'unknown',
+                ecosystem: pkg.manager || 'unknown',
+                dependencies: pkg.totalDependencies || 0,
+                vulnerable: pkg.vulnerablePackages || 0,
+              })) || [],
+              vulnerabilities: [], // Backend doesn't return individual vulns in this endpoint
+            };
+            
+            // Save scan result to localStorage for dashboard
+            try {
+              const scanHistory = JSON.parse(localStorage.getItem('scan_history') || '[]');
+              const scanRecord = {
+                id: `scan_${Date.now()}`,
+                timestamp: new Date().toISOString(),
+                type: 'repository',
+                project: `${owner}/${repo}`,
+                filesCount: report.files?.length || 0,
+                vulnerabilities: report.summary.vulnerabilities,
+                critical: report.summary.critical,
+                high: report.summary.high,
+                medium: report.summary.medium,
+                low: report.summary.low,
+                ecosystems: [...new Set(report.files?.map(f => f.ecosystem) || [])],
+                report: report
+              };
+              scanHistory.unshift(scanRecord);
+              if (scanHistory.length > 50) scanHistory.length = 50;
+              localStorage.setItem('scan_history', JSON.stringify(scanHistory));
+            } catch (e) {
+              console.error('Failed to save scan to history:', e);
+            }
+            
+            // Dispatch report to display
+            dispatchReport(report);
+            
+            // Clear the file list after successful import
+            pickedFiles = [];
+            renderFiles();
+            
+            alert(`Repository analyzed successfully!\n\nTotal vulnerabilities: ${report.summary.vulnerabilities || 0}`);
+          } else {
+            // Handle specific HTTP errors
+            if (response.status === 401) {
+              throw new Error('Authentication failed: Your session has expired or the token is invalid. Please log in again.');
+            }
+            
+            if (response.status === 408) {
+              throw new Error('Request timeout: The repository analysis is taking too long. The backend may be busy or the repository may be very large. Please try again later.');
+            }
+            
+            let errorBody = '';
+            try {
+              const json = await response.json();
+              errorBody = JSON.stringify(json, null, 2);
+            } catch {
+              try {
+                errorBody = await response.text();
+              } catch {
+                errorBody = 'Could not read error response body';
+              }
+            }
+            throw new Error(`HTTP ${response.status}: ${response.statusText}\n\n${errorBody}`);
+          }
         } catch (e) {
-          console.error('GitHub import error:', e);
-          alert('Failed to import repo: ' + (e?.message || 'Unknown error'));
+          let errorMsg = 'Unknown error';
+          
+          // Handle fetch abort/timeout
+          if (e instanceof Error && e.name === 'AbortError') {
+            errorMsg = 'Request timeout: The repository analysis took too long. The backend may be busy or the repository may be very large. Please try again later.';
+          } else if (e instanceof Error) {
+            errorMsg = e.message;
+          } else if (typeof e === 'string') {
+            errorMsg = e;
+          } else {
+            errorMsg = JSON.stringify(e);
+          }
+          // Add fallback message if error is empty
+          if (!errorMsg || errorMsg.trim() === '') {
+            errorMsg = 'Backend endpoint may not be implemented or server is unreachable';
+          }
+          
+          // Handle authentication errors specifically
+          if (errorMsg.includes('Authentication failed') || errorMsg.includes('expired')) {
+            alert('⚠️ Authentication Error\n\n' + errorMsg + '\n\nPlease log in again to continue.');
+          } else {
+            alert('❌ Failed to import repository\n\n' + errorMsg + '\n\nPlease ensure:\n1. Repository URL is correct\n2. Repository is public\n3. Backend server is running');
+          }
         } finally {
           btnImport.disabled = false;
           btnImport.textContent = '> IMPORT_REPO';
@@ -292,6 +710,11 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
           finishedAt: now.toISOString(),
           durationMs: 2500,
           summary: { files: 3, dependencies: 120, vulnerabilities: 6, critical: 2, high: 2, medium: 2, low: 0 },
+          files: [
+            { file: 'Cargo.lock', ecosystem: 'cargo', dependencies: 45, vulnerable: 2 },
+            { file: 'package.json', ecosystem: 'npm', dependencies: 38, vulnerable: 2 },
+            { file: 'requirements.txt', ecosystem: 'pypi', dependencies: 37, vulnerable: 2 },
+          ],
           vulnerabilities: [
             { id: '1', severity: 'CRITICAL', package: 'openssl', version: '1.1.1', title: 'Memory corruption in TLS handler', cve: 'CVE-2024-12345', cvss: 9.8, affectedFiles: ['Cargo.lock'], recommendation: 'Upgrade to 1.1.1u or 3.x.' },
             { id: '2', severity: 'CRITICAL', package: 'glibc', version: '2.28', title: 'Stack smashing vulnerability', cve: 'CVE-2024-99999', cvss: 9.1, affectedFiles: ['requirements.txt'], recommendation: 'Patch to latest LTS.' },

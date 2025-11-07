@@ -7,7 +7,10 @@ import { API_ENDPOINTS } from '../../config/api';
 import { apiClient, type ApiResponse } from './client';
 
 export interface RepositoryAnalysisRequest {
-  url: string;
+  // Either url or (owner + repo) can be provided
+  url?: string;
+  owner?: string;
+  repo?: string;
   branch?: string;
   path?: string; // Optional path within repository
   includeDevDependencies?: boolean;

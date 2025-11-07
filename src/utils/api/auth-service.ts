@@ -6,6 +6,7 @@
 import { API_ENDPOINTS } from '../../config/api';
 import { apiClient, type ApiResponse } from './client';
 import { tokenManager } from './token-manager';
+import { getCookie } from '../cookies';
 
 export interface LoginCredentials {
   email: string;
@@ -13,8 +14,10 @@ export interface LoginCredentials {
 }
 
 export interface LoginResponse {
-  token: string;
-  user: {
+  // Handle both "token" and "access_token" field names
+  token?: string;
+  access_token?: string;
+  user?: {
     id: string;
     email: string;
     name?: string;
@@ -23,7 +26,8 @@ export interface LoginResponse {
 }
 
 export interface RegisterData extends LoginCredentials {
-  name: string;
+  roles?: string[];
+  name?: string;
 }
 
 export interface AuthResponse {
@@ -46,8 +50,15 @@ class AuthService {
     );
 
     if (response.success && response.data) {
-      tokenManager.setToken(response.data.token, rememberMe);
-      tokenManager.setUser(response.data.user, rememberMe);
+      // Support both 'token' and 'access_token' field names
+      const token = response.data.token || response.data.access_token;
+      
+      if (token) {
+        tokenManager.setToken(token, rememberMe);
+        if (response.data.user) {
+          tokenManager.setUser(response.data.user, rememberMe);
+        }
+      }
     }
 
     return response;
@@ -63,23 +74,31 @@ class AuthService {
     );
 
     if (response.success && response.data) {
-      tokenManager.setToken(response.data.token);
-      tokenManager.setUser(response.data.user);
+      // Support both 'token' and 'access_token' field names
+      const token = response.data.token || response.data.access_token;
+      
+      console.log('✅ Registration completed');
+      if (token) {
+        tokenManager.setToken(token);
+        if (response.data.user) {
+          tokenManager.setUser(response.data.user);
+        }
+      }
     }
 
     return response;
   }
 
   /**
-   * Logout
+   * Logout (client-side only)
    */
   async logout(): Promise<ApiResponse<void>> {
-    const response = await apiClient.post<void>(API_ENDPOINTS.AUTH.LOGOUT);
-    
-    // Clear tokens regardless of API response
     tokenManager.clear();
     
-    return response;
+    return {
+      success: true,
+      message: 'Logged out successfully'
+    };
   }
 
   /**
@@ -91,25 +110,41 @@ class AuthService {
     );
 
     if (response.success && response.data) {
-      tokenManager.setToken(response.data.token);
-      tokenManager.setUser(response.data.user);
+      // Support both 'token' and 'access_token' field names
+      const token = response.data.token || response.data.access_token;
+      if (token) {
+        tokenManager.setToken(token);
+        if (response.data.user) {
+          tokenManager.setUser(response.data.user);
+        }
+      }
     }
 
     return response;
   }
 
   /**
-   * Verify current token
+   * Set user data in storage
    */
-  async verifyToken(): Promise<ApiResponse<{ valid: boolean }>> {
-    return apiClient.post<{ valid: boolean }>(API_ENDPOINTS.AUTH.VERIFY);
+  setUser(user: any, rememberMe: boolean = false): void {
+    tokenManager.setUser(user, rememberMe);
   }
 
   /**
-   * Get current user info
+   * Update user profile data
    */
-  async getCurrentUser(): Promise<ApiResponse<any>> {
-    return apiClient.get(API_ENDPOINTS.AUTH.ME);
+  async updateProfile(data: { name: string }): Promise<ApiResponse<any>> {
+    const response = await apiClient.patch<any>(
+      API_ENDPOINTS.AUTH.UPDATE_ME,
+      data
+    );
+
+    if (response.success && response.data) {
+      const rememberMe = !!getCookie('auth_token');
+      this.setUser(response.data, rememberMe);
+    }
+
+    return response;
   }
 
   /**

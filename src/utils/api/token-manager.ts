@@ -1,7 +1,15 @@
 /**
  * Token Manager
- * Manages authentication tokens in localStorage/sessionStorage
+ * Manages authentication tokens securely using cookies
+ * 
+ * Best practices:
+ * - Uses secure httpOnly-like cookies
+ * - Cookies auto-expire after set time
+ * - Session cookies (no expiry) for temporary login
+ * - Persistent cookies (7 days) for "Remember me"
  */
+
+import { setCookie, getCookie, removeCookie } from '../cookies';
 
 export interface StoredToken {
   token: string;
@@ -13,15 +21,23 @@ class TokenManager {
   private readonly USER_KEY = 'auth_user';
 
   /**
-   * Store token
+   * Store token securely in cookies
+   * - Session cookie (no days): cleared when browser closes
+   * - Persistent cookie (7 days): saved for "Remember me"
    */
-  setToken(token: string, rememberMe: boolean = false): void {
+  setToken(token: string | undefined, rememberMe: boolean = false): void {
+    if (!token) {
+      return;
+    }
+    
     try {
-      const storage = rememberMe ? localStorage : sessionStorage;
-      const otherStorage = rememberMe ? sessionStorage : localStorage;
-
-      storage.setItem(this.TOKEN_KEY, token);
-      otherStorage.removeItem(this.TOKEN_KEY);
+      // Set cookie with appropriate expiry
+      setCookie(this.TOKEN_KEY, token, {
+        days: rememberMe ? 7 : undefined, // undefined = session cookie
+        path: '/',
+        secure: true,
+        sameSite: 'Lax'
+      });
     } catch (_e) {
       if (import.meta.env.DEV) {
         console.error('Failed to store token');
@@ -30,28 +46,27 @@ class TokenManager {
   }
 
   /**
-   * Get stored token
+   * Get stored token from cookies
    */
   getToken(): string | null {
     try {
-      const token = localStorage.getItem(this.TOKEN_KEY);
-      if (token) return token;
-      return sessionStorage.getItem(this.TOKEN_KEY);
+      return getCookie(this.TOKEN_KEY);
     } catch (_e) {
       return null;
     }
   }
 
   /**
-   * Store user data
+   * Store user data in cookies
    */
   setUser(user: any, rememberMe: boolean = false): void {
     try {
-      const storage = rememberMe ? localStorage : sessionStorage;
-      const otherStorage = rememberMe ? sessionStorage : localStorage;
-
-      storage.setItem(this.USER_KEY, JSON.stringify(user));
-      otherStorage.removeItem(this.USER_KEY);
+      setCookie(this.USER_KEY, JSON.stringify(user), {
+        days: rememberMe ? 7 : undefined,
+        path: '/',
+        secure: true,
+        sameSite: 'Lax'
+      });
     } catch (_e) {
       if (import.meta.env.DEV) {
         console.error('Failed to store user data');
@@ -60,17 +75,12 @@ class TokenManager {
   }
 
   /**
-   * Get stored user data
+   * Get stored user data from cookies
    */
   getUser(): any {
     try {
-      const user = localStorage.getItem(this.USER_KEY);
-      if (user) return JSON.parse(user);
-      
-      const sessionUser = sessionStorage.getItem(this.USER_KEY);
-      if (sessionUser) return JSON.parse(sessionUser);
-      
-      return null;
+      const user = getCookie(this.USER_KEY);
+      return user ? JSON.parse(user) : null;
     } catch (_e) {
       return null;
     }
@@ -92,10 +102,8 @@ class TokenManager {
    */
   clear(): void {
     try {
-      localStorage.removeItem(this.TOKEN_KEY);
-      localStorage.removeItem(this.USER_KEY);
-      sessionStorage.removeItem(this.TOKEN_KEY);
-      sessionStorage.removeItem(this.USER_KEY);
+      removeCookie(this.TOKEN_KEY);
+      removeCookie(this.USER_KEY);
     } catch (_e) {
       if (import.meta.env.DEV) {
         console.error('Failed to clear tokens');

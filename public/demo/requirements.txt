@@ -1,3 +1,9 @@
-requests==2.19.0
-urllib3==1.25.8
-Flask==1.0.2
+# Demo Python requirements with known vulnerabilities
+Django==2.2.10
+Flask==1.1.1
+requests==2.25.0
+Jinja2==2.11.2
+SQLAlchemy==1.3.0
+urllib3==1.26.3
+Pillow==8.1.0
+PyYAML==5.3.1

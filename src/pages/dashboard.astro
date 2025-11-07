@@ -5,16 +5,27 @@ import Footer from "../components/Footer.astro";
 ---
 
 <Layout title="Dashboard — Vulnera" description="Overview of reports, projects, and recent activity.">
-  <!-- Inline Auth Guard (runs immediately) -->
-  <!-- <script is:inline>
+  <!-- Auth Guard -->
+  <script is:inline>
     (function() {
-      const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
+      function getCookie(name) {
+        const nameEQ = encodeURIComponent(name) + '=';
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+          cookie = cookie.trim();
+          if (cookie.startsWith(nameEQ)) {
+            return decodeURIComponent(cookie.substring(nameEQ.length));
+          }
+        }
+        return null;
+      }
+      
+      const token = getCookie('auth_token');
       if (!token) {
-        const currentPath = window.location.pathname + window.location.search;
-        window.location.href = '/login?next=' + encodeURIComponent(currentPath);
+        window.location.href = '/login?next=/dashboard';
       }
     })();
-  </script> -->
+  </script>
 
   <Navigation />
 
@@ -27,19 +38,19 @@ import Footer from "../components/Footer.astro";
     </div>
 
     <!-- Content -->
-    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-16">
-      <header class="mb-6 sm:mb-10">
-        <div class="text-cyber-400 font-mono text-xs sm:text-sm">root@vulnera:~$</div>
-  <h1 id="dash-title" class="text-2xl sm:text-3xl md:text-4xl font-bold text-white font-mono tracking-wider mt-6 mb-4 sm:mb-6">
+    <div class="relative z-10 max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-8 sm:py-12 md:py-16">
+      <header class="mb-6 sm:mb-8 md:mb-10">
+        <div class="text-cyber-400 font-mono text-xs sm:text-sm md:text-base">root@vulnera:~$</div>
+  <h1 id="dash-title" class="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white font-mono tracking-wider mt-4 sm:mt-5 md:mt-6 mb-3 sm:mb-4 md:mb-6">
           <span class="text-cyber-400">&gt;</span> DASHBOARD
         </h1>
-        <p class="text-matrix-300 mt-2 text-sm sm:text-base">Live overview of your analysis activity</p>
+        <p class="text-matrix-300 mt-2 text-xs sm:text-sm md:text-base">Live overview of your analysis activity</p>
       </header>
 
       <!-- Controls -->
-      <div class="mb-4 flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center justify-between">
+      <div class="mb-4 flex flex-col sm:flex-row gap-2 sm:gap-3 md:gap-4 items-stretch sm:items-center justify-between">
         <div class="flex gap-2">
-          <select id="filter-ecosystem" class="bg-black/60 border border-cyber-400/30 text-matrix-200 px-3 py-2 rounded-lg text-sm">
+          <select id="filter-ecosystem" class="bg-black/60 border border-cyber-400/30 text-matrix-200 px-2 sm:px-3 py-2 rounded-lg text-xs sm:text-sm">
             <option value="all">ALL_ECOSYSTEMS</option>
             <option value="npm">NPM</option>
             <option value="pypi">PYPI</option>
@@ -48,7 +59,7 @@ import Footer from "../components/Footer.astro";
             <option value="nuget">NUGET</option>
             <option value="rubygems">RUBYGEMS</option>
           </select>
-          <select id="filter-severity" class="bg-black/60 border border-cyber-400/30 text-matrix-200 px-3 py-2 rounded-lg text-sm">
+          <select id="filter-severity" class="bg-black/60 border border-cyber-400/30 text-matrix-200 px-2 sm:px-3 py-2 rounded-lg text-xs sm:text-sm">
             <option value="all">ALL_SEVERITIES</option>
             <option value="critical">CRITICAL</option>
             <option value="high">HIGH</option>
@@ -58,12 +69,12 @@ import Footer from "../components/Footer.astro";
           </select>
         </div>
         <div class="flex gap-2">
-          <button id="btn-refresh" class="inline-flex items-center bg-gradient-to-r from-cyber-600 to-matrix-600 hover:from-cyber-500 hover:to-matrix-500 text-black px-3 py-2 rounded-lg font-mono text-sm terminal-border"><span class="mr-2">&gt;</span> REFRESH</button>
+          <button id="btn-refresh" class="inline-flex items-center bg-gradient-to-r from-cyber-600 to-matrix-600 hover:from-cyber-500 hover:to-matrix-500 text-black px-3 sm:px-4 py-2 md:py-2.5 rounded-lg font-mono text-xs sm:text-sm md:text-base terminal-border touch-none"><span class="mr-2">&gt;</span> REFRESH</button>
         </div>
       </div>
 
       <!-- Stats Grid -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
         <div class="terminal-border bg-black/60 rounded-lg p-4 sm:p-6">
           <div class="text-cyber-400 text-xs sm:text-sm mb-1">REPORTS_TOTAL</div>
           <div id="stat-reports" class="text-2xl sm:text-3xl lg:text-4xl text-white font-mono">--</div>
@@ -152,9 +163,6 @@ import Footer from "../components/Footer.astro";
 
   <script type="module">
     // Public dashboard: no auth guard
-
-  // Mock data 
-  const mockMod = await import('/src/utils/mock/dashboard');
 
     function renderOverview(o) {
       const elR = document.getElementById('stat-reports');
@@ -273,13 +281,80 @@ import Footer from "../components/Footer.astro";
 
   let currentReportsFiltered = [];
   async function loadAll() {
-      // Generate mock
-      const overview = mockMod.generateOverview();
-      const reports = mockMod.generateReports(8);
-      const projects = mockMod.generateProjects(6);
-      const trend = mockMod.generateTrend(7);
+      // Load scan history from localStorage
+      let scanHistory = [];
+      try {
+        scanHistory = JSON.parse(localStorage.getItem('scan_history') || '[]');
+      } catch (e) {
+        console.error('Failed to load scan history:', e);
+      }
 
-      // No API override; using mock overview exclusively
+      // Calculate overview stats
+      const reportsTotal = scanHistory.length;
+      const projectsAnalyzed = new Set(scanHistory.map(s => s.project || 'File Upload')).size;
+      const vulnerableProjects = scanHistory.filter(s => (s.vulnerabilities || 0) > 0).length;
+      const lastScan = scanHistory[0];
+      const lastScanAt = lastScan ? new Date(lastScan.timestamp).toLocaleString() : '--';
+
+      const overview = { 
+        reportsTotal, 
+        projectsAnalyzed, 
+        vulnerableProjects, 
+        lastScanAt 
+      };
+
+      // Transform scan history to reports format
+      const reports = scanHistory.map(scan => {
+        const severity = scan.critical > 0 ? 'critical' 
+                      : scan.high > 0 ? 'high'
+                      : scan.medium > 0 ? 'medium'
+                      : scan.low > 0 ? 'low'
+                      : 'none';
+        return {
+          id: scan.id,
+          project: scan.project || `Files (${scan.filesCount || 0})`,
+          severity: severity,
+          issues: scan.vulnerabilities || 0,
+          createdAt: scan.timestamp
+        };
+      });
+
+      // Group by project for projects view
+      const projectsMap = {};
+      scanHistory.forEach(scan => {
+        const projectName = scan.project || 'File Upload';
+        if (!projectsMap[projectName]) {
+          projectsMap[projectName] = {
+            name: projectName,
+            ecosystem: scan.ecosystems?.[0] || 'multiple',
+            lastScanAt: scan.timestamp,
+            vulnerabilities: 0,
+            scans: 0
+          };
+        }
+        projectsMap[projectName].vulnerabilities += scan.vulnerabilities || 0;
+        projectsMap[projectName].scans += 1;
+        // Keep most recent scan time
+        if (new Date(scan.timestamp) > new Date(projectsMap[projectName].lastScanAt)) {
+          projectsMap[projectName].lastScanAt = scan.timestamp;
+        }
+      });
+      const projects = Object.values(projectsMap);
+
+      // Calculate 7-day trend
+      const now = new Date();
+      const trend = [];
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date(now);
+        date.setDate(date.getDate() - i);
+        const dateStr = date.toISOString().split('T')[0];
+        const dayScans = scanHistory.filter(s => s.timestamp.startsWith(dateStr));
+        trend.push({
+          day: dateStr,
+          reports: dayScans.length,
+          vulns: dayScans.reduce((sum, s) => sum + (s.vulnerabilities || 0), 0)
+        });
+      }
 
   // Apply filters (client-side) to reports/projects
       const eco = document.getElementById('filter-ecosystem')?.value || 'all';

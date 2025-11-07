@@ -51,7 +51,14 @@ class HealthService {
    * GET /health
    */
   async checkHealth(): Promise<ApiResponse<HealthCheckResponse>> {
-    return apiClient.get<HealthCheckResponse>(API_ENDPOINTS.HEALTH.CHECK);
+    // Try primary health endpoint
+    const primary = await apiClient.get<HealthCheckResponse>(API_ENDPOINTS.HEALTH.CHECK);
+    // If not found, try alternate versioned path without changing envs
+    if (!primary.success && primary.status === 404) {
+      const alt = await apiClient.get<HealthCheckResponse>('/api/v1/health/');
+      return alt;
+    }
+    return primary;
   }
 
   /**

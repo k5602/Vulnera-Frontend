@@ -3,6 +3,9 @@ export default {
   content: ['./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}'],
   theme: {
     extend: {
+      screens: {
+        '3xl': '1400px', // Custom breakpoint - sidebar visible at 1400px+
+      },
       fontFamily: {
         'sans': ['JetBrains Mono', 'Fira Code', 'Consolas', 'monospace'],
         'mono': ['JetBrains Mono', 'Fira Code', 'Consolas', 'monospace'],

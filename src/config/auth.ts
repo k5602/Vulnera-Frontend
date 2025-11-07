@@ -59,8 +59,10 @@ export const authConfig = {
 };
 
 // API configuration
+import { API_CONFIG } from './api';
+
 export const apiConfig = {
-  baseUrl: getEnvVar('VITE_API_BASE_URL', 'http://localhost:3000'),
+  baseUrl: API_CONFIG.BASE_URL,
   version: getEnvVar('VITE_API_VERSION', 'v1'),
-  timeout: parseInt(getEnvVar('VITE_API_TIMEOUT', '30000'), 10)
+  timeout: parseInt(getEnvVar('VITE_API_TIMEOUT', String(API_CONFIG.TIMEOUT)), 10)
 };

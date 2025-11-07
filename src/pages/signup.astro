@@ -8,7 +8,19 @@ import Footer from "../components/Footer.astro";
   <!-- Guest Guard - Redirect to dashboard if already authenticated -->
   <script is:inline>
     (function() {
-      const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
+      function getCookie(name) {
+        const nameEQ = encodeURIComponent(name) + '=';
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+          cookie = cookie.trim();
+          if (cookie.startsWith(nameEQ)) {
+            return decodeURIComponent(cookie.substring(nameEQ.length));
+          }
+        }
+        return null;
+      }
+      
+      const token = getCookie('auth_token');
       if (token) {
         window.location.href = '/dashboard';
       }
@@ -120,8 +132,6 @@ import Footer from "../components/Footer.astro";
   <Footer />
 
   <script>
-    console.log('Signup page JavaScript loaded');
-
     // Preserve ?next across auth pages
     try {
       const params = new URLSearchParams(location.search);
@@ -145,7 +155,7 @@ import Footer from "../components/Footer.astro";
 
     // Form validation
     const form = document.getElementById('signup-form');
-    form?.addEventListener('submit', (e) => {
+    form?.addEventListener('submit', async (e) => {
       e.preventDefault();
       
       const email = document.getElementById('email') as HTMLInputElement;
@@ -170,31 +180,35 @@ import Footer from "../components/Footer.astro";
         return;
       }
       
-      console.log('Signup attempt:', { 
-        email: email.value, 
-        firstName: firstName.value, 
-        lastName: lastName.value 
-      });
-      // Simulate success and go to requested destination if provided
       try {
-        const params = new URLSearchParams(location.search);
-        const next = params.get('next');
-        const target = next && /^\/[a-zA-Z0-9_\-/]*$/.test(next) ? next : '/dashboard';
-        alert('Signup successful. Redirecting…');
-        window.location.href = `/login?next=${encodeURIComponent(target)}`;
-      } catch {
-        alert('Signup successful. Redirecting to login…');
-        window.location.href = '/login';
+        const { authService } = await import('../utils/api/auth-service');
+        
+        const response = await authService.register({
+          email: email.value,
+          password: password.value,
+          roles: ['user']
+        });
+
+        if (response.success) {
+          const params = new URLSearchParams(location.search);
+          const next = params.get('next');
+          const target = next && /^\/[a-zA-Z0-9_\-/]*$/.test(next) ? next : '/dashboard';
+          alert('Signup successful. Redirecting to dashboard...');
+          window.location.href = target;
+        } else {
+          alert(response.error || response.message || 'Registration failed. Please try again.');
+        }
+      } catch (error) {
+        console.error('Registration error:', error);
+        alert('An error occurred during registration. Please try again.');
       }
     });
 
     // Page entrance animation
     document.addEventListener('DOMContentLoaded', function() {
-      console.log('DOM loaded, initializing signup page...');
       const authForm = document.querySelector('.auth-form');
       if (authForm) {
         authForm.classList.add('transitioning-in');
-        console.log('Added transitioning-in class for page entrance');
       }
     });
   </script>
