@@ -40,9 +40,17 @@ class ApiClient {
     
     // Add auth token if available
     const headers = new Headers(options.headers || {});
-    const token = tokenManager.getToken();
-    if (token) {
-      headers.set('Authorization', `Bearer ${token}`);
+
+    // Prefer API key when present, otherwise fallback to bearer token
+    const apiKey = tokenManager.getApiKey();
+    if (apiKey) {
+      headers.set('X-API-Key', apiKey);
+      headers.set('Authorization', `ApiKey ${apiKey}`);
+    } else {
+      const token = tokenManager.getToken();
+      if (token) {
+        headers.set('Authorization', `Bearer ${token}`);
+      }
     }
 
     // Set default headers
@@ -63,7 +71,7 @@ class ApiClient {
       clearTimeout(timeoutId);
 
       // Parse response
-      const data = await this.parseResponse<T>(response);
+  const data = await this.parseResponse(response);
 
       if (!response.ok) {
         throw {
@@ -86,7 +94,7 @@ class ApiClient {
   /**
    * Parse response based on content type
    */
-  private async parseResponse<T>(response: Response): Promise<any> {
+  private async parseResponse(response: Response): Promise<any> {
     const contentType = response.headers.get('content-type');
 
     if (contentType?.includes('application/json')) {

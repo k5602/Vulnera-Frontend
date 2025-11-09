@@ -36,6 +36,28 @@ export interface AuthResponse {
   data?: LoginResponse;
 }
 
+export interface ApiKeySummary {
+  id: string;
+  name: string;
+  prefix: string;
+  created_at: string;
+  last_used_at?: string;
+  expires_at?: string;
+}
+
+export interface CreateApiKeyPayload {
+  name: string;
+  expires_at?: string;
+}
+
+export interface CreateApiKeyResponse {
+  id: string;
+  key: string;
+  name: string;
+  created_at: string;
+  expires_at?: string;
+}
+
 class AuthService {
   /**
    * Login with email and password
@@ -173,6 +195,48 @@ class AuthService {
    */
   clearAuth(): void {
     tokenManager.clear();
+  }
+
+  /**
+   * Store API key and optionally persist it for set duration (default 30 days)
+   */
+  setApiKey(apiKey: string | undefined, options: { days?: number } = {}): void {
+    tokenManager.setApiKey(apiKey, options);
+  }
+
+  getApiKey(): string | null {
+    return tokenManager.getApiKey();
+  }
+
+  clearApiKey(): void {
+    tokenManager.clearApiKey();
+  }
+
+  async createApiKey(
+    payload: CreateApiKeyPayload
+  ): Promise<ApiResponse<CreateApiKeyResponse>> {
+    const response = await apiClient.post<CreateApiKeyResponse>(
+      API_ENDPOINTS.AUTH.CREATE_API_KEY,
+      payload
+    );
+
+    if (response.success && response.data?.key) {
+      this.setApiKey(response.data.key);
+    }
+
+    return response;
+  }
+
+  async listApiKeys(): Promise<ApiResponse<ApiKeySummary[]>> {
+    return apiClient.get<ApiKeySummary[]>(API_ENDPOINTS.AUTH.LIST_API_KEYS);
+  }
+
+  async revokeApiKey(keyId: string): Promise<ApiResponse<void>> {
+    const endpoint = apiClient.replacePath(API_ENDPOINTS.AUTH.REVOKE_API_KEY, {
+      key_id: keyId,
+    });
+
+    return apiClient.delete<void>(endpoint);
   }
 }
 

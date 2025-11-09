@@ -5,16 +5,32 @@
 
 import { API_ENDPOINTS } from '../../config/api';
 import { apiClient, type ApiResponse } from './client';
+import {
+  scanService,
+  type AnalyzeJobRequest,
+  type AnalyzeJobResponseData,
+  type AnalysisDepth,
+  type AnalysisJobStatusData,
+  type PollAnalysisJobOptions,
+} from './scan-service';
 
 export interface RepositoryAnalysisRequest {
-  // Either url or (owner + repo) can be provided
+  /**
+   * Either provide full repository URL (https://github.com/org/repo.git)
+   * or owner + repo components.
+   */
   url?: string;
   owner?: string;
   repo?: string;
-  branch?: string;
-  path?: string; // Optional path within repository
+  ref?: string;
+  branch?: string; // legacy alias for ref
+  path?: string;
   includeDevDependencies?: boolean;
+  analysisDepth?: AnalysisDepth;
+  modules?: string[];
 }
+
+export type RepositoryAnalysisJobOptions = PollAnalysisJobOptions;
 
 export interface PackageAnalysis {
   manager: string; // npm, pip, maven, cargo, etc.
@@ -58,6 +74,77 @@ class RepositoryService {
       API_ENDPOINTS.REPOSITORY.ANALYZE,
       request
     );
+  }
+
+  /**
+   * Start a repository analysis via the orchestrator job endpoint.
+   */
+  async startRepositoryAnalysisJob(
+    request: RepositoryAnalysisRequest
+  ): Promise<ApiResponse<AnalyzeJobResponseData>> {
+    const sourceUri = this.resolveRepositoryUrl(request);
+
+    if (!sourceUri) {
+      return {
+        success: false,
+        error: 'Repository URL is required to start analysis',
+        status: 400,
+      };
+    }
+
+    const payload: AnalyzeJobRequest = {
+      sourceType: 'git',
+      sourceUri,
+      analysisDepth: request.analysisDepth,
+      modules: request.modules,
+      metadata: this.buildMetadata(request),
+    };
+
+    return scanService.submitAnalysisJob(payload);
+  }
+
+  /**
+   * Convenience helper to poll repository analysis results until completion.
+   */
+  async pollRepositoryAnalysisJob(
+    jobId: string,
+    options: RepositoryAnalysisJobOptions = {}
+  ): Promise<ApiResponse<AnalysisJobStatusData>> {
+    const pollOptions: PollAnalysisJobOptions = {
+      intervalMs: options.intervalMs,
+      maxIntervalMs: options.maxIntervalMs,
+      timeoutMs: options.timeoutMs,
+      signal: options.signal,
+      onUpdate: options.onUpdate,
+    };
+
+    return scanService.pollAnalysisJob(jobId, pollOptions);
+  }
+
+  private resolveRepositoryUrl(request: RepositoryAnalysisRequest): string | null {
+    if (request.url) {
+      return request.url;
+    }
+
+    if (request.owner && request.repo) {
+      return `https://github.com/${request.owner}/${request.repo}`;
+    }
+
+    return null;
+  }
+
+  private buildMetadata(request: RepositoryAnalysisRequest): Record<string, unknown> | undefined {
+    const metadataEntries = Object.entries({
+      ref: request.ref || request.branch,
+      path: request.path,
+      includeDevDependencies: request.includeDevDependencies,
+    }).filter(([, value]) => value !== undefined && value !== null);
+
+    if (metadataEntries.length === 0) {
+      return undefined;
+    }
+
+    return Object.fromEntries(metadataEntries);
   }
 
   /**

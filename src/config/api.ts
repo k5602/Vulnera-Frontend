@@ -83,7 +83,9 @@ export const API_ENDPOINTS = {
   
   // Analysis endpoints
   ANALYSIS: {
-    ANALYZE: '/api/v1/analyze',
+    ANALYZE: '/api/v1/analyze/job',
+    ANALYZE_DIRECT: '/api/v1/analyze',
+    GET_JOB: '/api/v1/analyze/job/:job_id',
     POPULAR: '/api/v1/popular',
     GET_REPORT: '/api/v1/reports/:id',
   },

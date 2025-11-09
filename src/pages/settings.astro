@@ -6,7 +6,7 @@ import Footer from "../components/Footer.astro";
 
 <Layout title="Settings — Vulnera" description="Manage your API keys and account settings.">
   <!-- Auth Guard -->
-  <script is:inline>
+  <!-- <script is:inline>
     (function() {
       function getCookie(name) {
         const nameEQ = encodeURIComponent(name) + '=';
@@ -25,7 +25,7 @@ import Footer from "../components/Footer.astro";
         window.location.href = '/login?next=/settings';
       }
     })();
-  </script>
+  </script> -->
 
   <Navigation />
 
@@ -484,7 +484,7 @@ import Footer from "../components/Footer.astro";
 
   <Footer />
 
-  <div id="create-key-modal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+  <div id="create-key-modal" class="hidden fixed inset-0 bg-black/80 z-50 p-4">
     <div class="terminal-border bg-black/95 rounded-xl p-6 max-w-md w-full">
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-xl font-bold text-cyber-400 font-mono">Generate API Key</h3>
@@ -532,7 +532,7 @@ import Footer from "../components/Footer.astro";
     </div>
   </div>
 
-  <div id="key-display-modal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+  <div id="key-display-modal" class="hidden fixed inset-0 bg-black/80 z-50 p-4">
     <div class="terminal-border bg-black/95 rounded-xl p-6 max-w-md w-full">
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-xl font-bold text-cyber-400 font-mono">API Key Generated</h3>
@@ -1146,16 +1146,30 @@ import Footer from "../components/Footer.astro";
       const closeKeyDisplayBtn = document.getElementById('close-key-display-btn');
       const copyKeyBtn = document.getElementById('copy-key-btn');
 
+      const MODAL_VISIBLE_CLASSES = ['flex', 'items-center', 'justify-center'];
+
+      function showModal(element: HTMLElement | null) {
+        if (!element) return;
+        element.classList.remove('hidden');
+        element.classList.add(...MODAL_VISIBLE_CLASSES);
+      }
+
+      function hideModal(element: HTMLElement | null) {
+        if (!element) return;
+        element.classList.add('hidden');
+        element.classList.remove(...MODAL_VISIBLE_CLASSES);
+      }
+
       createBtn?.addEventListener('click', () => {
-        modal?.classList.remove('hidden');
+        showModal(modal as HTMLElement | null);
       });
 
       closeModalBtn?.addEventListener('click', () => {
-        modal?.classList.add('hidden');
+        hideModal(modal as HTMLElement | null);
       });
 
       cancelModalBtn?.addEventListener('click', () => {
-        modal?.classList.add('hidden');
+        hideModal(modal as HTMLElement | null);
       });
 
       createKeyForm?.addEventListener('submit', async (e) => {
@@ -1188,11 +1202,11 @@ import Footer from "../components/Footer.astro";
 
           const data = await response.json();
           
-          modal?.classList.add('hidden');
+          hideModal(modal as HTMLElement | null);
           
           const generatedKeyInput = document.getElementById('generated-key') as HTMLInputElement;
           generatedKeyInput.value = data.api_key || data.key;
-          keyDisplayModal?.classList.remove('hidden');
+          showModal(keyDisplayModal as HTMLElement | null);
 
           nameInput.value = '';
           descInput.value = '';
@@ -1210,7 +1224,7 @@ import Footer from "../components/Footer.astro";
       });
 
       closeKeyDisplayBtn?.addEventListener('click', () => {
-        keyDisplayModal?.classList.add('hidden');
+        hideModal(keyDisplayModal as HTMLElement | null);
       });
 
       copyKeyBtn?.addEventListener('click', () => {

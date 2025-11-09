@@ -7,7 +7,7 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
 
 <Layout title="Scan — Vulnera" description="Upload manifests or import repositories for scanning.">
   <!-- Auth Guard -->
-  <script is:inline>
+ <!-- <script is:inline>
     (function() {
       function getCookie(name) {
         const nameEQ = encodeURIComponent(name) + '=';
@@ -26,7 +26,7 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
         window.location.href = '/login?next=/scan';
       }
     })();
-  </script>
+  </script>  -->
 
   <Navigation />
 
@@ -81,6 +81,62 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
         
         <!-- Action Buttons -->
         <div class="mt-5 space-y-3">
+          <!-- Analysis Modules Selection -->
+          <!-- Analysis Modules - Always Active -->
+          <div class="border border-cyber-400/30 rounded-lg p-3 bg-black/30">
+            <label class="block text-xs text-matrix-300 font-mono mb-2">ACTIVE_ANALYSIS_MODULES</label>
+            <div class="grid grid-cols-2 gap-2">
+              <div class="flex items-center gap-2 p-2 border border-cyber-400/60 rounded bg-cyber-400/10">
+                <div class="flex items-center gap-1.5 text-xs text-cyber-300">
+                  <span>📦</span>
+                  <span>Dependencies</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-2 p-2 border border-cyber-400/60 rounded bg-cyber-400/10">
+                <div class="flex items-center gap-1.5 text-xs text-cyber-300">
+                  <span>🔍</span>
+                  <span>SAST</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-2 p-2 border border-cyber-400/60 rounded bg-cyber-400/10">
+                <div class="flex items-center gap-1.5 text-xs text-cyber-300">
+                  <span>🔐</span>
+                  <span>Secrets</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-2 p-2 border border-cyber-400/60 rounded bg-cyber-400/10">
+                <div class="flex items-center gap-1.5 text-xs text-cyber-300">
+                  <span>🌐</span>
+                  <span>API Security</span>
+                </div>
+              </div>
+            </div>
+            <p class="mt-2 text-[10px] text-gray-500">
+              All analysis modules are enabled by default
+            </p>
+          </div>
+          
+          <!-- Detail Level Selection -->
+          <div class="border border-cyber-400/30 rounded-lg p-3 bg-black/30">
+            <label class="block text-xs text-matrix-300 font-mono mb-2">REPORT_DETAIL_LEVEL</label>
+            <div class="flex flex-wrap gap-2">
+              <button data-detail-level="minimal" class="detail-level-btn flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 border border-gray-600/40 text-gray-400 px-3 py-1.5 rounded-lg font-mono text-xs hover:bg-gray-600/10 hover:border-gray-500/60 transition-all">
+                <span>⚡</span> MINIMAL
+              </button>
+              <button data-detail-level="standard" class="detail-level-btn active flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 border border-cyber-400/60 bg-cyber-400/10 text-cyber-300 px-3 py-1.5 rounded-lg font-mono text-xs hover:bg-cyber-400/20 transition-all">
+                <span>📊</span> STANDARD
+              </button>
+              <button data-detail-level="full" class="detail-level-btn flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 border border-gray-600/40 text-gray-400 px-3 py-1.5 rounded-lg font-mono text-xs hover:bg-gray-600/10 hover:border-gray-500/60 transition-all">
+                <span>🔬</span> FULL
+              </button>
+            </div>
+            <p class="mt-2 text-[10px] text-gray-500">
+              <span class="text-cyan-400">Minimal:</span> Basic info • 
+              <span class="text-cyan-400">Standard:</span> Vulnerabilities + metadata • 
+              <span class="text-cyan-400">Full:</span> Everything + dependency graph
+            </p>
+          </div>
+          
           <!-- Secondary Actions -->
           <div class="flex flex-wrap gap-2">
             <button id="btn-load-demo" class="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 border border-matrix-400/40 text-matrix-300 px-3 py-2 rounded-lg font-mono text-xs hover:bg-matrix-400/10 hover:border-matrix-400/60 transition-all">
@@ -132,6 +188,29 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
             placeholder="github.com/owner/repo" 
             class="w-full px-3 py-2 rounded-lg bg-black/60 border border-cyber-400/30 focus:border-cyber-400 focus:ring-1 focus:ring-cyber-400 text-white placeholder-gray-500 text-xs sm:text-sm" 
           />
+          <input
+            type="password"
+            id="github-token-input"
+            placeholder="Enter GitHub Token (optional for private repos)"
+            class="w-full px-3 py-2 rounded-lg bg-black/60 border border-cyber-400/30 focus:border-cyber-400 focus:ring-1 focus:ring-cyber-400 text-white placeholder-gray-500 text-xs sm:text-sm mt-2"
+          />
+          
+          <!-- Analysis Depth Selection -->
+          <div class="border border-cyber-400/30 rounded-lg p-2 bg-black/30 mt-2">
+            <label class="block text-[10px] text-matrix-300 font-mono mb-1.5">ANALYSIS_DEPTH</label>
+            <div class="flex gap-2">
+              <button data-analysis-depth="quick" class="analysis-depth-btn flex-1 inline-flex items-center justify-center gap-1 border border-gray-600/40 text-gray-400 px-2 py-1 rounded font-mono text-[10px] hover:bg-gray-600/10 transition-all">
+                QUICK
+              </button>
+              <button data-analysis-depth="standard" class="analysis-depth-btn active flex-1 inline-flex items-center justify-center gap-1 border border-cyber-400/60 bg-cyber-400/10 text-cyber-300 px-2 py-1 rounded font-mono text-[10px] transition-all">
+                STANDARD
+              </button>
+              <button data-analysis-depth="full" class="analysis-depth-btn flex-1 inline-flex items-center justify-center gap-1 border border-gray-600/40 text-gray-400 px-2 py-1 rounded font-mono text-[10px] hover:bg-gray-600/10 transition-all">
+                FULL
+              </button>
+            </div>
+          </div>
+          
           <button 
             id="btn-import" 
             class="w-full inline-flex items-center justify-center bg-gradient-to-r from-cyber-600 to-matrix-600 hover:from-cyber-500 hover:to-matrix-500 text-black px-3 py-2 rounded-lg font-mono text-xs sm:text-sm terminal-border cursor-pointer transition-colors"
@@ -152,23 +231,8 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
   <Footer />
 
   <script type="module">
-    // API configuration: use PUBLIC_API_BASE from environment
-    // When running with dev proxy, use relative URLs (/api)
-    // When building for production, use full URL from PUBLIC_API_BASE
-    const publicApiBase = (import.meta?.env?.PUBLIC_API_BASE || '').replace(/\/$/, '');
-    const forceApiBase = import.meta?.env?.PUBLIC_FORCE_API_BASE === 'true';
-    
-    // Check if we're in development by looking at the hostname
-    const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    
-    // In dev with proxy enabled and force not enabled, use relative URLs; otherwise use full URL
-    const API_BASE_URL = (isDev && !forceApiBase) 
-      ? '' 
-      : (publicApiBase || '');
-    
-    if (!API_BASE_URL && !isDev) {
-      console.error('API_BASE_URL not configured. Please set PUBLIC_API_BASE in environment.');
-    }
+    // API configuration: use new backend URL
+    const API_BASE_URL = 'http://fo8w0o08w80g0wgs48kcgwss.121.91.156.227.sslip.io';
 
     // Cookie helper function
     function getCookie(name) {
@@ -254,7 +318,57 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
       const btnReset = document.getElementById('btn-reset-files');
       const btnPreview = document.getElementById('btn-preview-report');
       const repoUrl = document.getElementById('repo-url');
+      const detailLevelBtns = document.querySelectorAll('.detail-level-btn');
+      const analysisDepthBtns = document.querySelectorAll('.analysis-depth-btn');
       let pickedFiles = [];
+      let selectedDetailLevel = 'standard'; // Default
+      let selectedAnalysisDepth = 'standard'; // Default
+      
+      // All modules are always enabled
+      const ALL_MODULES = ['dependencies', 'sast', 'secrets', 'api'];
+      
+      // Function to get all analysis modules (always returns all 4)
+      function getSelectedModules() {
+        return ALL_MODULES;
+      }
+
+      // Handle detail level selection
+      detailLevelBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          // Remove active class from all buttons
+          detailLevelBtns.forEach(b => {
+            b.classList.remove('active', 'border-cyber-400/60', 'bg-cyber-400/10', 'text-cyber-300');
+            b.classList.add('border-gray-600/40', 'text-gray-400');
+          });
+          
+          // Add active class to clicked button
+          btn.classList.add('active', 'border-cyber-400/60', 'bg-cyber-400/10', 'text-cyber-300');
+          btn.classList.remove('border-gray-600/40', 'text-gray-400');
+          
+          // Update selected detail level
+          selectedDetailLevel = btn.getAttribute('data-detail-level');
+          console.log('Detail level selected:', selectedDetailLevel);
+        });
+      });
+
+      // Handle analysis depth selection
+      analysisDepthBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          // Remove active class from all buttons
+          analysisDepthBtns.forEach(b => {
+            b.classList.remove('active', 'border-cyber-400/60', 'bg-cyber-400/10', 'text-cyber-300');
+            b.classList.add('border-gray-600/40', 'text-gray-400');
+          });
+          
+          // Add active class to clicked button
+          btn.classList.add('active', 'border-cyber-400/60', 'bg-cyber-400/10', 'text-cyber-300');
+          btn.classList.remove('border-gray-600/40', 'text-gray-400');
+          
+          // Update selected analysis depth
+          selectedAnalysisDepth = btn.getAttribute('data-analysis-depth');
+          console.log('Analysis depth selected:', selectedAnalysisDepth);
+        });
+      });
 
       function renderFiles() {
         if (!list) return;
@@ -342,7 +456,7 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
         window.dispatchEvent(new CustomEvent('vulnera:scan-report', { detail: report }));
       }
 
-      // START_SCAN handler
+      // START_SCAN handler - Using new /api/v1/dependencies/analyze endpoint
       btnScan?.addEventListener('click', async () => {
         if (!pickedFiles.length) { alert('Select files to scan.'); return; }
         
@@ -350,124 +464,241 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
           btnScan.disabled = true;
           btnScan.textContent = '> SCANNING...';
           
-          // Process each file individually and collect results
-          const fileAnalyses = [];
-          const allVulnerabilities = [];
+          // Get auth token from cookies
+          const token = getCookie('auth_token');
+          const apiKey = getCookie('api_key');
+          
+          const headers = {
+            'Content-Type': 'application/json',
+          };
+          
+          // Prefer API key, fallback to JWT token
+          if (apiKey) {
+            headers['X-API-Key'] = apiKey;
+            headers['Authorization'] = `ApiKey ${apiKey}`;
+          } else if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+          } else {
+            alert('⚠️ Authentication required\n\nPlease log in first or generate an API key in Settings.');
+            return;
+          }
+          
+          // Get all analysis modules (always all 4 modules)
+          const selectedModules = getSelectedModules();
+          
+          // Prepare batch request for all files
+          const filesPayload = [];
           
           for (const file of pickedFiles) {
             try {
               const content = await file.text();
               
-              // Detect ecosystem from filename (case-insensitive, flexible matching)
+              // Detect ecosystem from filename
               let ecosystem = 'npm'; // default
               const lowerName = file.name.toLowerCase();
               
-              // Check specific file patterns first
               if (lowerName.includes('pom.xml')) ecosystem = 'maven';
               else if (lowerName.includes('cargo.lock') || lowerName.includes('cargo.toml')) ecosystem = 'cargo';
               else if (lowerName.includes('go.mod')) ecosystem = 'go';
               else if (lowerName.includes('composer.json')) ecosystem = 'packagist';
               else if (lowerName.includes('gemfile')) ecosystem = 'ruby';
               else if (lowerName.includes('requirements') && lowerName.includes('.txt')) ecosystem = 'pypi';
-              else if (lowerName.endsWith('.json')) ecosystem = 'npm'; // Default JSON to npm
+              else if (lowerName.endsWith('.json')) ecosystem = 'npm';
               
-              // Get auth token from cookies
-              const token = getCookie('auth_token');
-              
-              const headers = {
-                'Content-Type': 'application/json',
-              };
-              if (token) {
-                headers['Authorization'] = `Bearer ${token}`;
-              } else {
-                alert('⚠️ Authentication required\n\nPlease log in first to scan files.');
-                return;
-              }
-              
-              const response = await fetch(`${API_BASE_URL}/api/v1/analyze`, {
-                method: 'POST',
-                headers: headers,
-                body: JSON.stringify({
-                  file_content: content,
-                  ecosystem: ecosystem,
-                  filename: file.name
-                })
+              filesPayload.push({
+                filename: file.name,
+                ecosystem: ecosystem,
+                file_content: content
               });
-              
-              
-              if (response.ok) {
-                const result = await response.json();
-                
-                // Build FileAnalysis for this file
-                const vulnerabilityCount = result.vulnerabilities?.length || 0;
-                fileAnalyses.push({
-                  file: file.name,
-                  ecosystem: ecosystem,
-                  dependencies: result.affected_packages?.length || 0,
-                  vulnerable: vulnerabilityCount
-                });
-                
-                // Add vulnerabilities
-                if (result.vulnerabilities) {
-                  allVulnerabilities.push(...result.vulnerabilities.map((v) => ({
-                    id: v.id,
-                    severity: v.severity.toUpperCase(),
-                    package: v.affected_packages?.[0]?.name || 'unknown',
-                    version: v.affected_packages?.[0]?.version || '',
-                    title: v.summary || v.description,
-                    cve: v.id,
-                    affectedFiles: [file.name],
-                    cvss: v.cvss_score
-                  })));
-                }
-              } else {
-                // Try to get error details from response body
-                let errorBody = null;
-                try {
-                  errorBody = await response.clone().json();
-                } catch {
-                  try {
-                    errorBody = await response.clone().text();
-                  } catch {
-                    errorBody = 'Could not read response body';
-                  }
-                }
-                
-                if (response.status === 401) {
-                  alert('⚠️ Authentication Error\n\nYour session has expired. Please log in again.');
-                  return;
-                }
-                if (response.status === 400) {
-                  console.error(`File format not supported: ${file.name}`);
-                }
-              }
             } catch (e) {
-              console.error(`Error analyzing ${file.name}:`, e);
-              if (e.message && e.message.includes('Failed to fetch')) {
-                alert('Cannot connect to backend server. Please check your connection or contact support.');
-              }
+              console.error(`Error reading file ${file.name}:`, e);
             }
           }
           
-          // Dispatch combined report
+          if (!filesPayload.length) {
+            alert('No valid files to analyze');
+            return;
+          }
+          
+          // Build query parameters
+          const queryParams = new URLSearchParams({
+            detail_level: selectedDetailLevel
+          });
+          
+          // Add selected modules
+          selectedModules.forEach(module => {
+            queryParams.append('modules', module);
+          });
+          
+          // Call new batch dependencies analyze endpoint with selected detail level and modules
+          const response = await fetch(`${API_BASE_URL}/api/v1/dependencies/analyze?${queryParams.toString()}`, {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify({ files: filesPayload })
+          });
+              
+          
+          if (!response.ok) {
+            let errorBody = null;
+            try {
+              errorBody = await response.json();
+            } catch {
+              try {
+                errorBody = await response.text();
+              } catch {
+                errorBody = 'Could not read response body';
+              }
+            }
+            
+            if (response.status === 401) {
+              alert('⚠️ Authentication Error\n\nYour session has expired. Please log in again.');
+              return;
+            }
+            if (response.status === 429) {
+              alert('⚠️ Rate Limit Exceeded\n\nToo many requests. Please try again later.');
+              return;
+            }
+            
+            throw new Error(`HTTP ${response.status}: ${JSON.stringify(errorBody)}`);
+          }
+          
+          const result = await response.json();
+          
+          // Transform new API response to report format
+          const fileAnalyses = [];
+          const allVulnerabilities = [];
+          const allFindings = {
+            dependencies: [],
+            sast: [],
+            secrets: [],
+            api: []
+          };
+          
+          if (result.results && Array.isArray(result.results)) {
+            result.results.forEach((fileResult) => {
+              if (fileResult.error) {
+                console.error(`Error analyzing ${fileResult.filename}:`, fileResult.error);
+                return;
+              }
+              
+              // Add file analysis
+              fileAnalyses.push({
+                file: fileResult.filename,
+                ecosystem: fileResult.ecosystem || 'unknown',
+                dependencies: fileResult.metadata?.total_packages || 0,
+                vulnerable: fileResult.metadata?.vulnerable_packages || 0
+              });
+              
+              // Process dependency vulnerabilities
+              if (fileResult.vulnerabilities && Array.isArray(fileResult.vulnerabilities)) {
+                fileResult.vulnerabilities.forEach((vuln) => {
+                  const vulnerability = {
+                    id: vuln.id,
+                    type: 'dependency',
+                    severity: vuln.severity?.toUpperCase() || 'UNKNOWN',
+                    package: vuln.affected_packages?.[0]?.name || 'unknown',
+                    version: vuln.affected_packages?.[0]?.version || '',
+                    title: vuln.summary || vuln.description || 'No description',
+                    cve: vuln.id,
+                    affectedFiles: [fileResult.filename],
+                    cvss: vuln.cvss_score,
+                    recommendation: vuln.affected_packages?.[0]?.fixed_versions?.[0] 
+                      ? `Upgrade to ${vuln.affected_packages[0].fixed_versions[0]}`
+                      : undefined
+                  };
+                  allVulnerabilities.push(vulnerability);
+                  allFindings.dependencies.push(vulnerability);
+                });
+              }
+              
+              // Process SAST findings
+              if (fileResult.sast_findings && Array.isArray(fileResult.sast_findings)) {
+                fileResult.sast_findings.forEach((finding) => {
+                  const sastFinding = {
+                    id: finding.id || `sast-${Date.now()}-${Math.random()}`,
+                    type: 'sast',
+                    severity: finding.severity?.toUpperCase() || 'MEDIUM',
+                    title: finding.title || finding.description || 'Code quality issue',
+                    description: finding.description,
+                    location: finding.location,
+                    line: finding.line_number,
+                    cwe: finding.cwe,
+                    affectedFiles: [fileResult.filename],
+                    recommendation: finding.recommendation
+                  };
+                  allVulnerabilities.push(sastFinding);
+                  allFindings.sast.push(sastFinding);
+                });
+              }
+              
+              // Process Secrets findings
+              if (fileResult.secrets && Array.isArray(fileResult.secrets)) {
+                fileResult.secrets.forEach((secret) => {
+                  const secretFinding = {
+                    id: secret.id || `secret-${Date.now()}-${Math.random()}`,
+                    type: 'secret',
+                    severity: 'HIGH',
+                    title: `${secret.type || 'Secret'} detected`,
+                    description: secret.description || 'Sensitive information found in code',
+                    location: secret.location,
+                    line: secret.line_number,
+                    secretType: secret.type,
+                    affectedFiles: [fileResult.filename],
+                    recommendation: 'Remove sensitive data and rotate credentials'
+                  };
+                  allVulnerabilities.push(secretFinding);
+                  allFindings.secrets.push(secretFinding);
+                });
+              }
+              
+              // Process API Security findings
+              if (fileResult.api_findings && Array.isArray(fileResult.api_findings)) {
+                fileResult.api_findings.forEach((finding) => {
+                  const apiFinding = {
+                    id: finding.id || `api-${Date.now()}-${Math.random()}`,
+                    type: 'api',
+                    severity: finding.severity?.toUpperCase() || 'MEDIUM',
+                    title: finding.title || 'API security issue',
+                    description: finding.description,
+                    endpoint: finding.endpoint,
+                    method: finding.method,
+                    affectedFiles: [fileResult.filename],
+                    recommendation: finding.recommendation
+                  };
+                  allVulnerabilities.push(apiFinding);
+                  allFindings.api.push(apiFinding);
+                });
+              }
+            });
+          }
+          
+          // Build consolidated report
           const report = {
             startedAt: new Date().toISOString(),
             finishedAt: new Date().toISOString(),
-            durationMs: 0,
+            durationMs: result.metadata?.duration_ms || 0,
             summary: {
-              files: pickedFiles.length,
+              files: fileAnalyses.length,
               dependencies: fileAnalyses.reduce((sum, f) => sum + (f.dependencies || 0), 0),
               vulnerabilities: allVulnerabilities.length,
               critical: allVulnerabilities.filter(v => v.severity === 'CRITICAL').length,
               high: allVulnerabilities.filter(v => v.severity === 'HIGH').length,
               medium: allVulnerabilities.filter(v => v.severity === 'MEDIUM').length,
               low: allVulnerabilities.filter(v => v.severity === 'LOW').length,
+              byType: {
+                dependencies: allFindings.dependencies.length,
+                sast: allFindings.sast.length,
+                secrets: allFindings.secrets.length,
+                api: allFindings.api.length
+              }
             },
             files: fileAnalyses,
             vulnerabilities: allVulnerabilities,
+            findings: allFindings,
+            modules: getSelectedModules()
           };
           
-          console.log('✅ Scan completed successfully');
+          console.log('✅ Scan completed successfully:', report);
           
           // Save scan result to localStorage for dashboard
           try {
@@ -503,7 +734,7 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
         }
       });
 
-      // IMPORT_REPO handler
+      // IMPORT_REPO handler - Using new /api/v1/analyze/job endpoint
       btnImport?.addEventListener('click', async () => {
         const url = repoUrl?.value?.trim?.() ?? '';
         if (!url || !/^https?:\/\/github.com\//i.test(url)) { 
@@ -511,34 +742,39 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
           return; 
         }
         
-        // Check for GitHub token
-        const githubToken = checkGithubToken();
-        if (!githubToken) {
-          alert('⚠️ GitHub Token Required\n\nPlease add your GitHub Personal Access Token in Settings to import repositories.');
-          return;
-        }
+        // Get GitHub token from input field or cookie
+        const githubTokenInput = document.getElementById('github-token-input');
+        const githubToken = githubTokenInput?.value?.trim() || getCookie('github_token');
         
         try {
           btnImport.disabled = true;
           btnImport.textContent = '> IMPORTING...';
           
-          // Get auth token from cookies
+          // Get auth token or API key from cookies
           const token = getCookie('auth_token');
+          const apiKey = getCookie('api_key');
           
           const headers = {
             'Content-Type': 'application/json',
-            'X-GitHub-Token': githubToken, // Send GitHub token to backend
           };
-          if (token) {
+          
+          // Add GitHub token if provided
+          if (githubToken) {
+            headers['X-GitHub-Token'] = githubToken;
+          }
+          
+          // Prefer API key, fallback to JWT token
+          if (apiKey) {
+            headers['X-API-Key'] = apiKey;
+            headers['Authorization'] = `ApiKey ${apiKey}`;
+          } else if (token) {
             headers['Authorization'] = `Bearer ${token}`;
           } else {
-            alert('⚠️ Authentication required\n\nPlease log in first to import repositories.');
+            alert('⚠️ Authentication required\n\nPlease log in first or generate an API key in Settings.');
             return;
           }
           
-          // Call the backend API to analyze the repository
           // Extract owner and repo from GitHub URL
-          // Expected format: https://github.com/owner/repo or https://github.com/owner/repo.git
           const urlObj = new URL(url);
           const pathParts = urlObj.pathname.split('/').filter(p => p);
           const owner = pathParts[0];
@@ -548,52 +784,166 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
             throw new Error('Invalid GitHub URL. Expected format: https://github.com/owner/repo');
           }
           
-          const requestBody = { 
-            owner: owner,
-            repo: repo,
-            branch: 'main'
-          };
-          const fullUrl = `${API_BASE_URL}/api/v1/analyze/repository`;
+          // Get all analysis modules (always all 4 modules)
+          const selectedModules = getSelectedModules();
           
-          // Use timeout for repository analysis
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 30000); // 1 minute timeout
+          // Use new analyze/job endpoint with selected analysis depth and modules
+          const requestBody = {
+            source_type: 'git',
+            source_uri: `https://github.com/${owner}/${repo}.git`,
+            analysis_depth: selectedAnalysisDepth,
+            modules: selectedModules,
+            metadata: {
+              provider: 'github',
+              owner: owner,
+              repo: repo,
+              branch: 'main'
+            }
+          };
+          
+          const fullUrl = `${API_BASE_URL}/api/v1/analyze/job`;
           
           const response = await fetch(fullUrl, {
             method: 'POST',
             headers: headers,
-            body: JSON.stringify(requestBody),
-            signal: controller.signal
+            body: JSON.stringify(requestBody)
           });
           
-          clearTimeout(timeoutId);
-          
-          if (response.ok) {
-            const result = await response.json();
+          if (!response.ok) {
+            let errorBody = '';
+            try {
+              const json = await response.json();
+              errorBody = JSON.stringify(json, null, 2);
+            } catch {
+              try {
+                errorBody = await response.text();
+              } catch {
+                errorBody = 'Could not read error response body';
+              }
+            }
             
-            // Transform backend response to report format and display
-            const report = {
-              startedAt: new Date().toISOString(),
-              finishedAt: result.timestamp || new Date().toISOString(),
-              durationMs: 0,
-              project: result.repositoryUrl || `${owner}/${repo}`,
-              summary: result.summary || {
-                files: result.packages?.length || 0,
-                dependencies: result.summary?.totalDependencies || 0,
-                vulnerabilities: result.summary?.totalVulnerabilities || 0,
-                critical: result.summary?.criticalCount || 0,
-                high: result.summary?.highCount || 0,
-                medium: result.summary?.mediumCount || 0,
-                low: result.summary?.lowCount || 0,
-              },
-              files: result.packages?.map((pkg) => ({
-                file: pkg.files?.join(', ') || 'unknown',
-                ecosystem: pkg.manager || 'unknown',
-                dependencies: pkg.totalDependencies || 0,
-                vulnerable: pkg.vulnerablePackages || 0,
-              })) || [],
-              vulnerabilities: [], // Backend doesn't return individual vulns in this endpoint
-            };
+            if (response.status === 401) {
+              throw new Error('Authentication failed: Your session has expired or the token is invalid. Please log in again.');
+            }
+            if (response.status === 429) {
+              throw new Error('Rate limit exceeded. Please try again later.');
+            }
+            
+            throw new Error(`HTTP ${response.status}: ${response.statusText}\n\n${errorBody}`);
+          }
+          
+          const result = await response.json();
+          
+          // Check job status
+          if (result.status === 'failed') {
+            throw new Error('Repository analysis failed. Please check the repository URL and try again.');
+          }
+          
+          // Transform job response to report format
+          const fileAnalyses = [];
+          const allVulnerabilities = [];
+          const allFindings = {
+            dependencies: [],
+            sast: [],
+            secrets: [],
+            api: []
+          };
+          
+          // Process findings by type
+          if (result.findings && Array.isArray(result.findings)) {
+            result.findings.forEach((finding) => {
+              const findingType = finding.type || 'unknown';
+              const affectedFiles = finding.location?.path ? [finding.location.path] : [];
+              
+              if (findingType === 'dependency') {
+                const depFinding = {
+                  id: finding.id || `dep-${Date.now()}-${Math.random()}`,
+                  type: 'dependency',
+                  severity: finding.severity?.toUpperCase() || 'UNKNOWN',
+                  package: finding.package_name || 'unknown',
+                  version: finding.package_version || '',
+                  title: finding.title || finding.description || 'Dependency vulnerability',
+                  cve: finding.cve_id || finding.id,
+                  affectedFiles: affectedFiles,
+                  cvss: finding.cvss_score,
+                  recommendation: finding.recommendation
+                };
+                allVulnerabilities.push(depFinding);
+                allFindings.dependencies.push(depFinding);
+              } else if (findingType === 'sast') {
+                const sastFinding = {
+                  id: finding.id || `sast-${Date.now()}-${Math.random()}`,
+                  type: 'sast',
+                  severity: finding.severity?.toUpperCase() || 'MEDIUM',
+                  title: finding.title || finding.description || 'Code quality issue',
+                  description: finding.description,
+                  location: finding.location,
+                  line: finding.location?.line_number,
+                  cwe: finding.cwe_id,
+                  affectedFiles: affectedFiles,
+                  recommendation: finding.recommendation
+                };
+                allVulnerabilities.push(sastFinding);
+                allFindings.sast.push(sastFinding);
+              } else if (findingType === 'secret') {
+                const secretFinding = {
+                  id: finding.id || `secret-${Date.now()}-${Math.random()}`,
+                  type: 'secret',
+                  severity: 'HIGH',
+                  title: `${finding.secret_type || 'Secret'} detected`,
+                  description: finding.description || 'Sensitive information found',
+                  location: finding.location,
+                  line: finding.location?.line_number,
+                  secretType: finding.secret_type,
+                  affectedFiles: affectedFiles,
+                  recommendation: 'Remove sensitive data and rotate credentials'
+                };
+                allVulnerabilities.push(secretFinding);
+                allFindings.secrets.push(secretFinding);
+              } else if (findingType === 'api') {
+                const apiFinding = {
+                  id: finding.id || `api-${Date.now()}-${Math.random()}`,
+                  type: 'api',
+                  severity: finding.severity?.toUpperCase() || 'MEDIUM',
+                  title: finding.title || 'API security issue',
+                  description: finding.description,
+                  endpoint: finding.endpoint,
+                  method: finding.http_method,
+                  affectedFiles: affectedFiles,
+                  recommendation: finding.recommendation
+                };
+                allVulnerabilities.push(apiFinding);
+                allFindings.api.push(apiFinding);
+              }
+            });
+          }
+          
+          // Build report
+          const report = {
+            startedAt: new Date().toISOString(),
+            finishedAt: new Date().toISOString(),
+            durationMs: 0,
+            project: `${owner}/${repo}`,
+            summary: {
+              files: result.summary?.modules_completed || 0,
+              dependencies: 0,
+              vulnerabilities: result.summary?.total_findings || allVulnerabilities.length,
+              critical: result.summary?.critical || 0,
+              high: result.summary?.high || 0,
+              medium: result.summary?.medium || 0,
+              low: result.summary?.low || 0,
+              byType: {
+                dependencies: allFindings.dependencies.length,
+                sast: allFindings.sast.length,
+                secrets: allFindings.secrets.length,
+                api: allFindings.api.length
+              }
+            },
+            files: fileAnalyses,
+            vulnerabilities: allVulnerabilities,
+            findings: allFindings,
+            modules: getSelectedModules()
+          };
             
             // Save scan result to localStorage for dashboard
             try {
@@ -627,29 +977,7 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
             renderFiles();
             
             alert(`Repository analyzed successfully!\n\nTotal vulnerabilities: ${report.summary.vulnerabilities || 0}`);
-          } else {
-            // Handle specific HTTP errors
-            if (response.status === 401) {
-              throw new Error('Authentication failed: Your session has expired or the token is invalid. Please log in again.');
-            }
-            
-            if (response.status === 408) {
-              throw new Error('Request timeout: The repository analysis is taking too long. The backend may be busy or the repository may be very large. Please try again later.');
-            }
-            
-            let errorBody = '';
-            try {
-              const json = await response.json();
-              errorBody = JSON.stringify(json, null, 2);
-            } catch {
-              try {
-                errorBody = await response.text();
-              } catch {
-                errorBody = 'Could not read error response body';
-              }
-            }
-            throw new Error(`HTTP ${response.status}: ${response.statusText}\n\n${errorBody}`);
-          }
+
         } catch (e) {
           let errorMsg = 'Unknown error';
           

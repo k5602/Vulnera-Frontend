@@ -19,6 +19,7 @@ export interface StoredToken {
 class TokenManager {
   private readonly TOKEN_KEY = 'auth_token';
   private readonly USER_KEY = 'auth_user';
+  private readonly API_KEY = 'api_key';
 
   /**
    * Store token securely in cookies
@@ -104,6 +105,7 @@ class TokenManager {
     try {
       removeCookie(this.TOKEN_KEY);
       removeCookie(this.USER_KEY);
+      removeCookie(this.API_KEY);
     } catch (_e) {
       if (import.meta.env.DEV) {
         console.error('Failed to clear tokens');
@@ -121,6 +123,52 @@ class TokenManager {
       return Date.now() > user.expiresAt;
     } catch (_e) {
       return false;
+    }
+  }
+
+  /**
+   * Store API key for service-to-service authentication
+   */
+  setApiKey(apiKey: string | undefined, options: { days?: number } = {}): void {
+    if (!apiKey) {
+      return;
+    }
+
+    try {
+      setCookie(this.API_KEY, apiKey, {
+        days: options.days ?? 30,
+        path: '/',
+        secure: true,
+        sameSite: 'Lax'
+      });
+    } catch (_e) {
+      if (import.meta.env.DEV) {
+        console.error('Failed to store API key');
+      }
+    }
+  }
+
+  /**
+   * Retrieve stored API key
+   */
+  getApiKey(): string | null {
+    try {
+      return getCookie(this.API_KEY);
+    } catch (_e) {
+      return null;
+    }
+  }
+
+  /**
+   * Remove API key only
+   */
+  clearApiKey(): void {
+    try {
+      removeCookie(this.API_KEY);
+    } catch (_e) {
+      if (import.meta.env.DEV) {
+        console.error('Failed to clear API key');
+      }
     }
   }
 }

@@ -1,25 +1,26 @@
-import { defineMiddleware } from 'astro:middleware';
+// import { defineMiddleware } from 'astro:middleware';
 
-export const onRequest = defineMiddleware((context, next) => {
-  const publicPages = [
-    '/',
-    '/login',
-    '/signup',
-    '/about',
-    '/docs'
-  ];
+// export const onRequest = defineMiddleware((context, next) => {
+//   const publicPages = [
+//     '/',
+//     '/login',
+//     '/signup',
+//     '/about',
+//     '/docs',
+//     '/scan'
+//   ];
 
-  const pathname = context.url.pathname;
+//   const pathname = context.url.pathname;
   
-  const isPublicPage = publicPages.includes(pathname);
+//   const isPublicPage = publicPages.includes(pathname);
   
-  if (!isPublicPage) {
-    const token = context.cookies.get('auth_token');
+//   if (!isPublicPage) {
+//     const token = context.cookies.get('auth_token');
     
-    if (!token) {
-      return context.redirect(`/login?next=${encodeURIComponent(pathname)}`);
-    }
-  }
+//     if (!token) {
+//       return context.redirect(`/login?next=${encodeURIComponent(pathname)}`);
+//     }
+//   }
   
-  return next();
-});
+//   return next();
+// });
