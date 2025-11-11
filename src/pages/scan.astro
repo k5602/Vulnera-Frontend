@@ -130,10 +130,10 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
                 <span>🔬</span> FULL
               </button>
             </div>
-            <p class="mt-2 text-[10px] text-gray-500">
-              <span class="text-cyan-400">Minimal:</span> Basic info • 
-              <span class="text-cyan-400">Standard:</span> Vulnerabilities + metadata • 
-              <span class="text-cyan-400">Full:</span> Everything + dependency graph
+            <p class="mt-2 text-[10px] text-gray-500 leading-relaxed">
+              <span class="text-cyan-400 font-bold">⚡ Minimal:</span> Critical/High vulns only<br/>
+              <span class="text-cyan-400 font-bold">📊 Standard:</span> All vulns + CVE/CVSS + recommendations + files analysis<br/>
+              <span class="text-cyan-400 font-bold">🔬 Full:</span> Complete details + affected files + extended recommendations
             </p>
           </div>
           
@@ -197,10 +197,10 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
           
           <!-- Analysis Depth Selection -->
           <div class="border border-cyber-400/30 rounded-lg p-2 bg-black/30 mt-2">
-            <label class="block text-[10px] text-matrix-300 font-mono mb-1.5">ANALYSIS_DEPTH</label>
+            <label class="block text-[10px] text-matrix-300 font-mono mb-1.5">DETAIL_LEVEL</label>
             <div class="flex gap-2">
-              <button data-analysis-depth="quick" class="analysis-depth-btn flex-1 inline-flex items-center justify-center gap-1 border border-gray-600/40 text-gray-400 px-2 py-1 rounded font-mono text-[10px] hover:bg-gray-600/10 transition-all">
-                QUICK
+              <button data-analysis-depth="minimal" class="analysis-depth-btn flex-1 inline-flex items-center justify-center gap-1 border border-gray-600/40 text-gray-400 px-2 py-1 rounded font-mono text-[10px] hover:bg-gray-600/10 transition-all">
+                MINIMAL
               </button>
               <button data-analysis-depth="standard" class="analysis-depth-btn active flex-1 inline-flex items-center justify-center gap-1 border border-cyber-400/60 bg-cyber-400/10 text-cyber-300 px-2 py-1 rounded font-mono text-[10px] transition-all">
                 STANDARD
@@ -364,8 +364,9 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
           btn.classList.add('active', 'border-cyber-400/60', 'bg-cyber-400/10', 'text-cyber-300');
           btn.classList.remove('border-gray-600/40', 'text-gray-400');
           
-          // Update selected analysis depth
-          selectedAnalysisDepth = btn.getAttribute('data-analysis-depth');
+          // Update selected analysis depth, ensuring it's a number
+          const depthValue = btn.getAttribute('data-analysis-depth');
+          selectedAnalysisDepth = depthValue ? parseInt(depthValue, 10) : 2;
           console.log('Analysis depth selected:', selectedAnalysisDepth);
         });
       });
@@ -540,18 +541,28 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
           
           if (!response.ok) {
             let errorBody = null;
+            let isJson = false;
+            
             try {
-              errorBody = await response.json();
-            } catch {
-              try {
-                errorBody = await response.text();
-              } catch {
-                errorBody = 'Could not read response body';
+              const contentType = response.headers.get('content-type');
+              if (contentType && contentType.includes('application/json')) {
+                errorBody = await response.json();
+                isJson = true;
+              } else {
+                const text = await response.text();
+                errorBody = text.length > 500 ? text.substring(0, 500) + '...' : text;
               }
+            } catch (parseError) {
+              errorBody = 'Could not parse response';
+              console.error('Error parsing response:', parseError);
             }
             
             if (response.status === 401) {
               alert('⚠️ Authentication Error\n\nYour session has expired. Please log in again.');
+              return;
+            }
+            if (response.status === 404) {
+              alert('⚠️ Endpoint Not Found\n\nThe backend API endpoint does not exist. Please check backend implementation.');
               return;
             }
             if (response.status === 429) {
@@ -559,10 +570,23 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
               return;
             }
             
-            throw new Error(`HTTP ${response.status}: ${JSON.stringify(errorBody)}`);
+            throw new Error(`HTTP ${response.status}: ${isJson ? JSON.stringify(errorBody) : errorBody}`);
           }
           
-          const result = await response.json();
+          let result;
+          try {
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+              const text = await response.text();
+              throw new Error(`Expected JSON response but got: ${contentType || 'unknown'}\n\nResponse: ${text.substring(0, 200)}`);
+            }
+            result = await response.json();
+          } catch (parseError) {
+            if (parseError.message.includes('Expected JSON')) {
+              throw parseError;
+            }
+            throw new Error('Failed to parse JSON response: ' + parseError.message);
+          }
           
           // Transform new API response to report format
           const fileAnalyses = [];
@@ -672,11 +696,12 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
             });
           }
           
-          // Build consolidated report
+          // Build consolidated report with detail level
           const report = {
             startedAt: new Date().toISOString(),
             finishedAt: new Date().toISOString(),
             durationMs: result.metadata?.duration_ms || 0,
+            detailLevel: selectedDetailLevel, // Add detail level to report
             summary: {
               files: fileAnalyses.length,
               dependencies: fileAnalyses.reduce((sum, f) => sum + (f.dependencies || 0), 0),
@@ -773,7 +798,6 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
             alert('⚠️ Authentication required\n\nPlease log in first or generate an API key in Settings.');
             return;
           }
-          
           // Extract owner and repo from GitHub URL
           const urlObj = new URL(url);
           const pathParts = urlObj.pathname.split('/').filter(p => p);
@@ -787,11 +811,19 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
           // Get all analysis modules (always all 4 modules)
           const selectedModules = getSelectedModules();
           
-          // Use new analyze/job endpoint with selected analysis depth and modules
-          const requestBody = {
+          console.log('🔍 Repository import params:', {
             source_type: 'git',
             source_uri: `https://github.com/${owner}/${repo}.git`,
             analysis_depth: selectedAnalysisDepth,
+            modules: selectedModules
+          });
+          
+          // Use new analyze/job endpoint. Backend requires an analysis depth field but docs are inconsistent.
+          // We'll try combinations of field names and values until one is accepted.
+          const fullUrl = `${API_BASE_URL}/api/v1/analyze/job`;
+          const baseBody = {
+            source_type: 'git',
+            source_uri: `https://github.com/${owner}/${repo}.git`,
             modules: selectedModules,
             metadata: {
               provider: 'github',
@@ -800,39 +832,140 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
               branch: 'main'
             }
           };
-          
-          const fullUrl = `${API_BASE_URL}/api/v1/analyze/job`;
-          
-          const response = await fetch(fullUrl, {
-            method: 'POST',
-            headers: headers,
-            body: JSON.stringify(requestBody)
-          });
-          
-          if (!response.ok) {
-            let errorBody = '';
-            try {
-              const json = await response.json();
-              errorBody = JSON.stringify(json, null, 2);
-            } catch {
+
+          // Prefer any previously successful combo from localStorage
+          let savedCombo = null;
+          try {
+            const raw = localStorage.getItem('repo_analysis_depth_combo');
+            if (raw) savedCombo = JSON.parse(raw);
+          } catch {}
+
+          const fieldCandidates = savedCombo?.field
+            ? [savedCombo.field, 'analysis_depth', 'detail_level', 'analysisDepth', 'detailLevel', 'depth']
+            : ['analysis_depth', 'detail_level', 'analysisDepth', 'detailLevel', 'depth'];
+
+          const valueCandidates = Array.from(new Set([
+            ...(savedCombo?.value ? [savedCombo.value] : []),
+            // Prioritize known working values
+            'full', 'FULL',
+            // Then try other common values
+            selectedAnalysisDepth,
+            'standard', 'minimal', 'full', 'STANDARD', 'MINIMAL', 'FULL',
+            'basic', 'default', 'quick', 'BASIC', 'DEFAULT', 'QUICK'
+          ]));
+
+          let response;
+          let lastErrorText = '';
+          let triedCombos = [];
+          let successBody = null;
+          let acceptedField = null;
+          let acceptedValue = null;
+
+          outer: for (const field of fieldCandidates) {
+            for (const depth of valueCandidates) {
+              triedCombos.push(`${field}=${depth}`);
+              const requestBody = { ...baseBody, [field]: depth };
+              console.log('📤 Trying', { field, depth, requestBody, headers });
+
+              response = await fetch(fullUrl, {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify(requestBody)
+              });
+
+              console.log('📥 Response status:', response.status, response.statusText);
+              console.log('📥 Response headers:', Object.fromEntries(response.headers.entries()));
+              
+              // If HTTP OK, try to parse and proceed
+              if (response.ok) {
+                const ct = (response.headers.get('content-type') || '').toLowerCase();
+                console.log('📥 Response content-type:', ct);
+                if (ct.includes('application/json')) {
+                  successBody = await response.json();
+                  console.log('📥 Response body (JSON):', successBody);
+                  acceptedField = field;
+                  acceptedValue = depth;
+                  break outer;
+                }
+                const text = await response.text();
+                console.log('📥 Response body (text):', text);
+                try {
+                  successBody = JSON.parse(text);
+                  console.log('📥 Parsed JSON from text:', successBody);
+                  acceptedField = field;
+                  acceptedValue = depth;
+                  break outer;
+                } catch {
+                  // Non-JSON success is unexpected; continue trying other combos
+                  lastErrorText = `Success with non-JSON content-type: ${ct}. Body: ${text.substring(0, 200)}`;
+                  console.warn('⚠️ Non-JSON success response:', lastErrorText);
+                  continue;
+                }
+              }              // Capture error details to decide whether to retry
               try {
-                errorBody = await response.text();
-              } catch {
-                errorBody = 'Could not read error response body';
+                const contentType = (response.headers.get('content-type') || '').toLowerCase();
+                console.log('📥 Error response content-type:', contentType);
+                if (contentType.includes('application/json')) {
+                  const json = await response.json();
+                  console.log('📥 Error response body (JSON):', json);
+                  lastErrorText = JSON.stringify(json);
+                } else {
+                  lastErrorText = await response.text();
+                  console.log('📥 Error response body (text):', lastErrorText);
+                }
+              } catch (parseError) {
+                console.error('📥 Failed to parse error response:', parseError);
+                lastErrorText = 'Could not parse error response';
               }
+
+              // Retry only when it's clearly a depth validation error
+              if (response.status === 422 && /(analysis_depth|detail_level|depth)/i.test(lastErrorText)) {
+                console.warn(`⚠️ Backend rejected ${field}='${depth}'. Trying next candidate...`);
+                continue; // try next value or field
+              }
+
+              // For other errors, stop early
+              if (response.status === 401) {
+                throw new Error('Authentication failed: Your session has expired or the token is invalid. Please log in again.');
+              }
+              if (response.status === 404) {
+                throw new Error('Endpoint not found: The backend API endpoint /api/v1/analyze/job does not exist. Please check backend implementation.');
+              }
+              if (response.status === 429) {
+                throw new Error('Rate limit exceeded. Please try again later.');
+              }
+
+              // Unknown error - surface and stop
+              throw new Error(`HTTP ${response.status}: ${response.statusText}${lastErrorText ? '\n\nResponse: ' + lastErrorText : ''}`);
             }
-            
-            if (response.status === 401) {
-              throw new Error('Authentication failed: Your session has expired or the token is invalid. Please log in again.');
-            }
-            if (response.status === 429) {
-              throw new Error('Rate limit exceeded. Please try again later.');
-            }
-            
-            throw new Error(`HTTP ${response.status}: ${response.statusText}\n\n${errorBody}`);
           }
+
+          if (!response || !response.ok || !successBody) {
+            throw new Error(
+              'Backend rejected all depth field/value combinations.\n\n' +
+              `Tried: ${triedCombos.join(' | ')}\n` +
+              (lastErrorText ? `Last response: ${lastErrorText}` : '')
+            );
+          }
+
+          // Persist working combo for future runs
+          try {
+            if (acceptedField && acceptedValue) {
+              localStorage.setItem('repo_analysis_depth_combo', JSON.stringify({ field: acceptedField, value: acceptedValue }));
+              console.info(`✅ Using ${acceptedField}='${acceptedValue}' (persisted for next imports)`);
+            }
+          } catch {}
           
-          const result = await response.json();
+          // We already obtained and validated a successful body in the loop above
+          const result = successBody;
+          console.log('✅ Final result from backend:', result);
+          console.log('📊 Analysis summary:', {
+            status: result.status,
+            totalFindings: result.summary?.total_findings || 0,
+            modulesCompleted: result.summary?.modules_completed || 0,
+            modulesFailed: result.summary?.modules_failed || 0,
+            findingsCount: result.findings?.length || 0
+          });
           
           // Check job status
           if (result.status === 'failed') {
@@ -918,12 +1051,13 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
             });
           }
           
-          // Build report
+          // Build report with analysis depth
           const report = {
             startedAt: new Date().toISOString(),
             finishedAt: new Date().toISOString(),
             durationMs: 0,
             project: `${owner}/${repo}`,
+            detailLevel: selectedAnalysisDepth, // Add analysis depth as detail level
             summary: {
               files: result.summary?.modules_completed || 0,
               dependencies: 0,
@@ -979,6 +1113,7 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
             alert(`Repository analyzed successfully!\n\nTotal vulnerabilities: ${report.summary.vulnerabilities || 0}`);
 
         } catch (e) {
+          console.error('Repository import error:', e);
           let errorMsg = 'Unknown error';
           
           // Handle fetch abort/timeout
@@ -991,17 +1126,31 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
           } else {
             errorMsg = JSON.stringify(e);
           }
+          
           // Add fallback message if error is empty
           if (!errorMsg || errorMsg.trim() === '') {
             errorMsg = 'Backend endpoint may not be implemented or server is unreachable';
           }
           
-          // Handle authentication errors specifically
-          if (errorMsg.includes('Authentication failed') || errorMsg.includes('expired')) {
-            alert('⚠️ Authentication Error\n\n' + errorMsg + '\n\nPlease log in again to continue.');
-          } else {
-            alert('❌ Failed to import repository\n\n' + errorMsg + '\n\nPlease ensure:\n1. Repository URL is correct\n2. Repository is public\n3. Backend server is running');
+          // Enhanced error messages based on error type
+          let alertTitle = '❌ Failed to import repository';
+          let suggestions = 'Please check:\n• Repository URL is correct\n• Repository is public or you have access\n• Backend server is running and accessible';
+          
+          if (errorMsg.includes('Authentication failed') || errorMsg.includes('expired') || errorMsg.includes('401')) {
+            alertTitle = '⚠️ Authentication Error';
+            suggestions = 'Please log in again to continue.';
+          } else if (errorMsg.includes('404') || errorMsg.includes('not found') || errorMsg.includes('Endpoint not found')) {
+            alertTitle = '⚠️ Backend API Not Available';
+            suggestions = 'The backend endpoint does not exist.\n\nThis feature requires:\n• Backend API v1 with /api/v1/analyze/job endpoint\n• Proper backend deployment and configuration';
+          } else if (errorMsg.includes('JSON') || errorMsg.includes('parse')) {
+            alertTitle = '⚠️ Invalid Backend Response';
+            suggestions = 'The backend returned an unexpected response format.\n\nPossible causes:\n• Backend is not running\n• Backend returned HTML error page\n• API endpoint returns wrong content type';
+          } else if (errorMsg.includes('NetworkError') || errorMsg.includes('Failed to fetch')) {
+            alertTitle = '⚠️ Network Error';
+            suggestions = 'Cannot connect to backend server.\n\nPlease check:\n• Backend server is running\n• CORS is properly configured\n• URL is correct: ' + API_BASE_URL;
           }
+          
+          alert(`${alertTitle}\n\n${errorMsg}\n\n${suggestions}`);
         } finally {
           btnImport.disabled = false;
           btnImport.textContent = '> IMPORT_REPO';
@@ -1037,6 +1186,7 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
           startedAt: new Date(now.getTime() - 2500).toISOString(),
           finishedAt: now.toISOString(),
           durationMs: 2500,
+          detailLevel: selectedDetailLevel, // Add current detail level
           summary: { files: 3, dependencies: 120, vulnerabilities: 6, critical: 2, high: 2, medium: 2, low: 0 },
           files: [
             { file: 'Cargo.lock', ecosystem: 'cargo', dependencies: 45, vulnerable: 2 },
