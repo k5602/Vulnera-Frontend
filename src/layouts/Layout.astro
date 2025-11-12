@@ -73,16 +73,14 @@ const {
     </div>
     
     <div id="vt-content" class="vt-content" style="opacity:0" aria-hidden="true">
-        <slot name="oidc-provider" />
         <slot />
     </div>
     
     <Sidebar />
 
     <script>
-        // @ts-nocheck
         // Progressive-enhanced matrix navigation transitions with typewriter log
-        (function () {
+        (function (): void {
             // Mark JS-enabled for CSS gates
             const docEl = document.documentElement;
             docEl.classList.remove('no-js');
@@ -120,15 +118,7 @@ const {
                 }
             }, 4000);
 
-            function clearLog() { if (logEl) logEl.innerHTML = ''; }
-
-            function appendLine(text) {
-                if (!(logEl instanceof HTMLDivElement)) return;
-                const line = document.createElement('div');
-                line.className = 'vt-line';
-                line.textContent = text;
-                logEl.appendChild(line);
-            }
+            function clearLog(): void { if (logEl) logEl.innerHTML = ''; }
 
             /**
              * Type text with small per-char delay, resolve when done.
@@ -136,7 +126,7 @@ const {
              * @param {string} text
              * @param {number} speed
              */
-            function typeText(el, text, speed) {
+            function typeText(el: HTMLElement, text: string, speed: number): Promise<void> {
                 return new Promise((resolve) => {
                     let i = 0;
                     const step = () => {
@@ -152,11 +142,11 @@ const {
                 });
             }
 
-            async function playEnter() {
+            async function playEnter(): Promise<void> {
                 if (prefersReduced) return;
                 overlay.classList.remove('is-leaving');
                 overlay.classList.add('is-active');
-                console.debug('[VT] enter: overlay active, content hidden');
+                // View transition: overlay active, content hidden
                 clearLog();
                 // Brief boot-like header update
                 if (cmdEl instanceof HTMLSpanElement) {
@@ -195,15 +185,12 @@ const {
              * Show a terminal log before navigating (~1.6-1.9s typical)
              * @param {string} url
              */
-            async function playLeaveAndNavigate(url) {
-                    console.debug('[VT] enter: content visible');
+            async function playLeaveAndNavigate(url: string): Promise<void> {
                 if (prefersReduced) { window.location.href = url; return; }
 
                 // Fast leave: show overlay quickly, then navigate. The long typing happens on destination.
-                console.debug('[VT] enter: overlay hidden');
                 overlay.classList.remove('is-leaving');
                 overlay.classList.add('is-active');
-                console.debug('[VT] leave: overlay active');
                 clearLog();
                 if (cmdEl instanceof HTMLSpanElement) {
                     const target = new URL(url, window.location.href);
@@ -243,6 +230,12 @@ const {
                 void playLeaveAndNavigate(a.href);
             });
         })();
+    </script>
+    <script>
+        import { tokenRefreshManager } from '../utils/api/token-refresh';
+        if (typeof window !== 'undefined') {
+            tokenRefreshManager.startAutoRefresh();
+        }
     </script>
 </body>
 </html>

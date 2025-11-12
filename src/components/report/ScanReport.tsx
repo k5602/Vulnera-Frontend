@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { usePagination } from '../../hooks/usePagination';
 
 export type Vulnerability = {
   id: string;
@@ -56,7 +57,7 @@ export default function ScanReport({ data }: { data: ScanReportData }) {
   const detailLevel = data.detailLevel || 'standard';
 
   // Filter vulnerabilities based on detail level
-  const displayedVulnerabilities = useMemo(() => {
+  const filteredVulnerabilities = useMemo(() => {
     if (detailLevel === 'minimal') {
       // Show only CRITICAL and HIGH for minimal
       return data.vulnerabilities.filter(v => v.severity === 'CRITICAL' || v.severity === 'HIGH');
@@ -64,6 +65,21 @@ export default function ScanReport({ data }: { data: ScanReportData }) {
     // Show all for standard and full
     return data.vulnerabilities;
   }, [data.vulnerabilities, detailLevel]);
+
+  // Paginate vulnerabilities
+  const {
+    currentItems: displayedVulnerabilities,
+    currentPage,
+    totalPages,
+    hasNextPage,
+    hasPreviousPage,
+    nextPage,
+    previousPage,
+    goToPage,
+  } = usePagination({
+    items: filteredVulnerabilities,
+    itemsPerPage: 20,
+  });
 
   function downloadBlob(filename: string, content: string, mime: string) {
     const blob = new Blob([content], { type: mime });
@@ -215,11 +231,18 @@ export default function ScanReport({ data }: { data: ScanReportData }) {
       <div className="mt-6 terminal-border bg-black/80 rounded-xl p-4 sm:p-6">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-cyber-400 font-mono text-base">VULNERABILITIES</h3>
-          {detailLevel === 'minimal' && data.vulnerabilities.length > displayedVulnerabilities.length && (
-            <span className="text-xs text-gray-400 font-mono">
-              Showing {displayedVulnerabilities.length} of {data.vulnerabilities.length} (Critical/High only)
-            </span>
-          )}
+          <div className="flex items-center gap-3">
+            {detailLevel === 'minimal' && data.vulnerabilities.length > filteredVulnerabilities.length && (
+              <span className="text-xs text-gray-400 font-mono">
+                {filteredVulnerabilities.length} of {data.vulnerabilities.length} (Critical/High only)
+              </span>
+            )}
+            {totalPages > 1 && (
+              <span className="text-xs text-gray-400 font-mono">
+                Page {currentPage} of {totalPages}
+              </span>
+            )}
+          </div>
         </div>
         {displayedVulnerabilities.length === 0 && (
           <div className="text-matrix-300 text-sm">
@@ -267,6 +290,39 @@ export default function ScanReport({ data }: { data: ScanReportData }) {
             </li>
           ))}
         </ul>
+        {totalPages > 1 && (
+          <div className="mt-4 flex items-center justify-between">
+            <button
+              onClick={previousPage}
+              disabled={!hasPreviousPage}
+              className="px-3 py-1 text-xs font-mono rounded-md border border-cyber-400/40 text-cyber-300 hover:bg-cyber-500/10 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              ← Previous
+            </button>
+            <div className="flex gap-2">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => goToPage(page)}
+                  className={`px-2 py-1 text-xs font-mono rounded-md border ${
+                    currentPage === page
+                      ? 'border-cyber-400 bg-cyber-500/20 text-cyber-300'
+                      : 'border-cyber-400/40 text-cyber-300 hover:bg-cyber-500/10'
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={nextPage}
+              disabled={!hasNextPage}
+              className="px-3 py-1 text-xs font-mono rounded-md border border-cyber-400/40 text-cyber-300 hover:bg-cyber-500/10 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next →
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Recommendations summary - Show for standard and full levels */}

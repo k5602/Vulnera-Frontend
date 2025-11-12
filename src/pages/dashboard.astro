@@ -5,26 +5,9 @@ import Footer from "../components/Footer.astro";
 ---
 
 <Layout title="Dashboard — Vulnera" description="Overview of reports, projects, and recent activity.">
-  <!-- Auth Guard -->
-  <script is:inline>
-    (function() {
-      function getCookie(name) {
-        const nameEQ = encodeURIComponent(name) + '=';
-        const cookies = document.cookie.split(';');
-        for (let cookie of cookies) {
-          cookie = cookie.trim();
-          if (cookie.startsWith(nameEQ)) {
-            return decodeURIComponent(cookie.substring(nameEQ.length));
-          }
-        }
-        return null;
-      }
-      
-      const token = getCookie('auth_token');
-      if (!token) {
-        window.location.href = '/login?next=/dashboard';
-      }
-    })();
+  <script>
+    import { setupAuthGuard } from '../utils/auth-guard';
+    setupAuthGuard({ requireAuth: true });
   </script>
 
   <Navigation />
@@ -162,6 +145,7 @@ import Footer from "../components/Footer.astro";
   <Footer />
 
   <script type="module">
+    import { logger } from '../utils/logger';
     // Public dashboard: no auth guard
 
     function renderOverview(o) {
@@ -286,7 +270,7 @@ import Footer from "../components/Footer.astro";
       try {
         scanHistory = JSON.parse(localStorage.getItem('scan_history') || '[]');
       } catch (e) {
-        console.error('Failed to load scan history:', e);
+        logger.error('Failed to load scan history', e);
       }
 
       // Calculate overview stats

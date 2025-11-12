@@ -1,91 +1,54 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en" data-theme="light">
-    <head>
-        <meta charset="UTF-8" />
-        <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Vulnera</title>
-        <!-- Resource Hints -->
-        <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
-        <link rel="dns-prefetch" href="//cdnjs.cloudflare.com" />
-        <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
-        <link rel="dns-prefetch" href="//cdn.jsdelivr.net" />
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vulnera</title>
+    <!-- Resource Hints -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
+    <link rel="dns-prefetch" href="//cdnjs.cloudflare.com" />
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+    <link rel="dns-prefetch" href="//cdn.jsdelivr.net" />
 
-        <!-- Preload LCP image (hero logo) -->
-        <link
-            rel="preload"
-            as="image"
-            href="/images/logo.png"
-            imagesizes="(min-width: 640px) 280px, 160px"
-            fetchpriority="high"
-        />
+    <!-- Preload LCP image (hero logo) -->
+    <link
+      rel="preload"
+      as="image"
+      href="/images/logo.png"
+      imagesizes="(min-width: 640px) 280px, 160px"
+      fetchpriority="high"
+    />
 
-        <!-- Load third-party CSS without render-blocking -->
-        <link
-            rel="preload"
-            as="style"
-            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
-            onload="this.onload=null;this.rel='stylesheet'"
-        />
-        <noscript>
-            <link
-                rel="stylesheet"
-                href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
-            />
-        </noscript>
-        <link
-            rel="preload"
-            as="style"
-            href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css"
-            onload="this.onload=null;this.rel='stylesheet'"
-        />
-        <noscript>
-            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css" />
-        </noscript>
-    </head>
-    <body>
-        <div id="app"></div>
+    <!-- Load third-party CSS without render-blocking -->
+    <link
+      rel="preload"
+      as="style"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      onload="this.onload=null;this.rel='stylesheet'"
+    />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      />
+    </noscript>
+    <link
+      rel="preload"
+      as="style"
+      href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css"
+      onload="this.onload=null;this.rel='stylesheet'"
+    />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css"
+      />
+    </noscript>
+  </head>
+  <body>
+    <div id="app"></div>
 
-        <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
-
-        <!-- Runtime config: load BEFORE the app bundle to override env without rebuild -->
-        <script src="/runtime-config.js"></script>
-        <script>
-          // Preferred: use the provided runtime helper to set config at deploy time.
-          // This will be read by src/config.js (the improved version) before the app starts.
-          (function(){
-            try {
-              const cfg = {
-                apiBaseUrl: "https://back.ashycliff-f83ff693.italynorth.azurecontainerapps.io",
-                apiVersion: "v1",
-                appName: "Vulnera",
-                appVersion: "1.0.0",
-                enableDebug: false,
-                apiTimeout: 30000,
-                environment: "production"
-              };
-
-              if (window.VulneraRuntimeConfig && typeof window.VulneraRuntimeConfig.setConfig === 'function') {
-                window.VulneraRuntimeConfig.setConfig(cfg);
-              } else {
-                // If runtime-config helper is not present, expose a minimal object so src/config.js can read it.
-                window.VulneraRuntimeConfig = window.VulneraRuntimeConfig || {};
-                window.VulneraRuntimeConfig.config = Object.assign(window.VulneraRuntimeConfig.config || {}, cfg);
-                // provide a simple getConfig for compatibility
-                if (typeof window.VulneraRuntimeConfig.getConfig !== 'function') {
-                  window.VulneraRuntimeConfig.getConfig = function(){ return window.VulneraRuntimeConfig.config; };
-                }
-              }
-
-              // helpful debug log (only visible if enableDebug true)
-              if (cfg.enableDebug) console.info('[runtime-config] applied', cfg);
-            } catch (e) {
-              console.warn('[runtime-config] failed to apply runtime config', e);
-            }
-          })();
-        </script>
-
-  <!-- App bundle (Astro handles client-side scripts) -->
-  <!-- Removed /src/main.js: the project uses Astro pages/islands now -->
-    </body>
+    <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+  </body>
 </html>

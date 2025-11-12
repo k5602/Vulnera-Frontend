@@ -10,6 +10,7 @@
  */
 
 import { setCookie, getCookie, removeCookie } from '../cookies';
+import { logger } from '../logger';
 
 export interface StoredToken {
   token: string;
@@ -39,10 +40,8 @@ class TokenManager {
         secure: true,
         sameSite: 'Lax'
       });
-    } catch (_e) {
-      if (import.meta.env.DEV) {
-        console.error('Failed to store token');
-      }
+    } catch (e) {
+      logger.error('Failed to store token', e);
     }
   }
 
@@ -68,10 +67,8 @@ class TokenManager {
         secure: true,
         sameSite: 'Lax'
       });
-    } catch (_e) {
-      if (import.meta.env.DEV) {
-        console.error('Failed to store user data');
-      }
+    } catch (e) {
+      logger.error('Failed to store user data', e);
     }
   }
 
@@ -106,10 +103,8 @@ class TokenManager {
       removeCookie(this.TOKEN_KEY);
       removeCookie(this.USER_KEY);
       removeCookie(this.API_KEY);
-    } catch (_e) {
-      if (import.meta.env.DEV) {
-        console.error('Failed to clear tokens');
-      }
+    } catch (e) {
+      logger.error('Failed to clear tokens', e);
     }
   }
 
@@ -141,10 +136,8 @@ class TokenManager {
         secure: true,
         sameSite: 'Lax'
       });
-    } catch (_e) {
-      if (import.meta.env.DEV) {
-        console.error('Failed to store API key');
-      }
+    } catch (e) {
+      logger.error('Failed to store API key', e);
     }
   }
 
@@ -165,10 +158,8 @@ class TokenManager {
   clearApiKey(): void {
     try {
       removeCookie(this.API_KEY);
-    } catch (_e) {
-      if (import.meta.env.DEV) {
-        console.error('Failed to clear API key');
-      }
+    } catch (e) {
+      logger.error('Failed to clear API key', e);
     }
   }
 }

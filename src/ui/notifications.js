@@ -1,5 +1,5 @@
 // Accessible Notyf wrapper
-import { sanitizeMessage } from '../utils/sanitize.js';
+import { sanitizeMessage } from '../utils/sanitize.ts';
 let notyfInstance; // allow re-init without const reassignment errors
 
 function createNotyf() {
@@ -21,8 +21,7 @@ function createNotyf() {
     types: [
       { type: 'info', background: 'hsl(var(--in))', icon: { className: 'fas fa-info-circle', tagName: 'i', color: 'hsl(var(--inc))' } },
       { type: 'warning', background: 'hsl(var(--wa))', icon: { className: 'fas fa-exclamation-triangle', tagName: 'i', color: 'hsl(var(--wac))' } },
-      { type: 'success', background: '#10B981', icon: { className: 'fas fa-check-circle', tagName: 'i', color: 'white' } },
-      { type: 'github', background: '#1F2937', icon: { className: 'fab fa-github', tagName: 'i', color: 'white' } }
+      { type: 'success', background: '#10B981', icon: { className: 'fas fa-check-circle', tagName: 'i', color: 'white' } }
     ],
     container
   });
@@ -57,17 +56,4 @@ export function showInfo(message) {
   } catch {
     alert(message);
   }
-}
-export function showGitHubComingSoon() {
-  const n = getNotyf();
-  n.open({ type: 'github', message: '🚀 GitHub Repository Scanning - Coming Soon! Scan entire repos for vulnerabilities across all dependency files.' });
-  setTimeout(()=> n.open({ type: 'info', message: '✨ Features: OAuth integration, bulk scanning, automated CI/CD workflows, and comprehensive reporting.' }), 2500);
-  setTimeout(()=> n.open({ type: 'success', message: '📅 Expected Release: Q1 2026 | Follow our GitHub for beta access and updates!' }), 5000);
-}
-
-export function showVsCodeExtensionPreview() {
-  const n = getNotyf();
-  n.open({ type: 'info', message: '🧩 VS Code Extension — on the roadmap.' });
-  setTimeout(() => n.open({ type: 'info', message: 'Inline diagnostics, quick fixes, and one-click scans from your editor.' }), 2000);
-  setTimeout(() => n.open({ type: 'success', message: 'Sign up for early access on our GitHub soon.' }), 4000);
 }

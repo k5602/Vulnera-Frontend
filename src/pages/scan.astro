@@ -5,106 +5,161 @@ import Footer from "../components/Footer.astro";
 import ScanReportIsland from "../components/report/ScanReportIsland";
 ---
 
-<Layout title="Scan — Vulnera" description="Upload manifests or import repositories for scanning.">
-  <!-- Auth Guard -->
- <!-- <script is:inline>
-    (function() {
-      function getCookie(name) {
-        const nameEQ = encodeURIComponent(name) + '=';
-        const cookies = document.cookie.split(';');
-        for (let cookie of cookies) {
-          cookie = cookie.trim();
-          if (cookie.startsWith(nameEQ)) {
-            return decodeURIComponent(cookie.substring(nameEQ.length));
-          }
-        }
-        return null;
-      }
-      
-      const token = getCookie('auth_token');
-      if (!token) {
-        window.location.href = '/login?next=/scan';
-      }
-    })();
-  </script>  -->
+<Layout
+  title="Scan — Vulnera"
+  description="Upload manifests or import repositories for scanning."
+>
+  <script>
+    import { setupAuthGuard } from "../utils/auth-guard";
+    setupAuthGuard({ requireAuth: true });
+  </script>
 
   <Navigation />
 
-  <section id="main" class="relative min-h-screen overflow-hidden bg-black" aria-labelledby="scan-title" transition:animate="fade">
+  <section
+    id="main"
+    class="relative min-h-screen overflow-hidden bg-black"
+    aria-labelledby="scan-title"
+    transition:animate="fade"
+  >
     <!-- Background Layers -->
     <div class="absolute inset-0 z-0">
       <div class="absolute inset-0 matrix-rain opacity-20"></div>
-      <div class="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-black/60"></div>
-      <div class="absolute inset-0 bg-gradient-to-b from-transparent via-matrix-900/20 to-black/80"></div>
+      <div
+        class="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-black/60"
+      >
+      </div>
+      <div
+        class="absolute inset-0 bg-gradient-to-b from-transparent via-matrix-900/20 to-black/80"
+      >
+      </div>
     </div>
 
     <!-- Content -->
-    <div class="relative z-10 max-w-4xl mx-auto px-3 sm:px-4 md:px-6 py-8 sm:py-12 md:py-16">
+    <div
+      class="relative z-10 max-w-4xl mx-auto px-3 sm:px-4 md:px-6 py-8 sm:py-12 md:py-16"
+    >
       <header class="mb-6 sm:mb-8 md:mb-10">
-        <div class="text-cyber-400 font-mono text-xs sm:text-sm md:text-base">root@vulnera:~$</div>
-        <h1 id="scan-title" class="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white font-mono tracking-wider mt-4 sm:mt-5 md:mt-6 mb-3 sm:mb-4 md:mb-6">
+        <div class="text-cyber-400 font-mono text-xs sm:text-sm md:text-base">
+          root@vulnera:~$
+        </div>
+        <h1
+          id="scan-title"
+          class="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white font-mono tracking-wider mt-4 sm:mt-5 md:mt-6 mb-3 sm:mb-4 md:mb-6"
+        >
           <span class="text-cyber-400">&gt;</span> SCAN
         </h1>
-        <p class="text-matrix-300 mt-2 text-xs sm:text-sm md:text-base">Upload dependency manifests or import a repository to analyze vulnerabilities.</p>
+        <p class="text-matrix-300 mt-2 text-xs sm:text-sm md:text-base">
+          Upload dependency manifests or import a repository to analyze
+          vulnerabilities.
+        </p>
       </header>
 
       <!-- Upload area -->
-      <section class="terminal-border bg-black/70 rounded-lg md:rounded-xl p-3 sm:p-4 md:p-6 overflow-hidden">
-        <h2 class="text-cyber-400 font-mono text-sm sm:text-base md:text-lg mb-3 flex items-center gap-2">
+      <section
+        class="terminal-border bg-black/70 rounded-lg md:rounded-xl p-3 sm:p-4 md:p-6 overflow-hidden"
+      >
+        <h2
+          class="text-cyber-400 font-mono text-sm sm:text-base md:text-lg mb-3 flex items-center gap-2"
+        >
           <span>📁</span> UPLOAD_FILES
         </h2>
-        
+
         <!-- Dropzone -->
-        <div id="dropzone" class="relative border-2 border-dashed border-cyber-400/40 rounded-lg p-6 sm:p-8 text-center bg-black/40 hover:bg-black/50 hover:border-cyber-400/60 transition-all group">
-          <div class="absolute inset-0 bg-gradient-to-br from-cyber-400/5 to-matrix-400/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"></div>
+        <div
+          id="dropzone"
+          class="relative border-2 border-dashed border-cyber-400/40 rounded-lg p-6 sm:p-8 text-center bg-black/40 hover:bg-black/50 hover:border-cyber-400/60 transition-all group"
+        >
+          <div
+            class="absolute inset-0 bg-gradient-to-br from-cyber-400/5 to-matrix-400/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+          </div>
           <div class="relative z-10">
             <div class="text-4xl mb-3">📦</div>
-            <p class="text-matrix-300 text-sm sm:text-base font-medium mb-2">Drag & drop your files here</p>
-            <p class="text-gray-500 text-xs sm:text-sm mb-4">or click to browse</p>
-            <div class="flex flex-wrap gap-1 justify-center text-xs text-gray-600 mb-4">
-              <span class="px-2 py-1 bg-black/40 rounded border border-gray-700/30">package.json</span>
-              <span class="px-2 py-1 bg-black/40 rounded border border-gray-700/30">requirements.txt</span>
-              <span class="px-2 py-1 bg-black/40 rounded border border-gray-700/30">pom.xml</span>
-              <span class="px-2 py-1 bg-black/40 rounded border border-gray-700/30">Cargo.lock</span>
+            <p class="text-matrix-300 text-sm sm:text-base font-medium mb-2">
+              Drag & drop your files here
+            </p>
+            <p class="text-gray-500 text-xs sm:text-sm mb-4">
+              or click to browse
+            </p>
+            <div
+              class="flex flex-wrap gap-1 justify-center text-xs text-gray-600 mb-4"
+            >
+              <span
+                class="px-2 py-1 bg-black/40 rounded border border-gray-700/30"
+                >package.json</span
+              >
+              <span
+                class="px-2 py-1 bg-black/40 rounded border border-gray-700/30"
+                >requirements.txt</span
+              >
+              <span
+                class="px-2 py-1 bg-black/40 rounded border border-gray-700/30"
+                >pom.xml</span
+              >
+              <span
+                class="px-2 py-1 bg-black/40 rounded border border-gray-700/30"
+                >Cargo.lock</span
+              >
             </div>
             <input id="file-input" type="file" class="sr-only" multiple />
-            <label for="file-input" id="btn-select" role="button" tabindex="0" class="inline-flex items-center cursor-pointer bg-gradient-to-r from-cyber-600 to-matrix-600 hover:from-cyber-500 hover:to-matrix-500 text-black font-bold px-4 sm:px-6 py-2.5 rounded-lg font-mono text-xs sm:text-sm terminal-border shadow-lg hover:shadow-cyber-400/20 transition-all">
+            <label
+              for="file-input"
+              id="btn-select"
+              role="button"
+              tabindex="0"
+              class="inline-flex items-center cursor-pointer bg-gradient-to-r from-cyber-600 to-matrix-600 hover:from-cyber-500 hover:to-matrix-500 text-black font-bold px-4 sm:px-6 py-2.5 rounded-lg font-mono text-xs sm:text-sm terminal-border shadow-lg hover:shadow-cyber-400/20 transition-all"
+            >
               <span class="mr-2">📂</span> SELECT_FILES
             </label>
           </div>
         </div>
-        
+
         <!-- File List -->
         <div class="mt-4 min-h-[40px]">
-          <ul id="file-list" class="text-matrix-300 text-xs sm:text-sm font-mono space-y-2 max-h-40 overflow-y-auto"></ul>
+          <ul
+            id="file-list"
+            class="text-matrix-300 text-xs sm:text-sm font-mono space-y-2 max-h-40 overflow-y-auto"
+          >
+          </ul>
         </div>
-        
+
         <!-- Action Buttons -->
         <div class="mt-5 space-y-3">
           <!-- Analysis Modules Selection -->
           <!-- Analysis Modules - Always Active -->
           <div class="border border-cyber-400/30 rounded-lg p-3 bg-black/30">
-            <label class="block text-xs text-matrix-300 font-mono mb-2">ACTIVE_ANALYSIS_MODULES</label>
+            <label class="block text-xs text-matrix-300 font-mono mb-2"
+              >ACTIVE_ANALYSIS_MODULES</label
+            >
             <div class="grid grid-cols-2 gap-2">
-              <div class="flex items-center gap-2 p-2 border border-cyber-400/60 rounded bg-cyber-400/10">
+              <div
+                class="flex items-center gap-2 p-2 border border-cyber-400/60 rounded bg-cyber-400/10"
+              >
                 <div class="flex items-center gap-1.5 text-xs text-cyber-300">
                   <span>📦</span>
                   <span>Dependencies</span>
                 </div>
               </div>
-              <div class="flex items-center gap-2 p-2 border border-cyber-400/60 rounded bg-cyber-400/10">
+              <div
+                class="flex items-center gap-2 p-2 border border-cyber-400/60 rounded bg-cyber-400/10"
+              >
                 <div class="flex items-center gap-1.5 text-xs text-cyber-300">
                   <span>🔍</span>
                   <span>SAST</span>
                 </div>
               </div>
-              <div class="flex items-center gap-2 p-2 border border-cyber-400/60 rounded bg-cyber-400/10">
+              <div
+                class="flex items-center gap-2 p-2 border border-cyber-400/60 rounded bg-cyber-400/10"
+              >
                 <div class="flex items-center gap-1.5 text-xs text-cyber-300">
                   <span>🔐</span>
                   <span>Secrets</span>
                 </div>
               </div>
-              <div class="flex items-center gap-2 p-2 border border-cyber-400/60 rounded bg-cyber-400/10">
+              <div
+                class="flex items-center gap-2 p-2 border border-cyber-400/60 rounded bg-cyber-400/10"
+              >
                 <div class="flex items-center gap-1.5 text-xs text-cyber-300">
                   <span>🌐</span>
                   <span>API Security</span>
@@ -115,64 +170,105 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
               All analysis modules are enabled by default
             </p>
           </div>
-          
+
           <!-- Detail Level Selection -->
           <div class="border border-cyber-400/30 rounded-lg p-3 bg-black/30">
-            <label class="block text-xs text-matrix-300 font-mono mb-2">REPORT_DETAIL_LEVEL</label>
+            <label class="block text-xs text-matrix-300 font-mono mb-2"
+              >REPORT_DETAIL_LEVEL</label
+            >
             <div class="flex flex-wrap gap-2">
-              <button data-detail-level="minimal" class="detail-level-btn flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 border border-gray-600/40 text-gray-400 px-3 py-1.5 rounded-lg font-mono text-xs hover:bg-gray-600/10 hover:border-gray-500/60 transition-all">
+              <button
+                data-detail-level="minimal"
+                class="detail-level-btn flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 border border-gray-600/40 text-gray-400 px-3 py-1.5 rounded-lg font-mono text-xs hover:bg-gray-600/10 hover:border-gray-500/60 transition-all"
+              >
                 <span>⚡</span> MINIMAL
               </button>
-              <button data-detail-level="standard" class="detail-level-btn active flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 border border-cyber-400/60 bg-cyber-400/10 text-cyber-300 px-3 py-1.5 rounded-lg font-mono text-xs hover:bg-cyber-400/20 transition-all">
+              <button
+                data-detail-level="standard"
+                class="detail-level-btn active flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 border border-cyber-400/60 bg-cyber-400/10 text-cyber-300 px-3 py-1.5 rounded-lg font-mono text-xs hover:bg-cyber-400/20 transition-all"
+              >
                 <span>📊</span> STANDARD
               </button>
-              <button data-detail-level="full" class="detail-level-btn flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 border border-gray-600/40 text-gray-400 px-3 py-1.5 rounded-lg font-mono text-xs hover:bg-gray-600/10 hover:border-gray-500/60 transition-all">
+              <button
+                data-detail-level="full"
+                class="detail-level-btn flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 border border-gray-600/40 text-gray-400 px-3 py-1.5 rounded-lg font-mono text-xs hover:bg-gray-600/10 hover:border-gray-500/60 transition-all"
+              >
                 <span>🔬</span> FULL
               </button>
             </div>
             <p class="mt-2 text-[10px] text-gray-500 leading-relaxed">
-              <span class="text-cyan-400 font-bold">⚡ Minimal:</span> Critical/High vulns only<br/>
-              <span class="text-cyan-400 font-bold">📊 Standard:</span> All vulns + CVE/CVSS + recommendations + files analysis<br/>
-              <span class="text-cyan-400 font-bold">🔬 Full:</span> Complete details + affected files + extended recommendations
+              <span class="text-cyan-400 font-bold">⚡ Minimal:</span> Critical/High
+              vulns only<br />
+              <span class="text-cyan-400 font-bold">📊 Standard:</span> All vulns
+              + CVE/CVSS + recommendations + files analysis<br />
+              <span class="text-cyan-400 font-bold">🔬 Full:</span> Complete details
+              + affected files + extended recommendations
             </p>
           </div>
-          
+
           <!-- Secondary Actions -->
           <div class="flex flex-wrap gap-2">
-            <button id="btn-load-demo" class="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 border border-matrix-400/40 text-matrix-300 px-3 py-2 rounded-lg font-mono text-xs hover:bg-matrix-400/10 hover:border-matrix-400/60 transition-all">
+            <button
+              id="btn-load-demo"
+              class="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 border border-matrix-400/40 text-matrix-300 px-3 py-2 rounded-lg font-mono text-xs hover:bg-matrix-400/10 hover:border-matrix-400/60 transition-all"
+            >
               <span>🎯</span> DEMO
             </button>
-            <button id="btn-reset-files" class="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 border border-red-400/40 text-red-300 px-3 py-2 rounded-lg font-mono text-xs hover:bg-red-400/10 hover:border-red-400/60 transition-all">
+            <button
+              id="btn-reset-files"
+              class="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 border border-red-400/40 text-red-300 px-3 py-2 rounded-lg font-mono text-xs hover:bg-red-400/10 hover:border-red-400/60 transition-all"
+            >
               <span>🗑️</span> RESET
             </button>
-            <button id="btn-preview-report" type="button" class="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 border border-cyan-400/40 text-cyan-300 px-3 py-2 rounded-lg font-mono text-xs hover:bg-cyan-400/10 hover:border-cyan-400/60 transition-all">
+            <button
+              id="btn-preview-report"
+              type="button"
+              class="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 border border-cyan-400/40 text-cyan-300 px-3 py-2 rounded-lg font-mono text-xs hover:bg-cyan-400/10 hover:border-cyan-400/60 transition-all"
+            >
               <span>👁️</span> PREVIEW
             </button>
           </div>
-          
+
           <!-- Primary Action -->
-          <button id="btn-scan" class="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-cyber-500 to-matrix-500 hover:from-cyber-400 hover:to-matrix-400 text-black font-bold px-6 py-3 rounded-lg font-mono text-sm sm:text-base shadow-lg hover:shadow-cyber-400/30 transition-all transform hover:scale-[1.02]">
+          <button
+            id="btn-scan"
+            class="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-cyber-500 to-matrix-500 hover:from-cyber-400 hover:to-matrix-400 text-black font-bold px-6 py-3 rounded-lg font-mono text-sm sm:text-base shadow-lg hover:shadow-cyber-400/30 transition-all transform hover:scale-[1.02]"
+          >
             <span class="text-lg">🚀</span> START_SCAN
           </button>
         </div>
       </section>
 
       <!-- GitHub import -->
-      <section id="github-import-section" class="mt-6 sm:mt-8 md:mt-10 terminal-border bg-black/70 rounded-lg md:rounded-xl p-3 sm:p-4 md:p-6 overflow-hidden">
-        <h2 class="text-cyber-400 font-mono text-sm sm:text-base md:text-lg mb-3">IMPORT_GITHUB_REPO</h2>
-        
+      <section
+        id="github-import-section"
+        class="mt-6 sm:mt-8 md:mt-10 terminal-border bg-black/70 rounded-lg md:rounded-xl p-3 sm:p-4 md:p-6 overflow-hidden"
+      >
+        <h2
+          class="text-cyber-400 font-mono text-sm sm:text-base md:text-lg mb-3"
+        >
+          IMPORT_GITHUB_REPO
+        </h2>
+
         <!-- GitHub Token Required Notice -->
-        <div id="github-token-notice" class="hidden mb-3 p-2 sm:p-3 bg-purple-900/20 border border-purple-500/40 rounded-lg">
+        <div
+          id="github-token-notice"
+          class="hidden mb-3 p-2 sm:p-3 bg-purple-900/20 border border-purple-500/40 rounded-lg"
+        >
           <div class="flex flex-col gap-2">
             <div class="flex items-center gap-2">
               <span class="text-lg">🔐</span>
-              <h3 class="text-xs sm:text-sm text-purple-400 font-bold font-mono">GitHub Token Required</h3>
+              <h3
+                class="text-xs sm:text-sm text-purple-400 font-bold font-mono"
+              >
+                GitHub Token Required
+              </h3>
             </div>
             <p class="text-xs text-gray-300">
               Add token in Settings to import repos.
             </p>
-            <a 
-              href="/settings#api-keys" 
+            <a
+              href="/settings#api-keys"
               class="inline-flex items-center justify-center gap-1 bg-purple-500 hover:bg-purple-600 text-white px-3 py-1.5 rounded font-mono text-xs transition-all w-full sm:w-auto"
             >
               <span>⚙️</span>
@@ -180,13 +276,13 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
             </a>
           </div>
         </div>
-        
+
         <div id="github-import-controls" class="flex flex-col gap-2">
-          <input 
-            id="repo-url" 
-            type="url" 
-            placeholder="github.com/owner/repo" 
-            class="w-full px-3 py-2 rounded-lg bg-black/60 border border-cyber-400/30 focus:border-cyber-400 focus:ring-1 focus:ring-cyber-400 text-white placeholder-gray-500 text-xs sm:text-sm" 
+          <input
+            id="repo-url"
+            type="url"
+            placeholder="github.com/owner/repo"
+            class="w-full px-3 py-2 rounded-lg bg-black/60 border border-cyber-400/30 focus:border-cyber-400 focus:ring-1 focus:ring-cyber-400 text-white placeholder-gray-500 text-xs sm:text-sm"
           />
           <input
             type="password"
@@ -194,31 +290,46 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
             placeholder="Enter GitHub Token (optional for private repos)"
             class="w-full px-3 py-2 rounded-lg bg-black/60 border border-cyber-400/30 focus:border-cyber-400 focus:ring-1 focus:ring-cyber-400 text-white placeholder-gray-500 text-xs sm:text-sm mt-2"
           />
-          
+
           <!-- Analysis Depth Selection -->
-          <div class="border border-cyber-400/30 rounded-lg p-2 bg-black/30 mt-2">
-            <label class="block text-[10px] text-matrix-300 font-mono mb-1.5">DETAIL_LEVEL</label>
+          <div
+            class="border border-cyber-400/30 rounded-lg p-2 bg-black/30 mt-2"
+          >
+            <label class="block text-[10px] text-matrix-300 font-mono mb-1.5"
+              >DETAIL_LEVEL</label
+            >
             <div class="flex gap-2">
-              <button data-analysis-depth="minimal" class="analysis-depth-btn flex-1 inline-flex items-center justify-center gap-1 border border-gray-600/40 text-gray-400 px-2 py-1 rounded font-mono text-[10px] hover:bg-gray-600/10 transition-all">
+              <button
+                data-analysis-depth="minimal"
+                class="analysis-depth-btn flex-1 inline-flex items-center justify-center gap-1 border border-gray-600/40 text-gray-400 px-2 py-1 rounded font-mono text-[10px] hover:bg-gray-600/10 transition-all"
+              >
                 MINIMAL
               </button>
-              <button data-analysis-depth="standard" class="analysis-depth-btn active flex-1 inline-flex items-center justify-center gap-1 border border-cyber-400/60 bg-cyber-400/10 text-cyber-300 px-2 py-1 rounded font-mono text-[10px] transition-all">
+              <button
+                data-analysis-depth="standard"
+                class="analysis-depth-btn active flex-1 inline-flex items-center justify-center gap-1 border border-cyber-400/60 bg-cyber-400/10 text-cyber-300 px-2 py-1 rounded font-mono text-[10px] transition-all"
+              >
                 STANDARD
               </button>
-              <button data-analysis-depth="full" class="analysis-depth-btn flex-1 inline-flex items-center justify-center gap-1 border border-gray-600/40 text-gray-400 px-2 py-1 rounded font-mono text-[10px] hover:bg-gray-600/10 transition-all">
+              <button
+                data-analysis-depth="full"
+                class="analysis-depth-btn flex-1 inline-flex items-center justify-center gap-1 border border-gray-600/40 text-gray-400 px-2 py-1 rounded font-mono text-[10px] hover:bg-gray-600/10 transition-all"
+              >
                 FULL
               </button>
             </div>
           </div>
-          
-          <button 
-            id="btn-import" 
+
+          <button
+            id="btn-import"
             class="w-full inline-flex items-center justify-center bg-gradient-to-r from-cyber-600 to-matrix-600 hover:from-cyber-500 hover:to-matrix-500 text-black px-3 py-2 rounded-lg font-mono text-xs sm:text-sm terminal-border cursor-pointer transition-colors"
           >
             <span class="mr-1">&gt;</span> IMPORT_REPO
           </button>
         </div>
-        <p class="text-gray-400 text-xs mt-2">Fetch manifest files and analyze dependencies.</p>
+        <p class="text-gray-400 text-xs mt-2">
+          Fetch manifest files and analyze dependencies.
+        </p>
       </section>
 
       <!-- Report Island Mount -->
@@ -231,56 +342,46 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
   <Footer />
 
   <script type="module">
-    // API configuration: use new backend URL
-    const API_BASE_URL = 'http://fo8w0o08w80g0wgs48kcgwss.121.91.156.227.sslip.io';
-
-    // Cookie helper function
-    function getCookie(name) {
-      const nameEQ = encodeURIComponent(name) + '=';
-      const cookies = document.cookie.split(';');
-      for (let cookie of cookies) {
-        cookie = cookie.trim();
-        if (cookie.startsWith(nameEQ)) {
-          return decodeURIComponent(cookie.substring(nameEQ.length));
-        }
-      }
-      return null;
-    }
+    import { apiClient } from "../utils/api/client";
+    import { API_ENDPOINTS } from "../config/api";
+    import { getCookie } from "../utils/cookies";
+    import { logger } from "../utils/logger";
+    import { detectEcosystem } from "../utils/scan-handler";
 
     // GitHub Token Management
     function checkGithubToken() {
-      const token = getCookie('github_token');
-      const notice = document.getElementById('github-token-notice');
-      const controls = document.getElementById('github-import-controls');
-      const btnImport = document.getElementById('btn-import');
-      const repoUrl = document.getElementById('repo-url');
-      
+      const token = getCookie("github_token");
+      const notice = document.getElementById("github-token-notice");
+      const controls = document.getElementById("github-import-controls");
+      const btnImport = document.getElementById("btn-import");
+      const repoUrl = document.getElementById("repo-url");
+
       if (!token) {
         // No token - show notice and disable controls
-        notice?.classList.remove('hidden');
+        notice?.classList.remove("hidden");
         if (btnImport) {
           btnImport.disabled = true;
-          btnImport.classList.add('opacity-50', 'cursor-not-allowed');
-          btnImport.classList.remove('cursor-pointer');
+          btnImport.classList.add("opacity-50", "cursor-not-allowed");
+          btnImport.classList.remove("cursor-pointer");
         }
         if (repoUrl) {
           repoUrl.disabled = true;
-          repoUrl.classList.add('opacity-50', 'cursor-not-allowed');
+          repoUrl.classList.add("opacity-50", "cursor-not-allowed");
         }
       } else {
         // Token exists - hide notice and enable controls
-        notice?.classList.add('hidden');
+        notice?.classList.add("hidden");
         if (btnImport) {
           btnImport.disabled = false;
-          btnImport.classList.remove('opacity-50', 'cursor-not-allowed');
-          btnImport.classList.add('cursor-pointer');
+          btnImport.classList.remove("opacity-50", "cursor-not-allowed");
+          btnImport.classList.add("cursor-pointer");
         }
         if (repoUrl) {
           repoUrl.disabled = false;
-          repoUrl.classList.remove('opacity-50', 'cursor-not-allowed');
+          repoUrl.classList.remove("opacity-50", "cursor-not-allowed");
         }
       }
-      
+
       return token;
     }
 
@@ -288,13 +389,13 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
     checkGithubToken();
 
     // Listen for token updates from settings page
-    window.addEventListener('github-token-updated', () => {
+    window.addEventListener("github-token-updated", () => {
       checkGithubToken();
     });
 
     // Handle navigation to settings with hash
-    window.addEventListener('load', () => {
-      if (window.location.hash === '#api-keys') {
+    window.addEventListener("load", () => {
+      if (window.location.hash === "#api-keys") {
         const apiKeysTab = document.querySelector('[data-tab="api-keys"]');
         if (apiKeysTab && apiKeysTab.click) {
           apiKeysTab.click();
@@ -304,112 +405,137 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
 
     function initializeHandlers() {
       // Disable browser default file-open on drop anywhere
-      document.addEventListener('dragover', (e) => e.preventDefault());
-      document.addEventListener('drop', (e) => e.preventDefault());
+      document.addEventListener("dragover", (e) => e.preventDefault());
+      document.addEventListener("drop", (e) => e.preventDefault());
 
       // Get elements
-      const dz = document.getElementById('dropzone');
-      const input = document.getElementById('file-input');
-      const list = document.getElementById('file-list');
-      const btnSelect = document.getElementById('btn-select');
-      const btnScan = document.getElementById('btn-scan');
-      const btnImport = document.getElementById('btn-import');
-      const btnLoadDemo = document.getElementById('btn-load-demo');
-      const btnReset = document.getElementById('btn-reset-files');
-      const btnPreview = document.getElementById('btn-preview-report');
-      const repoUrl = document.getElementById('repo-url');
-      const detailLevelBtns = document.querySelectorAll('.detail-level-btn');
-      const analysisDepthBtns = document.querySelectorAll('.analysis-depth-btn');
+      const dz = document.getElementById("dropzone");
+      const input = document.getElementById("file-input");
+      const list = document.getElementById("file-list");
+      const btnSelect = document.getElementById("btn-select");
+      const btnScan = document.getElementById("btn-scan");
+      const btnImport = document.getElementById("btn-import");
+      const btnLoadDemo = document.getElementById("btn-load-demo");
+      const btnReset = document.getElementById("btn-reset-files");
+      const btnPreview = document.getElementById("btn-preview-report");
+      const repoUrl = document.getElementById("repo-url");
+      const detailLevelBtns = document.querySelectorAll(".detail-level-btn");
+      const analysisDepthBtns = document.querySelectorAll(
+        ".analysis-depth-btn"
+      );
       let pickedFiles = [];
-      let selectedDetailLevel = 'standard'; // Default
-      let selectedAnalysisDepth = 'standard'; // Default
-      
+      let selectedDetailLevel = "standard"; // Default
+      let selectedAnalysisDepth = "standard"; // Default
+
       // All modules are always enabled
-      const ALL_MODULES = ['dependencies', 'sast', 'secrets', 'api'];
-      
+      const ALL_MODULES = ["dependencies", "sast", "secrets", "api"];
+
       // Function to get all analysis modules (always returns all 4)
       function getSelectedModules() {
         return ALL_MODULES;
       }
 
       // Handle detail level selection
-      detailLevelBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
+      detailLevelBtns.forEach((btn) => {
+        btn.addEventListener("click", () => {
           // Remove active class from all buttons
-          detailLevelBtns.forEach(b => {
-            b.classList.remove('active', 'border-cyber-400/60', 'bg-cyber-400/10', 'text-cyber-300');
-            b.classList.add('border-gray-600/40', 'text-gray-400');
+          detailLevelBtns.forEach((b) => {
+            b.classList.remove(
+              "active",
+              "border-cyber-400/60",
+              "bg-cyber-400/10",
+              "text-cyber-300"
+            );
+            b.classList.add("border-gray-600/40", "text-gray-400");
           });
-          
+
           // Add active class to clicked button
-          btn.classList.add('active', 'border-cyber-400/60', 'bg-cyber-400/10', 'text-cyber-300');
-          btn.classList.remove('border-gray-600/40', 'text-gray-400');
-          
+          btn.classList.add(
+            "active",
+            "border-cyber-400/60",
+            "bg-cyber-400/10",
+            "text-cyber-300"
+          );
+          btn.classList.remove("border-gray-600/40", "text-gray-400");
+
           // Update selected detail level
-          selectedDetailLevel = btn.getAttribute('data-detail-level');
-          console.log('Detail level selected:', selectedDetailLevel);
+          selectedDetailLevel = btn.getAttribute("data-detail-level");
+          logger.debug("Detail level selected:", selectedDetailLevel);
         });
       });
 
       // Handle analysis depth selection
-      analysisDepthBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
+      analysisDepthBtns.forEach((btn) => {
+        btn.addEventListener("click", () => {
           // Remove active class from all buttons
-          analysisDepthBtns.forEach(b => {
-            b.classList.remove('active', 'border-cyber-400/60', 'bg-cyber-400/10', 'text-cyber-300');
-            b.classList.add('border-gray-600/40', 'text-gray-400');
+          analysisDepthBtns.forEach((b) => {
+            b.classList.remove(
+              "active",
+              "border-cyber-400/60",
+              "bg-cyber-400/10",
+              "text-cyber-300"
+            );
+            b.classList.add("border-gray-600/40", "text-gray-400");
           });
-          
+
           // Add active class to clicked button
-          btn.classList.add('active', 'border-cyber-400/60', 'bg-cyber-400/10', 'text-cyber-300');
-          btn.classList.remove('border-gray-600/40', 'text-gray-400');
-          
-          // Update selected analysis depth, ensuring it's a number
-          const depthValue = btn.getAttribute('data-analysis-depth');
-          selectedAnalysisDepth = depthValue ? parseInt(depthValue, 10) : 2;
-          console.log('Analysis depth selected:', selectedAnalysisDepth);
+          btn.classList.add(
+            "active",
+            "border-cyber-400/60",
+            "bg-cyber-400/10",
+            "text-cyber-300"
+          );
+          btn.classList.remove("border-gray-600/40", "text-gray-400");
+
+          // Update selected analysis depth
+          const depthValue = btn.getAttribute("data-analysis-depth");
+          selectedAnalysisDepth = depthValue || "standard";
+          logger.debug("Analysis depth selected:", selectedAnalysisDepth);
         });
       });
 
       function renderFiles() {
         if (!list) return;
-        list.innerHTML = '';
+        list.innerHTML = "";
         if (pickedFiles.length === 0) {
-          list.innerHTML = '<li class="text-gray-500 text-center py-2">No files selected</li>';
+          list.innerHTML =
+            '<li class="text-gray-500 text-center py-2">No files selected</li>';
           return;
         }
         pickedFiles.forEach((f, index) => {
-          const li = document.createElement('li');
-          li.className = 'flex items-center justify-between gap-2 bg-black/40 border border-matrix-500/30 rounded px-3 py-2 hover:bg-black/60 transition-colors';
-          
-          const fileInfo = document.createElement('div');
-          fileInfo.className = 'flex items-center gap-2 flex-1 min-w-0';
-          
-          const icon = document.createElement('span');
-          icon.textContent = '📄';
-          icon.className = 'text-sm';
-          
-          const text = document.createElement('span');
-          text.className = 'truncate text-xs sm:text-sm';
+          const li = document.createElement("li");
+          li.className =
+            "flex items-center justify-between gap-2 bg-black/40 border border-matrix-500/30 rounded px-3 py-2 hover:bg-black/60 transition-colors";
+
+          const fileInfo = document.createElement("div");
+          fileInfo.className = "flex items-center gap-2 flex-1 min-w-0";
+
+          const icon = document.createElement("span");
+          icon.textContent = "📄";
+          icon.className = "text-sm";
+
+          const text = document.createElement("span");
+          text.className = "truncate text-xs sm:text-sm";
           text.textContent = `${f.name}`;
-          
-          const size = document.createElement('span');
-          size.className = 'text-xs text-gray-500 whitespace-nowrap';
-          size.textContent = `(${Math.round(f.size/1024)} KB)`;
-          
+
+          const size = document.createElement("span");
+          size.className = "text-xs text-gray-500 whitespace-nowrap";
+          size.textContent = `(${Math.round(f.size / 1024)} KB)`;
+
           fileInfo.appendChild(icon);
           fileInfo.appendChild(text);
           fileInfo.appendChild(size);
-          
-          const removeBtn = document.createElement('button');
-          removeBtn.className = 'text-red-400 hover:text-red-300 text-xs px-2 py-1 hover:bg-red-400/10 rounded transition-colors';
-          removeBtn.textContent = '✕';
-          removeBtn.title = 'Remove file';
+
+          const removeBtn = document.createElement("button");
+          removeBtn.className =
+            "text-red-400 hover:text-red-300 text-xs px-2 py-1 hover:bg-red-400/10 rounded transition-colors";
+          removeBtn.textContent = "✕";
+          removeBtn.title = "Remove file";
           removeBtn.onclick = () => {
             pickedFiles.splice(index, 1);
             renderFiles();
           };
-          
+
           li.appendChild(fileInfo);
           li.appendChild(removeBtn);
           list.appendChild(li);
@@ -424,170 +550,132 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
       }
 
       // Drag and drop handlers
-      dz?.addEventListener('dragenter', (e) => {
+      dz?.addEventListener("dragenter", (e) => {
         e.preventDefault();
-        dz.classList.add('bg-black/50');
+        dz.classList.add("bg-black/50");
       });
 
-      dz?.addEventListener('dragover', (e) => {
+      dz?.addEventListener("dragover", (e) => {
         e.preventDefault();
-        if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
-        dz.classList.add('bg-black/50');
+        if (e.dataTransfer) e.dataTransfer.dropEffect = "copy";
+        dz.classList.add("bg-black/50");
       });
 
-      dz?.addEventListener('dragleave', () => dz.classList.remove('bg-black/50'));
+      dz?.addEventListener("dragleave", () =>
+        dz.classList.remove("bg-black/50")
+      );
 
-      dz?.addEventListener('drop', (e) => {
+      dz?.addEventListener("drop", (e) => {
         e.preventDefault();
-        dz.classList.remove('bg-black/50');
+        dz.classList.remove("bg-black/50");
         handleFiles(e.dataTransfer?.files ?? null);
       });
 
-      btnSelect?.addEventListener('click', () => input?.click());
-      input?.addEventListener('change', () => handleFiles(input?.files));
+      btnSelect?.addEventListener("click", () => input?.click());
+      input?.addEventListener("change", () => handleFiles(input?.files));
 
       // RESET_FILES handler
-      btnReset?.addEventListener('click', () => {
+      btnReset?.addEventListener("click", () => {
         pickedFiles = [];
         renderFiles();
-        repoUrl.value = '';
+        repoUrl.value = "";
       });
 
       function dispatchReport(report) {
-        window.dispatchEvent(new CustomEvent('vulnera:scan-report', { detail: report }));
+        window.dispatchEvent(
+          new CustomEvent("vulnera:scan-report", { detail: report })
+        );
       }
 
       // START_SCAN handler - Using new /api/v1/dependencies/analyze endpoint
-      btnScan?.addEventListener('click', async () => {
-        if (!pickedFiles.length) { alert('Select files to scan.'); return; }
-        
+      btnScan?.addEventListener("click", async () => {
+        if (!pickedFiles.length) {
+          alert("Select files to scan.");
+          return;
+        }
+
         try {
           btnScan.disabled = true;
-          btnScan.textContent = '> SCANNING...';
-          
-          // Get auth token from cookies
-          const token = getCookie('auth_token');
-          const apiKey = getCookie('api_key');
-          
-          const headers = {
-            'Content-Type': 'application/json',
-          };
-          
-          // Prefer API key, fallback to JWT token
-          if (apiKey) {
-            headers['X-API-Key'] = apiKey;
-            headers['Authorization'] = `ApiKey ${apiKey}`;
-          } else if (token) {
-            headers['Authorization'] = `Bearer ${token}`;
-          } else {
-            alert('⚠️ Authentication required\n\nPlease log in first or generate an API key in Settings.');
+          btnScan.textContent = "> SCANNING...";
+
+          // Check authentication
+          const token = getCookie("auth_token");
+          const apiKey = getCookie("api_key");
+          if (!token && !apiKey) {
+            alert(
+              "⚠️ Authentication required\n\nPlease log in first or generate an API key in Settings."
+            );
             return;
           }
-          
+
           // Get all analysis modules (always all 4 modules)
           const selectedModules = getSelectedModules();
-          
+
           // Prepare batch request for all files
           const filesPayload = [];
-          
+
           for (const file of pickedFiles) {
             try {
               const content = await file.text();
-              
+
               // Detect ecosystem from filename
-              let ecosystem = 'npm'; // default
-              const lowerName = file.name.toLowerCase();
-              
-              if (lowerName.includes('pom.xml')) ecosystem = 'maven';
-              else if (lowerName.includes('cargo.lock') || lowerName.includes('cargo.toml')) ecosystem = 'cargo';
-              else if (lowerName.includes('go.mod')) ecosystem = 'go';
-              else if (lowerName.includes('composer.json')) ecosystem = 'packagist';
-              else if (lowerName.includes('gemfile')) ecosystem = 'ruby';
-              else if (lowerName.includes('requirements') && lowerName.includes('.txt')) ecosystem = 'pypi';
-              else if (lowerName.endsWith('.json')) ecosystem = 'npm';
-              
+              const ecosystem = detectEcosystem(file.name);
+
               filesPayload.push({
                 filename: file.name,
                 ecosystem: ecosystem,
-                file_content: content
+                file_content: content,
               });
             } catch (e) {
-              console.error(`Error reading file ${file.name}:`, e);
+              logger.error(`Error reading file ${file.name}`, e);
             }
           }
-          
+
           if (!filesPayload.length) {
-            alert('No valid files to analyze');
+            alert("No valid files to analyze");
             return;
           }
-          
+
           // Build query parameters
           const queryParams = new URLSearchParams({
-            detail_level: selectedDetailLevel
+            detail_level: selectedDetailLevel,
           });
-          
+
           // Add selected modules
-          selectedModules.forEach(module => {
-            queryParams.append('modules', module);
+          selectedModules.forEach((module) => {
+            queryParams.append("modules", module);
           });
-          
-          // Call new batch dependencies analyze endpoint with selected detail level and modules
-          const response = await fetch(`${API_BASE_URL}/api/v1/dependencies/analyze?${queryParams.toString()}`, {
-            method: 'POST',
-            headers: headers,
-            body: JSON.stringify({ files: filesPayload })
+
+          // Call new batch dependencies analyze endpoint using apiClient
+          const endpoint = `${API_ENDPOINTS.ANALYSIS.ANALYZE_DEPENDENCIES}?${queryParams.toString()}`;
+          const apiResponse = await apiClient.post(endpoint, {
+            files: filesPayload,
           });
-              
-          
-          if (!response.ok) {
-            let errorBody = null;
-            let isJson = false;
-            
-            try {
-              const contentType = response.headers.get('content-type');
-              if (contentType && contentType.includes('application/json')) {
-                errorBody = await response.json();
-                isJson = true;
-              } else {
-                const text = await response.text();
-                errorBody = text.length > 500 ? text.substring(0, 500) + '...' : text;
-              }
-            } catch (parseError) {
-              errorBody = 'Could not parse response';
-              console.error('Error parsing response:', parseError);
-            }
-            
-            if (response.status === 401) {
-              alert('⚠️ Authentication Error\n\nYour session has expired. Please log in again.');
+
+          if (!apiResponse.success) {
+            if (apiResponse.status === 401) {
+              alert(
+                "⚠️ Authentication Error\n\nYour session has expired. Please log in again."
+              );
               return;
             }
-            if (response.status === 404) {
-              alert('⚠️ Endpoint Not Found\n\nThe backend API endpoint does not exist. Please check backend implementation.');
+            if (apiResponse.status === 404) {
+              alert(
+                "⚠️ Endpoint Not Found\n\nThe backend API endpoint does not exist. Please check backend implementation."
+              );
               return;
             }
-            if (response.status === 429) {
-              alert('⚠️ Rate Limit Exceeded\n\nToo many requests. Please try again later.');
+            if (apiResponse.status === 429) {
+              alert(
+                "⚠️ Rate Limit Exceeded\n\nToo many requests. Please try again later."
+              );
               return;
             }
-            
-            throw new Error(`HTTP ${response.status}: ${isJson ? JSON.stringify(errorBody) : errorBody}`);
+            throw new Error(apiResponse.error || `HTTP ${apiResponse.status}`);
           }
-          
-          let result;
-          try {
-            const contentType = response.headers.get('content-type');
-            if (!contentType || !contentType.includes('application/json')) {
-              const text = await response.text();
-              throw new Error(`Expected JSON response but got: ${contentType || 'unknown'}\n\nResponse: ${text.substring(0, 200)}`);
-            }
-            result = await response.json();
-          } catch (parseError) {
-            if (parseError.message.includes('Expected JSON')) {
-              throw parseError;
-            }
-            throw new Error('Failed to parse JSON response: ' + parseError.message);
-          }
-          
+
+          const result = apiResponse.data;
+
           // Transform new API response to report format
           const fileAnalyses = [];
           const allVulnerabilities = [];
@@ -595,99 +683,118 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
             dependencies: [],
             sast: [],
             secrets: [],
-            api: []
+            api: [],
           };
-          
+
           if (result.results && Array.isArray(result.results)) {
             result.results.forEach((fileResult) => {
               if (fileResult.error) {
-                console.error(`Error analyzing ${fileResult.filename}:`, fileResult.error);
+                logger.error(
+                  `Error analyzing ${fileResult.filename}`,
+                  fileResult.error
+                );
                 return;
               }
-              
+
               // Add file analysis
               fileAnalyses.push({
                 file: fileResult.filename,
-                ecosystem: fileResult.ecosystem || 'unknown',
+                ecosystem: fileResult.ecosystem || "unknown",
                 dependencies: fileResult.metadata?.total_packages || 0,
-                vulnerable: fileResult.metadata?.vulnerable_packages || 0
+                vulnerable: fileResult.metadata?.vulnerable_packages || 0,
               });
-              
+
               // Process dependency vulnerabilities
-              if (fileResult.vulnerabilities && Array.isArray(fileResult.vulnerabilities)) {
+              if (
+                fileResult.vulnerabilities &&
+                Array.isArray(fileResult.vulnerabilities)
+              ) {
                 fileResult.vulnerabilities.forEach((vuln) => {
                   const vulnerability = {
                     id: vuln.id,
-                    type: 'dependency',
-                    severity: vuln.severity?.toUpperCase() || 'UNKNOWN',
-                    package: vuln.affected_packages?.[0]?.name || 'unknown',
-                    version: vuln.affected_packages?.[0]?.version || '',
-                    title: vuln.summary || vuln.description || 'No description',
+                    type: "dependency",
+                    severity: vuln.severity?.toUpperCase() || "UNKNOWN",
+                    package: vuln.affected_packages?.[0]?.name || "unknown",
+                    version: vuln.affected_packages?.[0]?.version || "",
+                    title: vuln.summary || vuln.description || "No description",
                     cve: vuln.id,
                     affectedFiles: [fileResult.filename],
                     cvss: vuln.cvss_score,
-                    recommendation: vuln.affected_packages?.[0]?.fixed_versions?.[0] 
+                    recommendation: vuln.affected_packages?.[0]
+                      ?.fixed_versions?.[0]
                       ? `Upgrade to ${vuln.affected_packages[0].fixed_versions[0]}`
-                      : undefined
+                      : undefined,
                   };
                   allVulnerabilities.push(vulnerability);
                   allFindings.dependencies.push(vulnerability);
                 });
               }
-              
+
               // Process SAST findings
-              if (fileResult.sast_findings && Array.isArray(fileResult.sast_findings)) {
+              if (
+                fileResult.sast_findings &&
+                Array.isArray(fileResult.sast_findings)
+              ) {
                 fileResult.sast_findings.forEach((finding) => {
                   const sastFinding = {
                     id: finding.id || `sast-${Date.now()}-${Math.random()}`,
-                    type: 'sast',
-                    severity: finding.severity?.toUpperCase() || 'MEDIUM',
-                    title: finding.title || finding.description || 'Code quality issue',
+                    type: "sast",
+                    severity: finding.severity?.toUpperCase() || "MEDIUM",
+                    title:
+                      finding.title ||
+                      finding.description ||
+                      "Code quality issue",
                     description: finding.description,
                     location: finding.location,
                     line: finding.line_number,
                     cwe: finding.cwe,
                     affectedFiles: [fileResult.filename],
-                    recommendation: finding.recommendation
+                    recommendation: finding.recommendation,
                   };
                   allVulnerabilities.push(sastFinding);
                   allFindings.sast.push(sastFinding);
                 });
               }
-              
+
               // Process Secrets findings
               if (fileResult.secrets && Array.isArray(fileResult.secrets)) {
                 fileResult.secrets.forEach((secret) => {
                   const secretFinding = {
                     id: secret.id || `secret-${Date.now()}-${Math.random()}`,
-                    type: 'secret',
-                    severity: 'HIGH',
-                    title: `${secret.type || 'Secret'} detected`,
-                    description: secret.description || 'Sensitive information found in code',
+                    type: "secret",
+                    severity: "HIGH",
+                    title: `${secret.type || "Secret"} detected`,
+                    description:
+                      secret.description ||
+                      "Sensitive information found in code",
                     location: secret.location,
                     line: secret.line_number,
                     secretType: secret.type,
                     affectedFiles: [fileResult.filename],
-                    recommendation: 'Remove sensitive data and rotate credentials'
+                    recommendation:
+                      "Remove sensitive data and rotate credentials",
                   };
                   allVulnerabilities.push(secretFinding);
                   allFindings.secrets.push(secretFinding);
                 });
               }
-              
+
               // Process API Security findings
-              if (fileResult.api_findings && Array.isArray(fileResult.api_findings)) {
+              if (
+                fileResult.api_findings &&
+                Array.isArray(fileResult.api_findings)
+              ) {
                 fileResult.api_findings.forEach((finding) => {
                   const apiFinding = {
                     id: finding.id || `api-${Date.now()}-${Math.random()}`,
-                    type: 'api',
-                    severity: finding.severity?.toUpperCase() || 'MEDIUM',
-                    title: finding.title || 'API security issue',
+                    type: "api",
+                    severity: finding.severity?.toUpperCase() || "MEDIUM",
+                    title: finding.title || "API security issue",
                     description: finding.description,
                     endpoint: finding.endpoint,
                     method: finding.method,
                     affectedFiles: [fileResult.filename],
-                    recommendation: finding.recommendation
+                    recommendation: finding.recommendation,
                   };
                   allVulnerabilities.push(apiFinding);
                   allFindings.api.push(apiFinding);
@@ -695,7 +802,7 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
               }
             });
           }
-          
+
           // Build consolidated report with detail level
           const report = {
             startedAt: new Date().toISOString(),
@@ -704,30 +811,42 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
             detailLevel: selectedDetailLevel, // Add detail level to report
             summary: {
               files: fileAnalyses.length,
-              dependencies: fileAnalyses.reduce((sum, f) => sum + (f.dependencies || 0), 0),
+              dependencies: fileAnalyses.reduce(
+                (sum, f) => sum + (f.dependencies || 0),
+                0
+              ),
               vulnerabilities: allVulnerabilities.length,
-              critical: allVulnerabilities.filter(v => v.severity === 'CRITICAL').length,
-              high: allVulnerabilities.filter(v => v.severity === 'HIGH').length,
-              medium: allVulnerabilities.filter(v => v.severity === 'MEDIUM').length,
-              low: allVulnerabilities.filter(v => v.severity === 'LOW').length,
+              critical: allVulnerabilities.filter(
+                (v) => v.severity === "CRITICAL"
+              ).length,
+              high: allVulnerabilities.filter((v) => v.severity === "HIGH")
+                .length,
+              medium: allVulnerabilities.filter((v) => v.severity === "MEDIUM")
+                .length,
+              low: allVulnerabilities.filter((v) => v.severity === "LOW")
+                .length,
               byType: {
                 dependencies: allFindings.dependencies.length,
                 sast: allFindings.sast.length,
                 secrets: allFindings.secrets.length,
-                api: allFindings.api.length
-              }
+                api: allFindings.api.length,
+              },
             },
             files: fileAnalyses,
             vulnerabilities: allVulnerabilities,
             findings: allFindings,
-            modules: getSelectedModules()
+            modules: getSelectedModules(),
           };
-          
-          console.log('✅ Scan completed successfully:', report);
-          
+
+          logger.info("Scan completed successfully", {
+            reportId: report.startedAt,
+          });
+
           // Save scan result to localStorage for dashboard
           try {
-            const scanHistory = JSON.parse(localStorage.getItem('scan_history') || '[]');
+            const scanHistory = JSON.parse(
+              localStorage.getItem("scan_history") || "[]"
+            );
             const scanRecord = {
               id: `scan_${Date.now()}`,
               timestamp: new Date().toISOString(),
@@ -737,241 +856,116 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
               high: report.summary.high,
               medium: report.summary.medium,
               low: report.summary.low,
-              files: fileAnalyses.map(f => f.file),
-              ecosystems: [...new Set(fileAnalyses.map(f => f.ecosystem))],
-              report: report
+              files: fileAnalyses.map((f) => f.file),
+              ecosystems: [...new Set(fileAnalyses.map((f) => f.ecosystem))],
+              report: report,
             };
             scanHistory.unshift(scanRecord); // Add to beginning
             // Keep only last 50 scans
             if (scanHistory.length > 50) scanHistory.length = 50;
-            localStorage.setItem('scan_history', JSON.stringify(scanHistory));
+            localStorage.setItem("scan_history", JSON.stringify(scanHistory));
           } catch (e) {
-            console.error('Failed to save scan to history:', e);
+            logger.error("Failed to save scan to history", e);
           }
-          
+
           dispatchReport(report);
         } catch (e) {
-          console.error('❌ Scan error:', e);
-          alert('Failed to start scan: ' + (e?.message || 'Unknown error'));
+          logger.error("Scan error", e);
+          alert("Failed to start scan: " + (e?.message || "Unknown error"));
         } finally {
           btnScan.disabled = false;
-          btnScan.textContent = '> START_SCAN';
+          btnScan.textContent = "> START_SCAN";
         }
       });
 
       // IMPORT_REPO handler - Using new /api/v1/analyze/job endpoint
-      btnImport?.addEventListener('click', async () => {
-        const url = repoUrl?.value?.trim?.() ?? '';
-        if (!url || !/^https?:\/\/github.com\//i.test(url)) { 
-          alert('Please enter a valid GitHub repository URL.'); 
-          return; 
+      btnImport?.addEventListener("click", async () => {
+        const url = repoUrl?.value?.trim?.() ?? "";
+        if (!url || !/^https?:\/\/github.com\//i.test(url)) {
+          alert("Please enter a valid GitHub repository URL.");
+          return;
         }
-        
+
         // Get GitHub token from input field or cookie
-        const githubTokenInput = document.getElementById('github-token-input');
-        const githubToken = githubTokenInput?.value?.trim() || getCookie('github_token');
-        
+        const githubTokenInput = document.getElementById("github-token-input");
+        const githubToken =
+          githubTokenInput?.value?.trim() || getCookie("github_token");
+
         try {
           btnImport.disabled = true;
-          btnImport.textContent = '> IMPORTING...';
-          
-          // Get auth token or API key from cookies
-          const token = getCookie('auth_token');
-          const apiKey = getCookie('api_key');
-          
-          const headers = {
-            'Content-Type': 'application/json',
-          };
-          
-          // Add GitHub token if provided
-          if (githubToken) {
-            headers['X-GitHub-Token'] = githubToken;
-          }
-          
-          // Prefer API key, fallback to JWT token
-          if (apiKey) {
-            headers['X-API-Key'] = apiKey;
-            headers['Authorization'] = `ApiKey ${apiKey}`;
-          } else if (token) {
-            headers['Authorization'] = `Bearer ${token}`;
-          } else {
-            alert('⚠️ Authentication required\n\nPlease log in first or generate an API key in Settings.');
+          btnImport.textContent = "> IMPORTING...";
+
+          // Check authentication (apiClient handles auth automatically)
+          const token = getCookie("auth_token");
+          const apiKey = getCookie("api_key");
+          if (!token && !apiKey) {
+            alert(
+              "⚠️ Authentication required\n\nPlease log in first or generate an API key in Settings."
+            );
             return;
           }
+
+          // Note: GitHub token (X-GitHub-Token header) would need to be added to apiClient if needed
+          // For now, apiClient handles standard auth (API key or Bearer token)
           // Extract owner and repo from GitHub URL
           const urlObj = new URL(url);
-          const pathParts = urlObj.pathname.split('/').filter(p => p);
+          const pathParts = urlObj.pathname.split("/").filter((p) => p);
           const owner = pathParts[0];
-          const repo = pathParts[1]?.replace(/\.git$/, '');
-          
+          const repo = pathParts[1]?.replace(/\.git$/, "");
+
           if (!owner || !repo) {
-            throw new Error('Invalid GitHub URL. Expected format: https://github.com/owner/repo');
-          }
-          
-          // Get all analysis modules (always all 4 modules)
-          const selectedModules = getSelectedModules();
-          
-          console.log('🔍 Repository import params:', {
-            source_type: 'git',
-            source_uri: `https://github.com/${owner}/${repo}.git`,
-            analysis_depth: selectedAnalysisDepth,
-            modules: selectedModules
-          });
-          
-          // Use new analyze/job endpoint. Backend requires an analysis depth field but docs are inconsistent.
-          // We'll try combinations of field names and values until one is accepted.
-          const fullUrl = `${API_BASE_URL}/api/v1/analyze/job`;
-          const baseBody = {
-            source_type: 'git',
-            source_uri: `https://github.com/${owner}/${repo}.git`,
-            modules: selectedModules,
-            metadata: {
-              provider: 'github',
-              owner: owner,
-              repo: repo,
-              branch: 'main'
-            }
-          };
-
-          // Prefer any previously successful combo from localStorage
-          let savedCombo = null;
-          try {
-            const raw = localStorage.getItem('repo_analysis_depth_combo');
-            if (raw) savedCombo = JSON.parse(raw);
-          } catch {}
-
-          const fieldCandidates = savedCombo?.field
-            ? [savedCombo.field, 'analysis_depth', 'detail_level', 'analysisDepth', 'detailLevel', 'depth']
-            : ['analysis_depth', 'detail_level', 'analysisDepth', 'detailLevel', 'depth'];
-
-          const valueCandidates = Array.from(new Set([
-            ...(savedCombo?.value ? [savedCombo.value] : []),
-            // Prioritize known working values
-            'full', 'FULL',
-            // Then try other common values
-            selectedAnalysisDepth,
-            'standard', 'minimal', 'full', 'STANDARD', 'MINIMAL', 'FULL',
-            'basic', 'default', 'quick', 'BASIC', 'DEFAULT', 'QUICK'
-          ]));
-
-          let response;
-          let lastErrorText = '';
-          let triedCombos = [];
-          let successBody = null;
-          let acceptedField = null;
-          let acceptedValue = null;
-
-          outer: for (const field of fieldCandidates) {
-            for (const depth of valueCandidates) {
-              triedCombos.push(`${field}=${depth}`);
-              const requestBody = { ...baseBody, [field]: depth };
-              console.log('📤 Trying', { field, depth, requestBody, headers });
-
-              response = await fetch(fullUrl, {
-                method: 'POST',
-                headers: headers,
-                body: JSON.stringify(requestBody)
-              });
-
-              console.log('📥 Response status:', response.status, response.statusText);
-              console.log('📥 Response headers:', Object.fromEntries(response.headers.entries()));
-              
-              // If HTTP OK, try to parse and proceed
-              if (response.ok) {
-                const ct = (response.headers.get('content-type') || '').toLowerCase();
-                console.log('📥 Response content-type:', ct);
-                if (ct.includes('application/json')) {
-                  successBody = await response.json();
-                  console.log('📥 Response body (JSON):', successBody);
-                  acceptedField = field;
-                  acceptedValue = depth;
-                  break outer;
-                }
-                const text = await response.text();
-                console.log('📥 Response body (text):', text);
-                try {
-                  successBody = JSON.parse(text);
-                  console.log('📥 Parsed JSON from text:', successBody);
-                  acceptedField = field;
-                  acceptedValue = depth;
-                  break outer;
-                } catch {
-                  // Non-JSON success is unexpected; continue trying other combos
-                  lastErrorText = `Success with non-JSON content-type: ${ct}. Body: ${text.substring(0, 200)}`;
-                  console.warn('⚠️ Non-JSON success response:', lastErrorText);
-                  continue;
-                }
-              }              // Capture error details to decide whether to retry
-              try {
-                const contentType = (response.headers.get('content-type') || '').toLowerCase();
-                console.log('📥 Error response content-type:', contentType);
-                if (contentType.includes('application/json')) {
-                  const json = await response.json();
-                  console.log('📥 Error response body (JSON):', json);
-                  lastErrorText = JSON.stringify(json);
-                } else {
-                  lastErrorText = await response.text();
-                  console.log('📥 Error response body (text):', lastErrorText);
-                }
-              } catch (parseError) {
-                console.error('📥 Failed to parse error response:', parseError);
-                lastErrorText = 'Could not parse error response';
-              }
-
-              // Retry only when it's clearly a depth validation error
-              if (response.status === 422 && /(analysis_depth|detail_level|depth)/i.test(lastErrorText)) {
-                console.warn(`⚠️ Backend rejected ${field}='${depth}'. Trying next candidate...`);
-                continue; // try next value or field
-              }
-
-              // For other errors, stop early
-              if (response.status === 401) {
-                throw new Error('Authentication failed: Your session has expired or the token is invalid. Please log in again.');
-              }
-              if (response.status === 404) {
-                throw new Error('Endpoint not found: The backend API endpoint /api/v1/analyze/job does not exist. Please check backend implementation.');
-              }
-              if (response.status === 429) {
-                throw new Error('Rate limit exceeded. Please try again later.');
-              }
-
-              // Unknown error - surface and stop
-              throw new Error(`HTTP ${response.status}: ${response.statusText}${lastErrorText ? '\n\nResponse: ' + lastErrorText : ''}`);
-            }
-          }
-
-          if (!response || !response.ok || !successBody) {
             throw new Error(
-              'Backend rejected all depth field/value combinations.\n\n' +
-              `Tried: ${triedCombos.join(' | ')}\n` +
-              (lastErrorText ? `Last response: ${lastErrorText}` : '')
+              "Invalid GitHub URL. Expected format: https://github.com/owner/repo"
             );
           }
 
-          // Persist working combo for future runs
-          try {
-            if (acceptedField && acceptedValue) {
-              localStorage.setItem('repo_analysis_depth_combo', JSON.stringify({ field: acceptedField, value: acceptedValue }));
-              console.info(`✅ Using ${acceptedField}='${acceptedValue}' (persisted for next imports)`);
+          // Ensure analysis_depth is a valid value
+          const validDepths = ["minimal", "standard", "full"];
+          const analysisDepth = validDepths.includes(selectedAnalysisDepth)
+            ? selectedAnalysisDepth
+            : "standard";
+
+          // Build request body according to OpenAPI spec
+          const requestBody = {
+            source_type: "git",
+            source_uri: `https://github.com/${owner}/${repo}.git`,
+            analysis_depth: analysisDepth,
+          };
+
+          // Call analyze/job endpoint
+          const apiResponse = await apiClient.post(
+            API_ENDPOINTS.ANALYSIS.ANALYZE,
+            requestBody
+          );
+
+          if (!apiResponse.success) {
+            if (apiResponse.status === 401) {
+              throw new Error(
+                "Authentication failed: Your session has expired or the token is invalid. Please log in again."
+              );
             }
-          } catch {}
-          
-          // We already obtained and validated a successful body in the loop above
-          const result = successBody;
-          console.log('✅ Final result from backend:', result);
-          console.log('📊 Analysis summary:', {
-            status: result.status,
-            totalFindings: result.summary?.total_findings || 0,
-            modulesCompleted: result.summary?.modules_completed || 0,
-            modulesFailed: result.summary?.modules_failed || 0,
-            findingsCount: result.findings?.length || 0
-          });
-          
-          // Check job status
-          if (result.status === 'failed') {
-            throw new Error('Repository analysis failed. Please check the repository URL and try again.');
+            if (apiResponse.status === 404) {
+              throw new Error(
+                "Endpoint not found: The backend API endpoint /api/v1/analyze/job does not exist. Please check backend implementation."
+              );
+            }
+            if (apiResponse.status === 429) {
+              throw new Error("Rate limit exceeded. Please try again later.");
+            }
+            throw new Error(
+              apiResponse.error || `HTTP ${apiResponse.status}: Request failed`
+            );
           }
-          
+
+          const result = apiResponse.data;
+
+          // Check job status
+          if (result.status === "failed") {
+            throw new Error(
+              "Repository analysis failed. Please check the repository URL and try again."
+            );
+          }
+
           // Transform job response to report format
           const fileAnalyses = [];
           const allVulnerabilities = [];
@@ -979,78 +973,88 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
             dependencies: [],
             sast: [],
             secrets: [],
-            api: []
+            api: [],
           };
-          
+
           // Process findings by type
           if (result.findings && Array.isArray(result.findings)) {
             result.findings.forEach((finding) => {
-              const findingType = finding.type || 'unknown';
-              const affectedFiles = finding.location?.path ? [finding.location.path] : [];
-              
-              if (findingType === 'dependency') {
+              const findingType = finding.type || "unknown";
+              const affectedFiles = finding.location?.path
+                ? [finding.location.path]
+                : [];
+
+              if (findingType === "dependency") {
                 const depFinding = {
                   id: finding.id || `dep-${Date.now()}-${Math.random()}`,
-                  type: 'dependency',
-                  severity: finding.severity?.toUpperCase() || 'UNKNOWN',
-                  package: finding.package_name || 'unknown',
-                  version: finding.package_version || '',
-                  title: finding.title || finding.description || 'Dependency vulnerability',
+                  type: "dependency",
+                  severity: finding.severity?.toUpperCase() || "UNKNOWN",
+                  package: finding.package_name || "unknown",
+                  version: finding.package_version || "",
+                  title:
+                    finding.title ||
+                    finding.description ||
+                    "Dependency vulnerability",
                   cve: finding.cve_id || finding.id,
                   affectedFiles: affectedFiles,
                   cvss: finding.cvss_score,
-                  recommendation: finding.recommendation
+                  recommendation: finding.recommendation,
                 };
                 allVulnerabilities.push(depFinding);
                 allFindings.dependencies.push(depFinding);
-              } else if (findingType === 'sast') {
+              } else if (findingType === "sast") {
                 const sastFinding = {
                   id: finding.id || `sast-${Date.now()}-${Math.random()}`,
-                  type: 'sast',
-                  severity: finding.severity?.toUpperCase() || 'MEDIUM',
-                  title: finding.title || finding.description || 'Code quality issue',
+                  type: "sast",
+                  severity: finding.severity?.toUpperCase() || "MEDIUM",
+                  title:
+                    finding.title ||
+                    finding.description ||
+                    "Code quality issue",
                   description: finding.description,
                   location: finding.location,
                   line: finding.location?.line_number,
                   cwe: finding.cwe_id,
                   affectedFiles: affectedFiles,
-                  recommendation: finding.recommendation
+                  recommendation: finding.recommendation,
                 };
                 allVulnerabilities.push(sastFinding);
                 allFindings.sast.push(sastFinding);
-              } else if (findingType === 'secret') {
+              } else if (findingType === "secret") {
                 const secretFinding = {
                   id: finding.id || `secret-${Date.now()}-${Math.random()}`,
-                  type: 'secret',
-                  severity: 'HIGH',
-                  title: `${finding.secret_type || 'Secret'} detected`,
-                  description: finding.description || 'Sensitive information found',
+                  type: "secret",
+                  severity: "HIGH",
+                  title: `${finding.secret_type || "Secret"} detected`,
+                  description:
+                    finding.description || "Sensitive information found",
                   location: finding.location,
                   line: finding.location?.line_number,
                   secretType: finding.secret_type,
                   affectedFiles: affectedFiles,
-                  recommendation: 'Remove sensitive data and rotate credentials'
+                  recommendation:
+                    "Remove sensitive data and rotate credentials",
                 };
                 allVulnerabilities.push(secretFinding);
                 allFindings.secrets.push(secretFinding);
-              } else if (findingType === 'api') {
+              } else if (findingType === "api") {
                 const apiFinding = {
                   id: finding.id || `api-${Date.now()}-${Math.random()}`,
-                  type: 'api',
-                  severity: finding.severity?.toUpperCase() || 'MEDIUM',
-                  title: finding.title || 'API security issue',
+                  type: "api",
+                  severity: finding.severity?.toUpperCase() || "MEDIUM",
+                  title: finding.title || "API security issue",
                   description: finding.description,
                   endpoint: finding.endpoint,
                   method: finding.http_method,
                   affectedFiles: affectedFiles,
-                  recommendation: finding.recommendation
+                  recommendation: finding.recommendation,
                 };
                 allVulnerabilities.push(apiFinding);
                 allFindings.api.push(apiFinding);
               }
             });
           }
-          
+
           // Build report with analysis depth
           const report = {
             startedAt: new Date().toISOString(),
@@ -1061,7 +1065,8 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
             summary: {
               files: result.summary?.modules_completed || 0,
               dependencies: 0,
-              vulnerabilities: result.summary?.total_findings || allVulnerabilities.length,
+              vulnerabilities:
+                result.summary?.total_findings || allVulnerabilities.length,
               critical: result.summary?.critical || 0,
               high: result.summary?.high || 0,
               medium: result.summary?.medium || 0,
@@ -1070,148 +1075,263 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
                 dependencies: allFindings.dependencies.length,
                 sast: allFindings.sast.length,
                 secrets: allFindings.secrets.length,
-                api: allFindings.api.length
-              }
+                api: allFindings.api.length,
+              },
             },
             files: fileAnalyses,
             vulnerabilities: allVulnerabilities,
             findings: allFindings,
-            modules: getSelectedModules()
+            modules: getSelectedModules(),
           };
-            
-            // Save scan result to localStorage for dashboard
-            try {
-              const scanHistory = JSON.parse(localStorage.getItem('scan_history') || '[]');
-              const scanRecord = {
-                id: `scan_${Date.now()}`,
-                timestamp: new Date().toISOString(),
-                type: 'repository',
-                project: `${owner}/${repo}`,
-                filesCount: report.files?.length || 0,
-                vulnerabilities: report.summary.vulnerabilities,
-                critical: report.summary.critical,
-                high: report.summary.high,
-                medium: report.summary.medium,
-                low: report.summary.low,
-                ecosystems: [...new Set(report.files?.map(f => f.ecosystem) || [])],
-                report: report
-              };
-              scanHistory.unshift(scanRecord);
-              if (scanHistory.length > 50) scanHistory.length = 50;
-              localStorage.setItem('scan_history', JSON.stringify(scanHistory));
-            } catch (e) {
-              console.error('Failed to save scan to history:', e);
-            }
-            
-            // Dispatch report to display
-            dispatchReport(report);
-            
-            // Clear the file list after successful import
-            pickedFiles = [];
-            renderFiles();
-            
-            alert(`Repository analyzed successfully!\n\nTotal vulnerabilities: ${report.summary.vulnerabilities || 0}`);
 
+          // Save scan result to localStorage for dashboard
+          try {
+            const scanHistory = JSON.parse(
+              localStorage.getItem("scan_history") || "[]"
+            );
+            const scanRecord = {
+              id: `scan_${Date.now()}`,
+              timestamp: new Date().toISOString(),
+              type: "repository",
+              project: `${owner}/${repo}`,
+              filesCount: report.files?.length || 0,
+              vulnerabilities: report.summary.vulnerabilities,
+              critical: report.summary.critical,
+              high: report.summary.high,
+              medium: report.summary.medium,
+              low: report.summary.low,
+              ecosystems: [
+                ...new Set(report.files?.map((f) => f.ecosystem) || []),
+              ],
+              report: report,
+            };
+            scanHistory.unshift(scanRecord);
+            if (scanHistory.length > 50) scanHistory.length = 50;
+            localStorage.setItem("scan_history", JSON.stringify(scanHistory));
+          } catch (e) {
+            logger.error("Failed to save scan to history", e);
+          }
+
+          // Dispatch report to display
+          dispatchReport(report);
+
+          // Clear the file list after successful import
+          pickedFiles = [];
+          renderFiles();
+
+          alert(
+            `Repository analyzed successfully!\n\nTotal vulnerabilities: ${report.summary.vulnerabilities || 0}`
+          );
         } catch (e) {
-          console.error('Repository import error:', e);
-          let errorMsg = 'Unknown error';
-          
+          logger.error("Repository import error", e);
+          let errorMsg = "Unknown error";
+
           // Handle fetch abort/timeout
-          if (e instanceof Error && e.name === 'AbortError') {
-            errorMsg = 'Request timeout: The repository analysis took too long. The backend may be busy or the repository may be very large. Please try again later.';
+          if (e instanceof Error && e.name === "AbortError") {
+            errorMsg =
+              "Request timeout: The repository analysis took too long. The backend may be busy or the repository may be very large. Please try again later.";
           } else if (e instanceof Error) {
             errorMsg = e.message;
-          } else if (typeof e === 'string') {
+          } else if (typeof e === "string") {
             errorMsg = e;
           } else {
             errorMsg = JSON.stringify(e);
           }
-          
+
           // Add fallback message if error is empty
-          if (!errorMsg || errorMsg.trim() === '') {
-            errorMsg = 'Backend endpoint may not be implemented or server is unreachable';
+          if (!errorMsg || errorMsg.trim() === "") {
+            errorMsg =
+              "Backend endpoint may not be implemented or server is unreachable";
           }
-          
+
           // Enhanced error messages based on error type
-          let alertTitle = '❌ Failed to import repository';
-          let suggestions = 'Please check:\n• Repository URL is correct\n• Repository is public or you have access\n• Backend server is running and accessible';
-          
-          if (errorMsg.includes('Authentication failed') || errorMsg.includes('expired') || errorMsg.includes('401')) {
-            alertTitle = '⚠️ Authentication Error';
-            suggestions = 'Please log in again to continue.';
-          } else if (errorMsg.includes('404') || errorMsg.includes('not found') || errorMsg.includes('Endpoint not found')) {
-            alertTitle = '⚠️ Backend API Not Available';
-            suggestions = 'The backend endpoint does not exist.\n\nThis feature requires:\n• Backend API v1 with /api/v1/analyze/job endpoint\n• Proper backend deployment and configuration';
-          } else if (errorMsg.includes('JSON') || errorMsg.includes('parse')) {
-            alertTitle = '⚠️ Invalid Backend Response';
-            suggestions = 'The backend returned an unexpected response format.\n\nPossible causes:\n• Backend is not running\n• Backend returned HTML error page\n• API endpoint returns wrong content type';
-          } else if (errorMsg.includes('NetworkError') || errorMsg.includes('Failed to fetch')) {
-            alertTitle = '⚠️ Network Error';
-            suggestions = 'Cannot connect to backend server.\n\nPlease check:\n• Backend server is running\n• CORS is properly configured\n• URL is correct: ' + API_BASE_URL;
+          let alertTitle = "❌ Failed to import repository";
+          let suggestions =
+            "Please check:\n• Repository URL is correct\n• Repository is public or you have access\n• Backend server is running and accessible";
+
+          if (
+            errorMsg.includes("Authentication failed") ||
+            errorMsg.includes("expired") ||
+            errorMsg.includes("401")
+          ) {
+            alertTitle = "⚠️ Authentication Error";
+            suggestions = "Please log in again to continue.";
+          } else if (
+            errorMsg.includes("404") ||
+            errorMsg.includes("not found") ||
+            errorMsg.includes("Endpoint not found")
+          ) {
+            alertTitle = "⚠️ Backend API Not Available";
+            suggestions =
+              "The backend endpoint does not exist.\n\nThis feature requires:\n• Backend API v1 with /api/v1/analyze/job endpoint\n• Proper backend deployment and configuration";
+          } else if (errorMsg.includes("JSON") || errorMsg.includes("parse")) {
+            alertTitle = "⚠️ Invalid Backend Response";
+            suggestions =
+              "The backend returned an unexpected response format.\n\nPossible causes:\n• Backend is not running\n• Backend returned HTML error page\n• API endpoint returns wrong content type";
+          } else if (
+            errorMsg.includes("NetworkError") ||
+            errorMsg.includes("Failed to fetch")
+          ) {
+            alertTitle = "⚠️ Network Error";
+            suggestions =
+              "Cannot connect to backend server.\n\nPlease check:\n• Backend server is running\n• CORS is properly configured\n• Check API configuration";
           }
-          
+
           alert(`${alertTitle}\n\n${errorMsg}\n\n${suggestions}`);
         } finally {
           btnImport.disabled = false;
-          btnImport.textContent = '> IMPORT_REPO';
+          btnImport.textContent = "> IMPORT_REPO";
         }
       });
 
       // LOAD_DEMO_FILES handler
-      btnLoadDemo?.addEventListener('click', async () => {
+      btnLoadDemo?.addEventListener("click", async () => {
         try {
           const demoFiles = [
-            { url: '/demo/package.json', name: 'package.json', type: 'application/json' },
-            { url: '/demo/requirements.txt', name: 'requirements.txt', type: 'text/plain' },
-            { url: '/demo/Cargo.lock', name: 'Cargo.lock', type: 'text/plain' },
+            {
+              url: "/demo/package.json",
+              name: "package.json",
+              type: "application/json",
+            },
+            {
+              url: "/demo/requirements.txt",
+              name: "requirements.txt",
+              type: "text/plain",
+            },
+            { url: "/demo/Cargo.lock", name: "Cargo.lock", type: "text/plain" },
           ];
-          const fetched = await Promise.all(demoFiles.map(async (d) => {
-            const resp = await fetch(d.url);
-            if (!resp.ok) throw new Error(`Failed to fetch ${d.url}`);
-            const blob = await resp.blob();
-            return new File([blob], d.name, { type: d.type });
-          }));
+          const fetched = await Promise.all(
+            demoFiles.map(async (d) => {
+              const resp = await fetch(d.url);
+              if (!resp.ok) throw new Error(`Failed to fetch ${d.url}`);
+              const blob = await resp.blob();
+              return new File([blob], d.name, { type: d.type });
+            })
+          );
           pickedFiles = [...pickedFiles, ...fetched].slice(0, 50);
           renderFiles();
         } catch (err) {
-          console.error(err);
-          alert('Failed to load demo files');
+          logger.error("Failed to load demo files", err);
+          alert("Failed to load demo files");
         }
       });
 
       // PREVIEW_REPORT handler
-      btnPreview?.addEventListener('click', () => {
+      btnPreview?.addEventListener("click", () => {
         const now = new Date();
         const mock = {
           startedAt: new Date(now.getTime() - 2500).toISOString(),
           finishedAt: now.toISOString(),
           durationMs: 2500,
           detailLevel: selectedDetailLevel, // Add current detail level
-          summary: { files: 3, dependencies: 120, vulnerabilities: 6, critical: 2, high: 2, medium: 2, low: 0 },
+          summary: {
+            files: 3,
+            dependencies: 120,
+            vulnerabilities: 6,
+            critical: 2,
+            high: 2,
+            medium: 2,
+            low: 0,
+          },
           files: [
-            { file: 'Cargo.lock', ecosystem: 'cargo', dependencies: 45, vulnerable: 2 },
-            { file: 'package.json', ecosystem: 'npm', dependencies: 38, vulnerable: 2 },
-            { file: 'requirements.txt', ecosystem: 'pypi', dependencies: 37, vulnerable: 2 },
+            {
+              file: "Cargo.lock",
+              ecosystem: "cargo",
+              dependencies: 45,
+              vulnerable: 2,
+            },
+            {
+              file: "package.json",
+              ecosystem: "npm",
+              dependencies: 38,
+              vulnerable: 2,
+            },
+            {
+              file: "requirements.txt",
+              ecosystem: "pypi",
+              dependencies: 37,
+              vulnerable: 2,
+            },
           ],
           vulnerabilities: [
-            { id: '1', severity: 'CRITICAL', package: 'openssl', version: '1.1.1', title: 'Memory corruption in TLS handler', cve: 'CVE-2024-12345', cvss: 9.8, affectedFiles: ['Cargo.lock'], recommendation: 'Upgrade to 1.1.1u or 3.x.' },
-            { id: '2', severity: 'CRITICAL', package: 'glibc', version: '2.28', title: 'Stack smashing vulnerability', cve: 'CVE-2024-99999', cvss: 9.1, affectedFiles: ['requirements.txt'], recommendation: 'Patch to latest LTS.' },
-            { id: '3', severity: 'HIGH', package: 'lodash', version: '4.17.15', title: 'Prototype pollution', cve: 'CVE-2020-8203', cvss: 7.2, affectedFiles: ['package.json'], recommendation: 'Update to >= 4.17.21.' },
-            { id: '4', severity: 'HIGH', package: 'urllib3', version: '1.25.8', title: 'CRLF injection', cve: 'CVE-2020-26137', cvss: 7.5, affectedFiles: ['requirements.txt'], recommendation: 'Upgrade to >= 1.26.5.' },
-            { id: '5', severity: 'MEDIUM', package: 'moment', version: '2.24.0', title: 'Regex DoS', cvss: 5.3, affectedFiles: ['package.json'] },
-            { id: '6', severity: 'MEDIUM', package: 'requests', version: '2.19.0', title: 'Open redirect', cvss: 5.8, affectedFiles: ['requirements.txt'] },
+            {
+              id: "1",
+              severity: "CRITICAL",
+              package: "openssl",
+              version: "1.1.1",
+              title: "Memory corruption in TLS handler",
+              cve: "CVE-2024-12345",
+              cvss: 9.8,
+              affectedFiles: ["Cargo.lock"],
+              recommendation: "Upgrade to 1.1.1u or 3.x.",
+            },
+            {
+              id: "2",
+              severity: "CRITICAL",
+              package: "glibc",
+              version: "2.28",
+              title: "Stack smashing vulnerability",
+              cve: "CVE-2024-99999",
+              cvss: 9.1,
+              affectedFiles: ["requirements.txt"],
+              recommendation: "Patch to latest LTS.",
+            },
+            {
+              id: "3",
+              severity: "HIGH",
+              package: "lodash",
+              version: "4.17.15",
+              title: "Prototype pollution",
+              cve: "CVE-2020-8203",
+              cvss: 7.2,
+              affectedFiles: ["package.json"],
+              recommendation: "Update to >= 4.17.21.",
+            },
+            {
+              id: "4",
+              severity: "HIGH",
+              package: "urllib3",
+              version: "1.25.8",
+              title: "CRLF injection",
+              cve: "CVE-2020-26137",
+              cvss: 7.5,
+              affectedFiles: ["requirements.txt"],
+              recommendation: "Upgrade to >= 1.26.5.",
+            },
+            {
+              id: "5",
+              severity: "MEDIUM",
+              package: "moment",
+              version: "2.24.0",
+              title: "Regex DoS",
+              cvss: 5.3,
+              affectedFiles: ["package.json"],
+            },
+            {
+              id: "6",
+              severity: "MEDIUM",
+              package: "requests",
+              version: "2.19.0",
+              title: "Open redirect",
+              cvss: 5.8,
+              affectedFiles: ["requirements.txt"],
+            },
           ],
         };
-        window.dispatchEvent(new CustomEvent('vulnera:scan-report', { detail: mock }));
+        window.dispatchEvent(
+          new CustomEvent("vulnera:scan-report", { detail: mock })
+        );
         setTimeout(() => {
-          document.getElementById('scan-report-anchor')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          document
+            .getElementById("scan-report-anchor")
+            ?.scrollIntoView({ behavior: "smooth", block: "start" });
         }, 50);
       });
     }
 
     // Initialize when DOM is ready
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', initializeHandlers);
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", initializeHandlers);
     } else {
       initializeHandlers();
     }

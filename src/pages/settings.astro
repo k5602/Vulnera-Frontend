@@ -4,47 +4,45 @@ import Navigation from "../components/Navigation.astro";
 import Footer from "../components/Footer.astro";
 ---
 
-<Layout title="Settings — Vulnera" description="Manage your API keys and account settings.">
-  <!-- Auth Guard -->
-  <!-- <script is:inline>
-    (function() {
-      function getCookie(name) {
-        const nameEQ = encodeURIComponent(name) + '=';
-        const cookies = document.cookie.split(';');
-        for (let cookie of cookies) {
-          cookie = cookie.trim();
-          if (cookie.startsWith(nameEQ)) {
-            return decodeURIComponent(cookie.substring(nameEQ.length));
-          }
-        }
-        return null;
-      }
-      
-      const token = getCookie('auth_token');
-      if (!token) {
-        window.location.href = '/login?next=/settings';
-      }
-    })();
-  </script> -->
-
+<Layout
+  title="Settings — Vulnera"
+  description="Manage your API keys and account settings."
+>
   <Navigation />
 
-  <section id="main" class="relative min-h-screen flex items-center justify-center overflow-hidden bg-black py-8 sm:py-12 md:py-20" aria-labelledby="settings-title">
+  <section
+    id="main"
+    class="relative min-h-screen flex items-center justify-center overflow-hidden bg-black py-8 sm:py-12 md:py-20"
+    aria-labelledby="settings-title"
+  >
     <div class="absolute inset-0 z-0">
       <div class="absolute inset-0 matrix-rain opacity-20"></div>
-      <div class="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-black/60"></div>
-      <div class="absolute inset-0 bg-gradient-to-b from-transparent via-matrix-900/20 to-black/80"></div>
+      <div
+        class="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-black/60"
+      >
+      </div>
+      <div
+        class="absolute inset-0 bg-gradient-to-b from-transparent via-matrix-900/20 to-black/80"
+      >
+      </div>
     </div>
 
     <div class="relative z-10 w-full max-w-6xl px-3 sm:px-4 md:px-6">
       <div class="mb-6 mt-6 sm:mt-8 md:mt-8 text-center">
-        <h1 id="settings-title" class="text-2xl sm:text-3xl md:text-4xl font-bold text-white font-mono tracking-wider">
+        <h1
+          id="settings-title"
+          class="text-2xl sm:text-3xl md:text-4xl font-bold text-white font-mono tracking-wider"
+        >
           <span class="text-cyber-400">&gt;</span> SETTINGS
         </h1>
-        <p class="text-matrix-300 mt-2">Manage your API keys and account settings</p>
+        <p class="text-matrix-300 mt-2">
+          Manage your API keys and account settings
+        </p>
       </div>
 
-      <div class="terminal-border bg-black/80 rounded-xl shadow-xl overflow-hidden">
+      <div
+        class="terminal-border bg-black/80 rounded-xl shadow-xl overflow-hidden"
+      >
         <div class="flex items-center space-x-2 px-4 sm:px-6 pt-4 pb-2">
           <span class="w-3 h-3 rounded-full bg-red-500"></span>
           <span class="w-3 h-3 rounded-full bg-yellow-500"></span>
@@ -54,10 +52,12 @@ import Footer from "../components/Footer.astro";
 
         <div class="flex flex-col md:flex-row">
           <!-- Sidebar Navigation -->
-          <nav class="md:w-56 lg:w-64 border-r border-matrix-500/30 bg-black/40">
+          <nav
+            class="md:w-56 lg:w-64 border-r border-matrix-500/30 bg-black/40"
+          >
             <ul class="py-4">
               <li>
-                <button 
+                <button
                   class="settings-tab w-full text-left px-4 sm:px-5 md:px-6 py-3 md:py-3 font-mono text-xs sm:text-sm transition-all duration-200 hover:bg-cyber-400/10 hover:border-l-4 hover:border-cyber-400 active"
                   data-tab="profile"
                 >
@@ -68,7 +68,7 @@ import Footer from "../components/Footer.astro";
                 </button>
               </li>
               <li>
-                <button 
+                <button
                   class="settings-tab w-full text-left px-6 py-3 font-mono text-sm transition-all duration-200 hover:bg-cyber-400/10 hover:border-l-4 hover:border-cyber-400"
                   data-tab="security"
                 >
@@ -79,7 +79,7 @@ import Footer from "../components/Footer.astro";
                 </button>
               </li>
               <li>
-                <button 
+                <button
                   class="settings-tab w-full text-left px-6 py-3 font-mono text-sm transition-all duration-200 hover:bg-cyber-400/10 hover:border-l-4 hover:border-cyber-400"
                   data-tab="notifications"
                 >
@@ -90,7 +90,7 @@ import Footer from "../components/Footer.astro";
                 </button>
               </li>
               <li>
-                <button 
+                <button
                   class="settings-tab w-full text-left px-6 py-3 font-mono text-sm transition-all duration-200 hover:bg-cyber-400/10 hover:border-l-4 hover:border-cyber-400"
                   data-tab="api-keys"
                 >
@@ -101,7 +101,7 @@ import Footer from "../components/Footer.astro";
                 </button>
               </li>
               <li>
-                <button 
+                <button
                   class="settings-tab w-full text-left px-6 py-3 font-mono text-sm transition-all duration-200 hover:bg-cyber-400/10 hover:border-l-4 hover:border-cyber-400"
                   data-tab="preferences"
                 >
@@ -112,7 +112,7 @@ import Footer from "../components/Footer.astro";
                 </button>
               </li>
               <li>
-                <button 
+                <button
                   class="settings-tab w-full text-left px-6 py-3 font-mono text-sm transition-all duration-200 hover:bg-cyan-400/10 hover:border-l-4 hover:border-cyan-400"
                   data-tab="debug"
                 >
@@ -123,7 +123,7 @@ import Footer from "../components/Footer.astro";
                 </button>
               </li>
               <li class="border-t border-matrix-500/30 mt-2 pt-2">
-                <button 
+                <button
                   class="settings-tab w-full text-left px-6 py-3 font-mono text-sm transition-all duration-200 hover:bg-red-500/10 hover:border-l-4 hover:border-red-500"
                   data-tab="danger"
                 >
@@ -140,10 +140,14 @@ import Footer from "../components/Footer.astro";
           <div class="flex-1 p-6 md:p-8">
             <!-- Profile Tab -->
             <div id="profile-tab" class="tab-content">
-              <h2 class="text-2xl font-bold text-cyber-400 mb-6 font-mono">Profile Settings</h2>
+              <h2 class="text-2xl font-bold text-cyber-400 mb-6 font-mono">
+                Profile Settings
+              </h2>
               <div class="space-y-4">
                 <div>
-                  <label class="block text-sm text-matrix-300 mb-2 font-mono">Email</label>
+                  <label class="block text-sm text-matrix-300 mb-2 font-mono"
+                    >Email</label
+                  >
                   <input
                     type="email"
                     id="profile-email"
@@ -153,7 +157,9 @@ import Footer from "../components/Footer.astro";
                   />
                 </div>
                 <div>
-                  <label class="block text-sm text-matrix-300 mb-2 font-mono">Display Name</label>
+                  <label class="block text-sm text-matrix-300 mb-2 font-mono"
+                    >Display Name</label
+                  >
                   <input
                     type="text"
                     id="profile-name"
@@ -161,332 +167,486 @@ import Footer from "../components/Footer.astro";
                     placeholder="Your Name"
                   />
                 </div>
-                <button 
-                  id="save-profile-btn" 
-                  class="bg-cyber-400 hover:bg-cyber-500 text-black font-bold py-2 px-6 rounded transition-all duration-300 font-mono"
-                >
-                  Save Profile
-                </button>
               </div>
             </div>
 
-          <!-- Security Tab -->
-                    <!-- Security Tab -->
-          <div id="security-tab" class="tab-content hidden">
-            <h2 class="text-2xl font-bold text-cyber-400 mb-6 font-mono">Security</h2>
-            <div>
-              <div class="space-y-4">
-                <div>
-                  <h3 class="text-white font-mono font-bold mb-2">Change Password</h3>
-                  <div class="space-y-3">
-                    <input
-                      type="password"
-                      id="current-password"
-                      class="w-full bg-black/50 border border-matrix-500/30 rounded px-4 py-2 text-white focus:outline-none focus:border-cyber-400 font-mono"
-                      placeholder="Current Password"
-                    />
-                    <input
-                      type="password"
-                      id="new-password"
-                      class="w-full bg-black/50 border border-matrix-500/30 rounded px-4 py-2 text-white focus:outline-none focus:border-cyber-400 font-mono"
-                      placeholder="New Password"
-                    />
-                    <input
-                      type="password"
-                      id="confirm-password"
-                      class="w-full bg-black/50 border border-matrix-500/30 rounded px-4 py-2 text-white focus:outline-none focus:border-cyber-400 font-mono"
-                      placeholder="Confirm New Password"
-                    />
-                    <button 
-                      id="change-password-btn" 
-                      class="bg-cyber-400 hover:bg-cyber-500 text-black font-bold py-2 px-6 rounded transition-all duration-300 font-mono"
+            <!-- Security Tab -->
+            <!-- Security Tab -->
+            <div id="security-tab" class="tab-content hidden">
+              <h2 class="text-2xl font-bold text-cyber-400 mb-6 font-mono">
+                Security
+              </h2>
+              <div>
+                <div class="space-y-4">
+                  <div>
+                    <h3 class="text-white font-mono font-bold mb-2">
+                      Change Password
+                    </h3>
+                    <div class="space-y-3">
+                      <input
+                        type="password"
+                        id="current-password"
+                        class="w-full bg-black/50 border border-matrix-500/30 rounded px-4 py-2 text-white focus:outline-none focus:border-cyber-400 font-mono"
+                        placeholder="Current Password"
+                      />
+                      <input
+                        type="password"
+                        id="new-password"
+                        class="w-full bg-black/50 border border-matrix-500/30 rounded px-4 py-2 text-white focus:outline-none focus:border-cyber-400 font-mono"
+                        placeholder="New Password"
+                      />
+                      <input
+                        type="password"
+                        id="confirm-password"
+                        class="w-full bg-black/50 border border-matrix-500/30 rounded px-4 py-2 text-white focus:outline-none focus:border-cyber-400 font-mono"
+                        placeholder="Confirm New Password"
+                      />
+                      <button
+                        id="change-password-btn"
+                        class="bg-cyber-400 hover:bg-cyber-500 text-black font-bold py-2 px-6 rounded transition-all duration-300 font-mono"
+                      >
+                        Update Password
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="mt-6">
+                    <h3 class="text-white font-mono font-bold mb-2">
+                      Two-Factor Authentication
+                    </h3>
+                    <div
+                      class="flex items-center justify-between bg-black/50 border border-matrix-500/30 rounded px-4 py-3"
                     >
-                      Update Password
-                    </button>
-                  </div>
-                </div>
-                
-                <div class="mt-6">
-                  <h3 class="text-white font-mono font-bold mb-2">Two-Factor Authentication</h3>
-                  <div class="flex items-center justify-between bg-black/50 border border-matrix-500/30 rounded px-4 py-3">
-                    <span class="text-matrix-300 font-mono">Enable 2FA for extra security</span>
-                    <button 
-                      id="toggle-2fa-btn" 
-                      class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded transition-all duration-300 font-mono text-sm"
-                    >
-                      Enable
-                    </button>
+                      <span class="text-matrix-300 font-mono"
+                        >Enable 2FA for extra security</span
+                      >
+                      <button
+                        id="toggle-2fa-btn"
+                        class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded transition-all duration-300 font-mono text-sm"
+                      >
+                        Enable
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <!-- Notifications Tab -->
-          <div id="notifications-tab" class="tab-content hidden">
-            <h2 class="text-2xl font-bold text-cyber-400 mb-6 font-mono">Notifications</h2>
-            <div>
-              <div class="space-y-3">
-              <div class="flex items-center justify-between bg-black/50 border border-matrix-500/30 rounded px-4 py-3">
-                <div>
-                  <p class="text-white font-mono font-bold">Email Notifications</p>
-                  <p class="text-sm text-gray-500">Receive email alerts for vulnerability scans</p>
-                </div>
-                <label class="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" id="email-notifications" class="sr-only peer" checked>
-                  <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyber-400"></div>
-                </label>
-              </div>
-              
-              <div class="flex items-center justify-between bg-black/50 border border-matrix-500/30 rounded px-4 py-3">
-                <div>
-                  <p class="text-white font-mono font-bold">Critical Vulnerability Alerts</p>
-                  <p class="text-sm text-gray-500">Get notified immediately for critical issues</p>
-                </div>
-                <label class="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" id="critical-alerts" class="sr-only peer" checked>
-                  <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyber-400"></div>
-                </label>
-              </div>
-
-              <div class="flex items-center justify-between bg-black/50 border border-matrix-500/30 rounded px-4 py-3">
-                <div>
-                  <p class="text-white font-mono font-bold">Weekly Summary</p>
-                  <p class="text-sm text-gray-500">Receive weekly scan summaries</p>
-                </div>
-                <label class="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" id="weekly-summary" class="sr-only peer">
-                  <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyber-400"></div>
-                </label>
-              </div>
-            </div>
-            </div>
-            </div>
-
-          <!-- API Keys Tab -->
-          <div id="api-keys-tab" class="tab-content hidden">
-            <h2 class="text-2xl font-bold text-cyber-400 mb-6 font-mono">API Keys</h2>
-            <div>
-            
-            <!-- GitHub Token Section -->
-            <div class="mb-6 p-3 sm:p-4 bg-purple-900/20 border border-purple-500/30 rounded-lg">
-              <div class="flex flex-col sm:flex-row items-start gap-3 mb-3">
-                <span class="text-xl sm:text-2xl">🐙</span>
-                <div class="flex-1 w-full">
-                  <h3 class="text-base sm:text-lg font-bold text-purple-400 font-mono mb-2">GitHub Token</h3>
-                  <p class="text-xs sm:text-sm text-matrix-300 mb-3">
-                    Required for importing repositories. Stored locally only.
-                  </p>
-                  <div class="bg-yellow-900/20 border border-yellow-500/30 rounded p-2 mb-3">
-                    <p class="text-xs text-yellow-300 font-mono break-words">
-                      ⚠️ Required: <code class="text-yellow-400">repo</code> scope
-                    </p>
-                  </div>
-                  
-                  <div class="space-y-3">
+            <!-- Notifications Tab -->
+            <div id="notifications-tab" class="tab-content hidden">
+              <h2 class="text-2xl font-bold text-cyber-400 mb-6 font-mono">
+                Notifications
+              </h2>
+              <div>
+                <div class="space-y-3">
+                  <div
+                    class="flex items-center justify-between bg-black/50 border border-matrix-500/30 rounded px-4 py-3"
+                  >
                     <div>
-                      <label class="block text-xs sm:text-sm text-matrix-300 mb-2 font-mono">Token</label>
-                      <div class="flex flex-col sm:flex-row gap-2">
-                        <input
-                          type="password"
-                          id="github-token-input"
-                          class="flex-1 w-full bg-black/50 border border-matrix-500/30 rounded px-3 py-2 text-white focus:outline-none focus:border-purple-400 font-mono text-xs sm:text-sm"
-                          placeholder="ghp_xxxxxxxxxxxx..."
-                        />
-                        <button
-                          id="toggle-github-token-visibility"
-                          class="px-3 py-2 bg-black/50 border border-matrix-500/30 rounded text-matrix-300 hover:text-white hover:border-purple-400 transition-all self-start sm:self-auto"
-                          title="Show/Hide Token"
+                      <p class="text-white font-mono font-bold">
+                        Email Notifications
+                      </p>
+                      <p class="text-sm text-gray-500">
+                        Receive email alerts for vulnerability scans
+                      </p>
+                    </div>
+                    <label
+                      class="relative inline-flex items-center cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        id="email-notifications"
+                        class="sr-only peer"
+                        checked
+                      />
+                      <div
+                        class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyber-400"
+                      >
+                      </div>
+                    </label>
+                  </div>
+
+                  <div
+                    class="flex items-center justify-between bg-black/50 border border-matrix-500/30 rounded px-4 py-3"
+                  >
+                    <div>
+                      <p class="text-white font-mono font-bold">
+                        Critical Vulnerability Alerts
+                      </p>
+                      <p class="text-sm text-gray-500">
+                        Get notified immediately for critical issues
+                      </p>
+                    </div>
+                    <label
+                      class="relative inline-flex items-center cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        id="critical-alerts"
+                        class="sr-only peer"
+                        checked
+                      />
+                      <div
+                        class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyber-400"
+                      >
+                      </div>
+                    </label>
+                  </div>
+
+                  <div
+                    class="flex items-center justify-between bg-black/50 border border-matrix-500/30 rounded px-4 py-3"
+                  >
+                    <div>
+                      <p class="text-white font-mono font-bold">
+                        Weekly Summary
+                      </p>
+                      <p class="text-sm text-gray-500">
+                        Receive weekly scan summaries
+                      </p>
+                    </div>
+                    <label
+                      class="relative inline-flex items-center cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        id="weekly-summary"
+                        class="sr-only peer"
+                      />
+                      <div
+                        class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyber-400"
+                      >
+                      </div>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- API Keys Tab -->
+            <div id="api-keys-tab" class="tab-content hidden">
+              <h2 class="text-2xl font-bold text-cyber-400 mb-6 font-mono">
+                API Keys
+              </h2>
+              <div>
+                <!-- GitHub Token Section -->
+                <div
+                  class="mb-6 p-3 sm:p-4 bg-purple-900/20 border border-purple-500/30 rounded-lg"
+                >
+                  <div class="flex flex-col sm:flex-row items-start gap-3 mb-3">
+                    <span class="text-xl sm:text-2xl">🐙</span>
+                    <div class="flex-1 w-full">
+                      <h3
+                        class="text-base sm:text-lg font-bold text-purple-400 font-mono mb-2"
+                      >
+                        GitHub Token
+                      </h3>
+                      <p class="text-xs sm:text-sm text-matrix-300 mb-3">
+                        Required for importing repositories. Stored locally
+                        only.
+                      </p>
+                      <div
+                        class="bg-yellow-900/20 border border-yellow-500/30 rounded p-2 mb-3"
+                      >
+                        <p
+                          class="text-xs text-yellow-300 font-mono break-words"
                         >
-                          👁️
-                        </button>
+                          ⚠️ Required: <code class="text-yellow-400">repo</code>
+                          scope
+                        </p>
+                      </div>
+
+                      <div class="space-y-3">
+                        <div>
+                          <label
+                            class="block text-xs sm:text-sm text-matrix-300 mb-2 font-mono"
+                            >Token</label
+                          >
+                          <div class="flex flex-col sm:flex-row gap-2">
+                            <input
+                              type="password"
+                              id="github-token-input"
+                              class="flex-1 w-full bg-black/50 border border-matrix-500/30 rounded px-3 py-2 text-white focus:outline-none focus:border-purple-400 font-mono text-xs sm:text-sm"
+                              placeholder="ghp_xxxxxxxxxxxx..."
+                            />
+                            <button
+                              id="toggle-github-token-visibility"
+                              class="px-3 py-2 bg-black/50 border border-matrix-500/30 rounded text-matrix-300 hover:text-white hover:border-purple-400 transition-all self-start sm:self-auto"
+                              title="Show/Hide Token"
+                            >
+                              👁️
+                            </button>
+                          </div>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row gap-2">
+                          <button
+                            id="save-github-token-btn"
+                            class="w-full sm:w-auto bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded transition-all duration-300 font-mono text-xs sm:text-sm"
+                          >
+                            💾 Save
+                          </button>
+                          <button
+                            id="clear-github-token-btn"
+                            class="w-full sm:w-auto bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-400 font-bold py-2 px-4 rounded transition-all duration-300 font-mono text-xs sm:text-sm"
+                          >
+                            🗑️ Clear
+                          </button>
+                          <a
+                            href="https://github.com/settings/tokens/new?description=Vulnera%20Scanner&scopes=repo"
+                            target="_blank"
+                            class="w-full sm:w-auto bg-black/50 hover:bg-black/70 border border-purple-500/30 hover:border-purple-400 text-purple-400 font-bold py-2 px-4 rounded transition-all duration-300 font-mono text-xs sm:text-sm flex items-center justify-center gap-2"
+                          >
+                            <span>🔗</span>
+                            <span>Generate</span>
+                          </a>
+                        </div>
+
+                        <div
+                          id="github-token-status"
+                          class="text-xs sm:text-sm font-mono hidden"
+                        >
+                          <!-- Status will be shown here -->
+                        </div>
                       </div>
                     </div>
-                    
-                    <div class="flex flex-col sm:flex-row gap-2">
-                      <button 
-                        id="save-github-token-btn" 
-                        class="w-full sm:w-auto bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded transition-all duration-300 font-mono text-xs sm:text-sm"
-                      >
-                        💾 Save
-                      </button>
-                      <button 
-                        id="clear-github-token-btn" 
-                        class="w-full sm:w-auto bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-400 font-bold py-2 px-4 rounded transition-all duration-300 font-mono text-xs sm:text-sm"
-                      >
-                        🗑️ Clear
-                      </button>
-                      <a 
-                        href="https://github.com/settings/tokens/new?description=Vulnera%20Scanner&scopes=repo" 
-                        target="_blank"
-                        class="w-full sm:w-auto bg-black/50 hover:bg-black/70 border border-purple-500/30 hover:border-purple-400 text-purple-400 font-bold py-2 px-4 rounded transition-all duration-300 font-mono text-xs sm:text-sm flex items-center justify-center gap-2"
-                      >
-                        <span>🔗</span>
-                        <span>Generate</span>
-                      </a>
-                    </div>
-                    
-                    <div id="github-token-status" class="text-xs sm:text-sm font-mono hidden">
-                      <!-- Status will be shown here -->
-                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
-            
-            <!-- Divider -->
-            <div class="border-t border-matrix-500/30 my-6"></div>
-            
-            <!-- API Keys Section -->
-            <div>
-              <h3 class="text-base sm:text-lg font-bold text-cyber-400 font-mono mb-4">Vulnera API Keys</h3>
-              
-              <!-- Info Notice -->
-              <div class="mb-4 bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-3">
-                <div class="flex items-start gap-2">
-                  <span class="text-yellow-400 text-lg">ℹ️</span>
-                  <div class="flex-1 text-xs text-gray-300">
-                    <p class="font-bold text-yellow-400 mb-1">Note: Limited Features</p>
-                    <p>Currently you can create and delete API keys. Enable/Disable functionality will be available when backend implements it.</p>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="mb-4">
-                <button 
-                  id="create-api-key-btn" 
-                  class="bg-cyber-400 hover:bg-cyber-500 text-black font-bold py-2 px-6 rounded transition-all duration-300 font-mono cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <span id="create-api-key-text">🔑 Create New API Key</span>
-                  <span id="create-api-key-loading" class="hidden">⏳ Creating...</span>
-                </button>
-              </div>
 
-              <div id="api-keys-container" class="space-y-3">
-                <div class="text-center py-8 text-matrix-300">
-                  <p>Loading API keys...</p>
-                </div>
-              </div>
-            </div>
-            </div>
-            </div>
+                <!-- Divider -->
+                <div class="border-t border-matrix-500/30 my-6"></div>
 
-          <!-- Preferences Tab -->
-          <div id="preferences-tab" class="tab-content hidden">
-            <h2 class="text-2xl font-bold text-cyber-400 mb-6 font-mono">Preferences</h2>
-            <div>
-              <div class="space-y-3">
-              <div>
-                <label class="block text-sm text-matrix-300 mb-2 font-mono">Theme</label>
-                <select 
-                  id="theme-select"
-                  class="w-full bg-black/50 border border-matrix-500/30 rounded px-4 py-2 text-white focus:outline-none focus:border-cyber-400 font-mono"
-                >
-                  <option value="dark">Dark (Matrix)</option>
-                  <option value="light">Light</option>
-                  <option value="auto">Auto</option>
-                </select>
-              </div>
-
-              <div>
-                <label class="block text-sm text-matrix-300 mb-2 font-mono">Scan Frequency</label>
-                <select 
-                  id="scan-frequency-select"
-                  class="w-full bg-black/50 border border-matrix-500/30 rounded px-4 py-2 text-white focus:outline-none focus:border-cyber-400 font-mono"
-                >
-                  <option value="manual">Manual Only</option>
-                  <option value="daily">Daily</option>
-                  <option value="weekly">Weekly</option>
-                  <option value="monthly">Monthly</option>
-                </select>
-              </div>
-            </div>
-            </div>
-            </div>
-
-          <!-- Debug Tools Tab -->
-          <div id="debug-tab" class="tab-content hidden">
-            <h2 class="text-2xl font-bold text-cyan-400 mb-6 font-mono">Debug Tools</h2>
-            <div class="space-y-6">
-              <div class="bg-cyan-900/10 border border-cyan-500/30 rounded-lg p-4">
-                <h3 class="text-lg font-bold text-cyan-300 mb-4 font-mono">Vulnerability Database</h3>
-                <p class="text-sm text-gray-400 mb-4">Refresh the vulnerability database cache from the backend</p>
-                <button 
-                  id="refresh-vuln-cache-btn" 
-                  class="bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 font-bold py-2 px-4 rounded transition-all duration-300 font-mono text-sm"
-                >
-                  🔄 Refresh Cache
-                </button>
-                <div id="cache-status" class="mt-3 text-sm text-gray-400"></div>
-              </div>
-
-              <div class="bg-cyan-900/10 border border-cyan-500/30 rounded-lg p-4">
-                <h3 class="text-lg font-bold text-cyan-300 mb-4 font-mono">System Information</h3>
-                <div class="space-y-2 text-sm font-mono">
-                  <div><span class="text-matrix-300">API Base:</span> <span id="api-base-display" class="text-cyan-300">Loading...</span></div>
-                  <div><span class="text-matrix-300">Token Status:</span> <span id="token-status-display" class="text-cyan-300">Loading...</span></div>
-                  <div><span class="text-matrix-300">User Agent:</span> <span id="user-agent-display" class="text-cyan-300">Loading...</span></div>
-                </div>
-              </div>
-
-              <div class="bg-cyan-900/10 border border-cyan-500/30 rounded-lg p-4">
-                <h3 class="text-lg font-bold text-cyan-300 mb-4 font-mono">Scan History Backup</h3>
-                <p class="text-sm text-gray-400 mb-4">Export or import your scan history data</p>
-                <div class="space-y-2">
-                  <button 
-                    id="export-scans-btn" 
-                    class="w-full bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 font-bold py-2 px-4 rounded transition-all duration-300 font-mono text-sm"
-                  >
-                    💾 Export Scan History (JSON)
-                  </button>
-                  <button 
-                    id="import-scans-btn" 
-                    class="w-full bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 font-bold py-2 px-4 rounded transition-all duration-300 font-mono text-sm"
-                  >
-                    📂 Import Scan History
-                  </button>
-                  <input type="file" id="import-scans-input" accept=".json" class="hidden" />
-                  <div id="backup-status" class="mt-2 text-sm text-gray-400"></div>
-                </div>
-              </div>
-
-              <div class="bg-cyan-900/10 border border-cyan-500/30 rounded-lg p-4">
-                <h3 class="text-lg font-bold text-cyan-300 mb-4 font-mono">Test Data</h3>
-                <p class="text-sm text-gray-400 mb-4">Download test files with known vulnerabilities</p>
-                <div class="space-y-2">
-                  <a href="/test-vulnerable-package.json" download class="block bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 font-bold py-2 px-4 rounded transition-all duration-300 font-mono text-sm text-center">
-                    📦 Test Package.json (NPM)
-                  </a>
-                  <a href="/vulnerable-requirements.txt" download class="block bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 font-bold py-2 px-4 rounded transition-all duration-300 font-mono text-sm text-center">
-                    🐍 Test Requirements.txt (Python)
-                  </a>
-                  <a href="/vulnerable-pom.xml" download class="block bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 font-bold py-2 px-4 rounded transition-all duration-300 font-mono text-sm text-center">
-                    ☕ Test pom.xml (Maven/Java)
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Danger Zone Tab -->
-          <div id="danger-tab" class="tab-content hidden">
-            <h2 class="text-2xl font-bold text-red-400 mb-6 font-mono">Danger Zone</h2>
-            <div>
-              <div class="bg-red-900/10 border border-red-500/30 rounded-lg p-4 space-y-3">
-              <div class="flex items-center justify-between">
+                <!-- API Keys Section -->
                 <div>
-                  <p class="text-white font-mono font-bold">Delete Account</p>
-                  <p class="text-sm text-gray-500">Permanently delete your account and all data</p>
+                  <h3
+                    class="text-base sm:text-lg font-bold text-cyber-400 font-mono mb-4"
+                  >
+                    Vulnera API Keys
+                  </h3>
+
+                  <!-- Info Notice -->
+                  <div
+                    class="mb-4 bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-3"
+                  >
+                    <div class="flex items-start gap-2">
+                      <span class="text-yellow-400 text-lg">ℹ️</span>
+                      <div class="flex-1 text-xs text-gray-300">
+                        <p class="font-bold text-yellow-400 mb-1">
+                          Note: Limited Features
+                        </p>
+                        <p>
+                          Currently you can create and delete API keys.
+                          Enable/Disable functionality will be available when
+                          backend implements it.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="mb-4">
+                    <button
+                      id="create-api-key-btn"
+                      class="bg-cyber-400 hover:bg-cyber-500 text-black font-bold py-2 px-6 rounded transition-all duration-300 font-mono cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <span id="create-api-key-text">🔑 Create New API Key</span
+                      >
+                      <span id="create-api-key-loading" class="hidden"
+                        >⏳ Creating...</span
+                      >
+                    </button>
+                  </div>
+
+                  <div id="api-keys-container" class="space-y-3">
+                    <div class="text-center py-8 text-matrix-300">
+                      <p>Loading API keys...</p>
+                    </div>
+                  </div>
                 </div>
-                <button 
-                  id="delete-account-btn" 
-                  class="bg-red-500/20 hover:bg-red-500/30 text-red-400 font-bold py-2 px-4 rounded transition-all duration-300 font-mono text-sm"
-                >
-                  Delete Account
-                </button>
               </div>
             </div>
+
+            <!-- Preferences Tab -->
+            <div id="preferences-tab" class="tab-content hidden">
+              <h2 class="text-2xl font-bold text-cyber-400 mb-6 font-mono">
+                Preferences
+              </h2>
+              <div>
+                <div class="space-y-3">
+                  <div>
+                    <label class="block text-sm text-matrix-300 mb-2 font-mono"
+                      >Theme</label
+                    >
+                    <select
+                      id="theme-select"
+                      class="w-full bg-black/50 border border-matrix-500/30 rounded px-4 py-2 text-white focus:outline-none focus:border-cyber-400 font-mono"
+                    >
+                      <option value="dark">Dark (Matrix)</option>
+                      <option value="light">Light</option>
+                      <option value="auto">Auto</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label class="block text-sm text-matrix-300 mb-2 font-mono"
+                      >Scan Frequency</label
+                    >
+                    <select
+                      id="scan-frequency-select"
+                      class="w-full bg-black/50 border border-matrix-500/30 rounded px-4 py-2 text-white focus:outline-none focus:border-cyber-400 font-mono"
+                    >
+                      <option value="manual">Manual Only</option>
+                      <option value="daily">Daily</option>
+                      <option value="weekly">Weekly</option>
+                      <option value="monthly">Monthly</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
             </div>
+
+            <!-- Debug Tools Tab -->
+            <div id="debug-tab" class="tab-content hidden">
+              <h2 class="text-2xl font-bold text-cyan-400 mb-6 font-mono">
+                Debug Tools
+              </h2>
+              <div class="space-y-6">
+                <div
+                  class="bg-cyan-900/10 border border-cyan-500/30 rounded-lg p-4"
+                >
+                  <h3 class="text-lg font-bold text-cyan-300 mb-4 font-mono">
+                    Vulnerability Database
+                  </h3>
+                  <p class="text-sm text-gray-400 mb-4">
+                    Refresh the vulnerability database cache from the backend
+                  </p>
+                  <p class="text-sm text-gray-500 mt-2">
+                    This feature is no longer available - endpoint is deprecated
+                  </p>
+                </div>
+
+                <div
+                  class="bg-cyan-900/10 border border-cyan-500/30 rounded-lg p-4"
+                >
+                  <h3 class="text-lg font-bold text-cyan-300 mb-4 font-mono">
+                    System Information
+                  </h3>
+                  <div class="space-y-2 text-sm font-mono">
+                    <div>
+                      <span class="text-matrix-300">API Base:</span>
+                      <span id="api-base-display" class="text-cyan-300"
+                        >Loading...</span
+                      >
+                    </div>
+                    <div>
+                      <span class="text-matrix-300">Token Status:</span>
+                      <span id="token-status-display" class="text-cyan-300"
+                        >Loading...</span
+                      >
+                    </div>
+                    <div>
+                      <span class="text-matrix-300">User Agent:</span>
+                      <span id="user-agent-display" class="text-cyan-300"
+                        >Loading...</span
+                      >
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  class="bg-cyan-900/10 border border-cyan-500/30 rounded-lg p-4"
+                >
+                  <h3 class="text-lg font-bold text-cyan-300 mb-4 font-mono">
+                    Scan History Backup
+                  </h3>
+                  <p class="text-sm text-gray-400 mb-4">
+                    Export or import your scan history data
+                  </p>
+                  <div class="space-y-2">
+                    <button
+                      id="export-scans-btn"
+                      class="w-full bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 font-bold py-2 px-4 rounded transition-all duration-300 font-mono text-sm"
+                    >
+                      💾 Export Scan History (JSON)
+                    </button>
+                    <button
+                      id="import-scans-btn"
+                      class="w-full bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 font-bold py-2 px-4 rounded transition-all duration-300 font-mono text-sm"
+                    >
+                      📂 Import Scan History
+                    </button>
+                    <input
+                      type="file"
+                      id="import-scans-input"
+                      accept=".json"
+                      class="hidden"
+                    />
+                    <div id="backup-status" class="mt-2 text-sm text-gray-400">
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  class="bg-cyan-900/10 border border-cyan-500/30 rounded-lg p-4"
+                >
+                  <h3 class="text-lg font-bold text-cyan-300 mb-4 font-mono">
+                    Test Data
+                  </h3>
+                  <p class="text-sm text-gray-400 mb-4">
+                    Download test files with known vulnerabilities
+                  </p>
+                  <div class="space-y-2">
+                    <a
+                      href="/test-vulnerable-package.json"
+                      download
+                      class="block bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 font-bold py-2 px-4 rounded transition-all duration-300 font-mono text-sm text-center"
+                    >
+                      📦 Test Package.json (NPM)
+                    </a>
+                    <a
+                      href="/vulnerable-requirements.txt"
+                      download
+                      class="block bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 font-bold py-2 px-4 rounded transition-all duration-300 font-mono text-sm text-center"
+                    >
+                      🐍 Test Requirements.txt (Python)
+                    </a>
+                    <a
+                      href="/vulnerable-pom.xml"
+                      download
+                      class="block bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 font-bold py-2 px-4 rounded transition-all duration-300 font-mono text-sm text-center"
+                    >
+                      ☕ Test pom.xml (Maven/Java)
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Danger Zone Tab -->
+            <div id="danger-tab" class="tab-content hidden">
+              <h2 class="text-2xl font-bold text-red-400 mb-6 font-mono">
+                Danger Zone
+              </h2>
+              <div>
+                <div
+                  class="bg-red-900/10 border border-red-500/30 rounded-lg p-4 space-y-3"
+                >
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="text-white font-mono font-bold">
+                        Delete Account
+                      </p>
+                      <p class="text-sm text-gray-500">
+                        Permanently delete your account and all data
+                      </p>
+                    </div>
+                    <button
+                      id="delete-account-btn"
+                      class="bg-red-500/20 hover:bg-red-500/30 text-red-400 font-bold py-2 px-4 rounded transition-all duration-300 font-mono text-sm"
+                    >
+                      Delete Account
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -499,13 +659,21 @@ import Footer from "../components/Footer.astro";
   <div id="create-key-modal" class="hidden fixed inset-0 bg-black/80 z-50 p-4">
     <div class="terminal-border bg-black/95 rounded-xl p-6 max-w-md w-full">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="text-xl font-bold text-cyber-400 font-mono">Generate API Key</h3>
-        <button id="close-modal-btn" class="text-gray-400 hover:text-white text-2xl">&times;</button>
+        <h3 class="text-xl font-bold text-cyber-400 font-mono">
+          Generate API Key
+        </h3>
+        <button
+          id="close-modal-btn"
+          class="text-gray-400 hover:text-white text-2xl">&times;</button
+        >
       </div>
-      
+
       <form id="create-key-form" class="space-y-4">
         <div>
-          <label for="key-name" class="block text-sm text-matrix-300 mb-2 font-mono">Key Name</label>
+          <label
+            for="key-name"
+            class="block text-sm text-matrix-300 mb-2 font-mono">Key Name</label
+          >
           <input
             type="text"
             id="key-name"
@@ -514,9 +682,13 @@ import Footer from "../components/Footer.astro";
             required
           />
         </div>
-        
+
         <div>
-          <label for="key-description" class="block text-sm text-matrix-300 mb-2 font-mono">Description (Optional)</label>
+          <label
+            for="key-description"
+            class="block text-sm text-matrix-300 mb-2 font-mono"
+            >Description (Optional)</label
+          >
           <textarea
             id="key-description"
             placeholder="What will this key be used for?"
@@ -547,18 +719,23 @@ import Footer from "../components/Footer.astro";
   <div id="key-display-modal" class="hidden fixed inset-0 bg-black/80 z-50 p-4">
     <div class="terminal-border bg-black/95 rounded-xl p-6 max-w-md w-full">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="text-xl font-bold text-cyber-400 font-mono">API Key Generated</h3>
+        <h3 class="text-xl font-bold text-cyber-400 font-mono">
+          API Key Generated
+        </h3>
       </div>
-      
+
       <div class="space-y-4">
         <div class="bg-red-900/20 border border-red-500/50 rounded p-4">
           <p class="text-red-400 text-sm font-mono">
-            ⚠️ Make sure to copy your API key now. You won't be able to see it again!
+            ⚠️ Make sure to copy your API key now. You won't be able to see it
+            again!
           </p>
         </div>
 
         <div>
-          <label class="block text-sm text-matrix-300 mb-2 font-mono">Your API Key</label>
+          <label class="block text-sm text-matrix-300 mb-2 font-mono"
+            >Your API Key</label
+          >
           <div class="flex gap-2">
             <input
               type="text"
@@ -586,46 +763,61 @@ import Footer from "../components/Footer.astro";
   </div>
 
   <script>
-    // API configuration: prefer PUBLIC_API_BASE, otherwise same-origin (use dev proxy)
-    const API_BASE_URL = ((import.meta.env?.PUBLIC_API_BASE) || (typeof window !== 'undefined' ? window.location.origin : '')).replace(/\/$/, '');
-    document.addEventListener('DOMContentLoaded', async () => {
-      const { authService } = await import('../utils/api/auth-service');
-      const { vulnerabilityService } = await import('../utils/api/vulnerability-service');
+    document.addEventListener("DOMContentLoaded", async () => {
+      const { authService } = await import("../utils/api/auth-service");
+      const { apiClient } = await import("../utils/api/client");
+      const { API_ENDPOINTS } = await import("../config/api");
+      const { setCookie, getCookie, removeCookie } = await import(
+        "../utils/cookies"
+      );
+      const { logger } = await import("../utils/logger");
 
       // Tab switching functionality
-      const tabButtons = document.querySelectorAll('.settings-tab');
-      const tabContents = document.querySelectorAll('.tab-content');
+      const tabButtons = document.querySelectorAll(".settings-tab");
+      const tabContents = document.querySelectorAll(".tab-content");
 
       function switchTab(tabName: string) {
         // Hide all tabs
-        tabContents.forEach(content => {
-          content.classList.add('hidden');
+        tabContents.forEach((content) => {
+          content.classList.add("hidden");
         });
 
         // Remove active state from all buttons
-        tabButtons.forEach(btn => {
-          btn.classList.remove('active', 'bg-cyber-400/10', 'border-l-4', 'border-cyber-400', 'text-cyber-400');
-          btn.classList.add('text-matrix-300');
+        tabButtons.forEach((btn) => {
+          btn.classList.remove(
+            "active",
+            "bg-cyber-400/10",
+            "border-l-4",
+            "border-cyber-400",
+            "text-cyber-400"
+          );
+          btn.classList.add("text-matrix-300");
         });
 
         // Show selected tab
         const selectedTab = document.getElementById(`${tabName}-tab`);
         if (selectedTab) {
-          selectedTab.classList.remove('hidden');
+          selectedTab.classList.remove("hidden");
         }
 
         // Highlight active button
         const activeButton = document.querySelector(`[data-tab="${tabName}"]`);
         if (activeButton) {
-          activeButton.classList.add('active', 'bg-cyber-400/10', 'border-l-4', 'border-cyber-400', 'text-cyber-400');
-          activeButton.classList.remove('text-matrix-300');
+          activeButton.classList.add(
+            "active",
+            "bg-cyber-400/10",
+            "border-l-4",
+            "border-cyber-400",
+            "text-cyber-400"
+          );
+          activeButton.classList.remove("text-matrix-300");
         }
       }
 
       // Add click event listeners to tab buttons
-      tabButtons.forEach(button => {
-        button.addEventListener('click', () => {
-          const tabName = button.getAttribute('data-tab');
+      tabButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          const tabName = button.getAttribute("data-tab");
           if (tabName) {
             switchTab(tabName);
           }
@@ -633,100 +825,96 @@ import Footer from "../components/Footer.astro";
       });
 
       // Check for hash navigation on page load
-      const hash = window.location.hash.replace('#', '');
-      if (hash && ['profile', 'security', 'notifications', 'api-keys', 'preferences', 'debug', 'danger'].includes(hash)) {
+      const hash = window.location.hash.replace("#", "");
+      if (
+        hash &&
+        [
+          "profile",
+          "security",
+          "notifications",
+          "api-keys",
+          "preferences",
+          "debug",
+          "danger",
+        ].includes(hash)
+      ) {
         switchTab(hash);
       } else {
         // Initialize first tab
-        switchTab('profile');
+        switchTab("profile");
       }
 
       // GitHub Token Management
-      const githubTokenInput = document.getElementById('github-token-input') as HTMLInputElement;
-      const toggleTokenVisibility = document.getElementById('toggle-github-token-visibility');
-      const saveGithubTokenBtn = document.getElementById('save-github-token-btn');
-      const clearGithubTokenBtn = document.getElementById('clear-github-token-btn');
-      const githubTokenStatus = document.getElementById('github-token-status');
-
-      // Cookie helper functions
-      function setCookie(name: string, value: string, days: number = 7) {
-        let cookieString = `${encodeURIComponent(name)}=${encodeURIComponent(value)}`;
-        const date = new Date();
-        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-        cookieString += `; expires=${date.toUTCString()}`;
-        cookieString += `; path=/`;
-        cookieString += `; secure`;
-        cookieString += `; SameSite=Lax`;
-        document.cookie = cookieString;
-      }
-
-      function getCookie(name: string): string | null {
-        const nameEQ = encodeURIComponent(name) + '=';
-        const cookies = document.cookie.split(';');
-        for (let cookie of cookies) {
-          cookie = cookie.trim();
-          if (cookie.startsWith(nameEQ)) {
-            return decodeURIComponent(cookie.substring(nameEQ.length));
-          }
-        }
-        return null;
-      }
-
-      function removeCookie(name: string) {
-        setCookie(name, '', -1);
-      }
+      const githubTokenInput = document.getElementById(
+        "github-token-input"
+      ) as HTMLInputElement;
+      const toggleTokenVisibility = document.getElementById(
+        "toggle-github-token-visibility"
+      );
+      const saveGithubTokenBtn = document.getElementById(
+        "save-github-token-btn"
+      );
+      const clearGithubTokenBtn = document.getElementById(
+        "clear-github-token-btn"
+      );
+      const githubTokenStatus = document.getElementById("github-token-status");
 
       // Load existing token
       function loadGithubToken() {
-        const token = getCookie('github_token');
+        const token = getCookie("github_token");
         if (token && githubTokenInput) {
           githubTokenInput.value = token;
-          showTokenStatus('✅ Token saved', 'text-green-400');
+          showTokenStatus("✅ Token saved", "text-green-400");
         }
       }
 
       // Show/hide token visibility
-      toggleTokenVisibility?.addEventListener('click', () => {
+      toggleTokenVisibility?.addEventListener("click", () => {
         if (githubTokenInput) {
-          if (githubTokenInput.type === 'password') {
-            githubTokenInput.type = 'text';
+          if (githubTokenInput.type === "password") {
+            githubTokenInput.type = "text";
           } else {
-            githubTokenInput.type = 'password';
+            githubTokenInput.type = "password";
           }
         }
       });
 
       // Save GitHub token
-      saveGithubTokenBtn?.addEventListener('click', () => {
+      saveGithubTokenBtn?.addEventListener("click", () => {
         const token = githubTokenInput?.value.trim();
-        
+
         if (!token) {
-          showTokenStatus('❌ Please enter a valid token', 'text-red-400');
+          showTokenStatus("❌ Please enter a valid token", "text-red-400");
           return;
         }
 
         // Basic validation for GitHub token format
-        if (!token.startsWith('ghp_') && !token.startsWith('github_pat_')) {
-          showTokenStatus('⚠️ Token format may be incorrect. GitHub tokens usually start with "ghp_" or "github_pat_"', 'text-yellow-400');
+        if (!token.startsWith("ghp_") && !token.startsWith("github_pat_")) {
+          showTokenStatus(
+            '⚠️ Token format may be incorrect. GitHub tokens usually start with "ghp_" or "github_pat_"',
+            "text-yellow-400"
+          );
         }
 
-        setCookie('github_token', token, 30); // 30 days expiry
-        showTokenStatus('✅ Token saved successfully! You can now import from GitHub.', 'text-green-400');
-        
+        setCookie("github_token", token, { days: 30 }); // 30 days expiry
+        showTokenStatus(
+          "✅ Token saved successfully! You can now import from GitHub.",
+          "text-green-400"
+        );
+
         // Dispatch event to notify scan page
-        window.dispatchEvent(new CustomEvent('github-token-updated'));
+        window.dispatchEvent(new CustomEvent("github-token-updated"));
       });
 
       // Clear GitHub token
-      // Clear GitHub token
-      clearGithubTokenBtn?.addEventListener('click', () => {
-        if (confirm('Are you sure you want to remove your GitHub token?')) {
-          removeCookie('github_token');
-          if (githubTokenInput) githubTokenInput.value = '';
-          showTokenStatus('🗑️ Token removed', 'text-gray-400');
-          
+      clearGithubTokenBtn?.addEventListener("click", () => {
+        if (confirm("Are you sure you want to remove your GitHub token?")) {
+          removeCookie("github_token");
+          if (githubTokenInput) githubTokenInput.value = "";
+          showTokenStatus("🗑️ Token removed", "text-gray-400");
+
           // Dispatch event to notify scan page
-          window.dispatchEvent(new CustomEvent('github-token-updated'));
+          window.dispatchEvent(new CustomEvent("github-token-updated"));
         }
       });
 
@@ -735,11 +923,11 @@ import Footer from "../components/Footer.astro";
         if (githubTokenStatus) {
           githubTokenStatus.textContent = message;
           githubTokenStatus.className = `text-sm font-mono mt-2 ${className}`;
-          githubTokenStatus.classList.remove('hidden');
-          
+          githubTokenStatus.classList.remove("hidden");
+
           setTimeout(() => {
-            if (message.includes('❌') || message.includes('⚠️')) {
-              githubTokenStatus.classList.add('hidden');
+            if (message.includes("❌") || message.includes("⚠️")) {
+              githubTokenStatus.classList.add("hidden");
             }
           }, 5000);
         }
@@ -752,275 +940,264 @@ import Footer from "../components/Footer.astro";
       function loadProfile() {
         const user = authService.getUser();
         if (user) {
-          const emailInput = document.getElementById('profile-email') as HTMLInputElement;
-          const nameInput = document.getElementById('profile-name') as HTMLInputElement;
-          if (emailInput) emailInput.value = user.email || '';
-          if (nameInput) nameInput.value = user.name || '';
+          const emailInput = document.getElementById(
+            "profile-email"
+          ) as HTMLInputElement;
+          const nameInput = document.getElementById(
+            "profile-name"
+          ) as HTMLInputElement;
+          if (emailInput) emailInput.value = user.email || "";
+          if (nameInput) nameInput.value = user.name || "";
         }
       }
 
-      // Save profile handler
-      const saveProfileBtn = document.getElementById('save-profile-btn');
-      saveProfileBtn?.addEventListener('click', async () => {
-        const nameInput = document.getElementById('profile-name') as HTMLInputElement;
-        const newName = nameInput.value;
-
-        if (!newName.trim()) {
-          alert('Display name cannot be empty.');
-          return;
-        }
-
-        const response = await authService.updateProfile({ name: newName });
-
-        if (response.success) {
-          alert('Profile settings saved successfully!');
-          loadProfile(); // Refresh the form with latest data
-        } else {
-          alert(response.message || 'Failed to update profile. Please try again.');
-        }
-      });
-
       // Change password handler
-      const changePasswordBtn = document.getElementById('change-password-btn');
-      changePasswordBtn?.addEventListener('click', () => {
-        const currentPassword = (document.getElementById('current-password') as HTMLInputElement).value;
-        const newPassword = (document.getElementById('new-password') as HTMLInputElement).value;
-        const confirmPassword = (document.getElementById('confirm-password') as HTMLInputElement).value;
+      const changePasswordBtn = document.getElementById("change-password-btn");
+      changePasswordBtn?.addEventListener("click", () => {
+        const currentPassword = (
+          document.getElementById("current-password") as HTMLInputElement
+        ).value;
+        const newPassword = (
+          document.getElementById("new-password") as HTMLInputElement
+        ).value;
+        const confirmPassword = (
+          document.getElementById("confirm-password") as HTMLInputElement
+        ).value;
 
         if (!currentPassword || !newPassword || !confirmPassword) {
-          alert('Please fill in all password fields');
+          alert("Please fill in all password fields");
           return;
         }
 
         if (newPassword !== confirmPassword) {
-          alert('New passwords do not match');
+          alert("New passwords do not match");
           return;
         }
 
         if (newPassword.length < 8) {
-          alert('Password must be at least 8 characters long');
+          alert("Password must be at least 8 characters long");
           return;
         }
 
-        alert('Password updated successfully!');
-        // TODO: Implement actual API call to change password
-        (document.getElementById('current-password') as HTMLInputElement).value = '';
-        (document.getElementById('new-password') as HTMLInputElement).value = '';
-        (document.getElementById('confirm-password') as HTMLInputElement).value = '';
+        alert("Password updated successfully!");
+        (
+          document.getElementById("current-password") as HTMLInputElement
+        ).value = "";
+        (document.getElementById("new-password") as HTMLInputElement).value =
+          "";
+        (
+          document.getElementById("confirm-password") as HTMLInputElement
+        ).value = "";
       });
 
       // 2FA toggle handler
-      const toggle2FABtn = document.getElementById('toggle-2fa-btn');
-      toggle2FABtn?.addEventListener('click', () => {
-        const isEnabled = toggle2FABtn.textContent?.trim() === 'Disable';
+      const toggle2FABtn = document.getElementById("toggle-2fa-btn");
+      toggle2FABtn?.addEventListener("click", () => {
+        const isEnabled = toggle2FABtn.textContent?.trim() === "Disable";
         if (isEnabled) {
-          if (confirm('Are you sure you want to disable two-factor authentication?')) {
-            toggle2FABtn.textContent = 'Enable';
-            alert('Two-factor authentication disabled');
+          if (
+            confirm(
+              "Are you sure you want to disable two-factor authentication?"
+            )
+          ) {
+            toggle2FABtn.textContent = "Enable";
+            alert("Two-factor authentication disabled");
           }
         } else {
-          alert('Two-factor authentication setup coming soon!');
-          // TODO: Implement 2FA setup flow
-          toggle2FABtn.textContent = 'Disable';
+          // NOTE: 2FA setup flow not yet implemented
+          // TODO: Implement 2FA setup flow when backend endpoint is available
+          alert("Two-factor authentication setup coming soon!");
+          toggle2FABtn.textContent = "Disable";
         }
       });
 
       // Notification toggles
-      const notificationToggles = ['email-notifications', 'critical-alerts', 'weekly-summary'];
-      notificationToggles.forEach(id => {
+      const notificationToggles = [
+        "email-notifications",
+        "critical-alerts",
+        "weekly-summary",
+      ];
+      notificationToggles.forEach((id) => {
         const toggle = document.getElementById(id);
-        toggle?.addEventListener('change', () => {
-          // TODO: Save notification preference to backend
+        toggle?.addEventListener("change", () => {
+          // NOTE: Notification preferences API endpoint not yet implemented
+          // TODO: Save notification preference to backend when endpoint is available
         });
       });
 
       // Theme selection
-      const themeSelect = document.getElementById('theme-select');
-      themeSelect?.addEventListener('change', (e) => {
+      const themeSelect = document.getElementById("theme-select");
+      themeSelect?.addEventListener("change", (e) => {
         const theme = (e.target as HTMLSelectElement).value;
+        // NOTE: Theme switching not yet implemented
+        // TODO: Implement theme switching when theme system is available
         alert(`Theme changed to: ${theme}`);
-        // TODO: Implement theme switching
       });
 
       // Scan frequency selection
-      const scanFrequencySelect = document.getElementById('scan-frequency-select');
-      scanFrequencySelect?.addEventListener('change', (e) => {
+      const scanFrequencySelect = document.getElementById(
+        "scan-frequency-select"
+      );
+      scanFrequencySelect?.addEventListener("change", (e) => {
         const frequency = (e.target as HTMLSelectElement).value;
+        // NOTE: Scan frequency preference API endpoint not yet implemented
+        // TODO: Save scan frequency preference to backend when endpoint is available
         alert(`Scan frequency updated to: ${frequency}`);
-        // TODO: Save scan frequency preference to backend
       });
 
       // Delete account handler
-      const deleteAccountBtn = document.getElementById('delete-account-btn');
-      deleteAccountBtn?.addEventListener('click', () => {
-        const confirmed = confirm('⚠️ WARNING: This will permanently delete your account and all associated data. This action cannot be undone.\n\nAre you absolutely sure?');
+      const deleteAccountBtn = document.getElementById("delete-account-btn");
+      deleteAccountBtn?.addEventListener("click", () => {
+        const confirmed = confirm(
+          "⚠️ WARNING: This will permanently delete your account and all associated data. This action cannot be undone.\n\nAre you absolutely sure?"
+        );
         if (confirmed) {
-          const doubleConfirm = prompt('Type "DELETE" to confirm account deletion:');
-          if (doubleConfirm === 'DELETE') {
-            alert('Account deletion initiated. You will be logged out.');
-            // TODO: Implement actual account deletion API call
+          const doubleConfirm = prompt(
+            'Type "DELETE" to confirm account deletion:'
+          );
+          if (doubleConfirm === "DELETE") {
+            // NOTE: Account deletion API endpoint not yet implemented
+            // TODO: Implement actual account deletion API call when backend endpoint is available
+            alert("Account deletion initiated. You will be logged out.");
             authService.clearAuth();
-            window.location.href = '/';
-          }
-        }
-      });
-
-      // Debug Tools handlers
-      const refreshCacheBtn = document.getElementById('refresh-vuln-cache-btn') as HTMLButtonElement | null;
-      const cacheStatus = document.getElementById('cache-status') as HTMLDivElement | null;
-      
-      refreshCacheBtn?.addEventListener('click', async () => {
-        if (!refreshCacheBtn) return;
-        refreshCacheBtn.disabled = true;
-        refreshCacheBtn.textContent = '🔄 Refreshing...';
-        if (cacheStatus) cacheStatus.textContent = 'Refreshing vulnerability cache...';
-        if (cacheStatus) cacheStatus.className = 'mt-3 text-sm text-yellow-400';
-        
-        try {
-          const response = await vulnerabilityService.refreshCache();
-          if (response.success) {
-            if (cacheStatus) cacheStatus.textContent = '✅ Cache refreshed successfully!';
-            if (cacheStatus) cacheStatus.className = 'mt-3 text-sm text-green-400';
-            console.log('✅ Cache refresh completed');
-          } else {
-            if (cacheStatus) cacheStatus.textContent = `❌ Failed to refresh cache: ${response.error}`;
-            if (cacheStatus) cacheStatus.className = 'mt-3 text-sm text-red-400';
-            console.error('❌ Cache refresh failed');
-          }
-        } catch (err: any) {
-          if (cacheStatus) cacheStatus.textContent = `❌ Error: ${err?.message || 'Unknown error'}`;
-          if (cacheStatus) cacheStatus.className = 'mt-3 text-sm text-red-400';
-          console.error('Error refreshing cache:', err);
-        } finally {
-          if (refreshCacheBtn) {
-            refreshCacheBtn.disabled = false;
-            refreshCacheBtn.textContent = '🔄 Refresh Cache';
+            window.location.href = "/";
           }
         }
       });
 
       // Export scan history
-      const exportScansBtn = document.getElementById('export-scans-btn');
-      const backupStatus = document.getElementById('backup-status');
-      
-      exportScansBtn?.addEventListener('click', () => {
+      const exportScansBtn = document.getElementById("export-scans-btn");
+      const backupStatus = document.getElementById("backup-status");
+
+      exportScansBtn?.addEventListener("click", () => {
         try {
-          const scanHistory = localStorage.getItem('scan_history') || '[]';
+          const scanHistory = localStorage.getItem("scan_history") || "[]";
           const data = JSON.parse(scanHistory);
-          
+
           if (data.length === 0) {
             if (backupStatus) {
-              backupStatus.textContent = '⚠️ No scan history to export';
-              backupStatus.className = 'mt-2 text-sm text-yellow-400';
+              backupStatus.textContent = "⚠️ No scan history to export";
+              backupStatus.className = "mt-2 text-sm text-yellow-400";
             }
             return;
           }
-          
-          const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+
+          const blob = new Blob([JSON.stringify(data, null, 2)], {
+            type: "application/json",
+          });
           const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
+          const a = document.createElement("a");
           a.href = url;
-          a.download = `vulnera_scan_history_${new Date().toISOString().split('T')[0]}.json`;
+          a.download = `vulnera_scan_history_${new Date().toISOString().split("T")[0]}.json`;
           document.body.appendChild(a);
           a.click();
           document.body.removeChild(a);
           URL.revokeObjectURL(url);
-          
+
           if (backupStatus) {
             backupStatus.textContent = `✅ Exported ${data.length} scans successfully`;
-            backupStatus.className = 'mt-2 text-sm text-green-400';
+            backupStatus.className = "mt-2 text-sm text-green-400";
           }
         } catch (e) {
-          console.error('Export failed:', e);
+          logger.error("Export failed", e);
           if (backupStatus) {
-            backupStatus.textContent = '❌ Export failed';
-            backupStatus.className = 'mt-2 text-sm text-red-400';
+            backupStatus.textContent = "❌ Export failed";
+            backupStatus.className = "mt-2 text-sm text-red-400";
           }
         }
       });
 
       // Import scan history
-      const importScansBtn = document.getElementById('import-scans-btn');
-      const importScansInput = document.getElementById('import-scans-input') as HTMLInputElement;
-      
-      importScansBtn?.addEventListener('click', () => {
+      const importScansBtn = document.getElementById("import-scans-btn");
+      const importScansInput = document.getElementById(
+        "import-scans-input"
+      ) as HTMLInputElement;
+
+      importScansBtn?.addEventListener("click", () => {
         importScansInput?.click();
       });
-      
-      importScansInput?.addEventListener('change', async (e) => {
+
+      importScansInput?.addEventListener("change", async (e) => {
         const target = e.target as HTMLInputElement;
         const file = target?.files?.[0];
         if (!file) return;
-        
+
         try {
           const text = await file.text();
           const data = JSON.parse(text);
-          
+
           if (!Array.isArray(data)) {
-            throw new Error('Invalid format: expected an array');
+            throw new Error("Invalid format: expected an array");
           }
-          
+
           // Merge with existing data
-          const existing = JSON.parse(localStorage.getItem('scan_history') || '[]');
-          const merged = [...data, ...existing];
-          
-          // Remove duplicates by ID
-          const unique = merged.filter((scan, index, self) => 
-            index === self.findIndex(s => s.id === scan.id)
+          const existing = JSON.parse(
+            localStorage.getItem("scan_history") || "[]"
           );
-          
+          const merged = [...data, ...existing];
+
+          // Remove duplicates by ID
+          const unique = merged.filter(
+            (scan, index, self) =>
+              index === self.findIndex((s) => s.id === scan.id)
+          );
+
           // Keep only last 50
           if (unique.length > 50) unique.length = 50;
-          
-          localStorage.setItem('scan_history', JSON.stringify(unique));
-          
+
+          localStorage.setItem("scan_history", JSON.stringify(unique));
+
           if (backupStatus) {
             backupStatus.textContent = `✅ Imported successfully! Total scans: ${unique.length}`;
-            backupStatus.className = 'mt-2 text-sm text-green-400';
+            backupStatus.className = "mt-2 text-sm text-green-400";
           }
-          
+
           // Clear input
-          const target = e.target as HTMLInputElement;
-          if (target) target.value = '';
+          if (target) target.value = "";
         } catch (err) {
-          console.error('Import failed:', err);
+          logger.error("Import failed", err);
           if (backupStatus) {
-            const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+            const errorMsg =
+              err instanceof Error ? err.message : "Unknown error";
             backupStatus.textContent = `❌ Import failed: ${errorMsg}`;
-            backupStatus.className = 'mt-2 text-sm text-red-400';
+            backupStatus.className = "mt-2 text-sm text-red-400";
           }
         }
       });
 
       // System information display
-      const apiBaseDisplay = document.getElementById('api-base-display');
-      const tokenStatusDisplay = document.getElementById('token-status-display');
-      const userAgentDisplay = document.getElementById('user-agent-display');
-      
-      if (apiBaseDisplay) apiBaseDisplay.textContent = '✅ Configured'; // Hide actual IP for security
+      const apiBaseDisplay = document.getElementById("api-base-display");
+      const tokenStatusDisplay = document.getElementById(
+        "token-status-display"
+      );
+      const userAgentDisplay = document.getElementById("user-agent-display");
+
+      if (apiBaseDisplay) apiBaseDisplay.textContent = "✅ Configured"; // Hide actual IP for security
       if (tokenStatusDisplay) {
         const token = authService.getToken();
-        tokenStatusDisplay.textContent = token ? `✅ Present (${token.length} chars)` : '❌ Not found';
-        tokenStatusDisplay.className = token ? 'text-green-400' : 'text-red-400';
+        tokenStatusDisplay.textContent = token
+          ? `✅ Present (${token.length} chars)`
+          : "❌ Not found";
+        tokenStatusDisplay.className = token
+          ? "text-green-400"
+          : "text-red-400";
       }
-      if (userAgentDisplay) userAgentDisplay.textContent = navigator.userAgent.substring(0, 50) + '...';
+      if (userAgentDisplay)
+        userAgentDisplay.textContent =
+          navigator.userAgent.substring(0, 50) + "...";
 
       loadProfile();
 
       async function loadApiKeys() {
         try {
-          const response = await fetch(`${API_BASE_URL}/api/v1/auth/api-keys`, {
-            headers: {
-              'Authorization': `Bearer ${authService.getToken()}`
-            }
-          });
+          const response = await authService.listApiKeys();
 
-          if (!response.ok) {
-            let errorMsg = 'Failed to load API keys';
-            
+          if (!response.success) {
+            let errorMsg = response.error || "Failed to load API keys";
+
             if (response.status === 404) {
               // 404 means endpoint not implemented - show empty state
-              const container = document.getElementById('api-keys-container');
+              const container = document.getElementById("api-keys-container");
               if (container) {
                 container.innerHTML = `
                   <div class="text-center py-8">
@@ -1034,32 +1211,24 @@ import Footer from "../components/Footer.astro";
               }
               return; // Don't throw error, just show message
             }
-            
-            try {
-              const contentType = response.headers.get('content-type');
-              if (contentType && contentType.includes('application/json')) {
-                const errorData = await response.json();
-                errorMsg = errorData.message || errorData.detail || errorMsg;
-              }
-            } catch (e) {
-              console.error('Error parsing error response:', e);
-            }
-            
-            throw new Error(errorMsg + ` (HTTP ${response.status})`);
+
+            throw new Error(errorMsg + ` (HTTP ${response.status || 500})`);
           }
 
-          const data = await response.json();
-          const container = document.getElementById('api-keys-container');
-          
+          const data = response.data as any;
+          const container = document.getElementById("api-keys-container");
+
           if (!container) return;
-          
+
           // Debug: Log the response structure
-          console.log('API Keys Response:', data);
-          console.log('Response type:', typeof data);
-          console.log('Is Array?', Array.isArray(data));
-          
+          logger.debug("API Keys Response", {
+            data,
+            type: typeof data,
+            isArray: Array.isArray(data),
+          });
+
           // Ensure data is an array - handle multiple response formats
-          let keys = [];
+          let keys: any[] = [];
           if (Array.isArray(data)) {
             keys = data;
           } else if (data?.data && Array.isArray(data.data)) {
@@ -1071,12 +1240,11 @@ import Footer from "../components/Footer.astro";
           } else if (data?.items && Array.isArray(data.items)) {
             keys = data.items;
           } else {
-            console.warn('Unknown API keys response format:', data);
+            logger.warn("Unknown API keys response format", data);
           }
-          
-          console.log('Extracted keys:', keys);
-          console.log('Keys count:', keys.length);
-          
+
+          logger.debug("Extracted keys", { keys, count: keys.length });
+
           if (!keys || keys.length === 0) {
             container.innerHTML = `
               <div class="text-center py-8 text-matrix-300">
@@ -1086,30 +1254,32 @@ import Footer from "../components/Footer.astro";
             return;
           }
 
-          container.innerHTML = keys.map((key: any) => `
+          container.innerHTML = keys
+            .map(
+              (key: any) => `
             <div class="terminal-border bg-black/50 rounded-lg p-4 flex items-center justify-between">
               <div class="flex-1">
                 <div class="flex items-center gap-3 mb-2">
-                  <h3 class="text-white font-mono font-bold">${key.name || 'Unnamed Key'}</h3>
-                  <span class="key-status-badge px-2 py-1 rounded text-xs font-mono ${key.is_active !== false ? 'bg-green-500/20 text-green-400' : 'bg-orange-500/20 text-orange-400'}" data-key-id="${key.key_id}">
-                    ${key.is_active !== false ? '🔒 ACTIVE' : '🔓 INACTIVE'}
+                  <h3 class="text-white font-mono font-bold">${key.name || "Unnamed Key"}</h3>
+                  <span class="key-status-badge px-2 py-1 rounded text-xs font-mono ${key.is_active !== false ? "bg-green-500/20 text-green-400" : "bg-orange-500/20 text-orange-400"}" data-key-id="${key.key_id}">
+                    ${key.is_active !== false ? "🔒 ACTIVE" : "🔓 INACTIVE"}
                   </span>
                 </div>
-                <p class="text-sm text-matrix-300 font-mono">Key: ${key.masked_key || key.key_preview || '••••••••'}</p>
-                ${key.description ? `<p class="text-sm text-gray-500 mt-1">${key.description}</p>` : ''}
+                <p class="text-sm text-matrix-300 font-mono">Key: ${key.masked_key || key.key_preview || "••••••••"}</p>
+                ${key.description ? `<p class="text-sm text-gray-500 mt-1">${key.description}</p>` : ""}
                 <div class="flex items-center gap-4 mt-2 text-xs text-gray-600">
                   <span>Created: ${new Date(key.created_at).toLocaleDateString()}</span>
-                  ${key.expires_at ? `<span>Expires: ${new Date(key.expires_at).toLocaleDateString()}</span>` : ''}
-                  ${key.last_used_at ? `<span>Last used: ${new Date(key.last_used_at).toLocaleDateString()}</span>` : '<span>Never used</span>'}
+                  ${key.expires_at ? `<span>Expires: ${new Date(key.expires_at).toLocaleDateString()}</span>` : ""}
+                  ${key.last_used_at ? `<span>Last used: ${new Date(key.last_used_at).toLocaleDateString()}</span>` : "<span>Never used</span>"}
                 </div>
               </div>
               <div class="flex gap-2">
                 <button
-                  class="toggle-key-btn ${key.is_active !== false ? 'bg-orange-500/20 text-orange-400 hover:bg-orange-500/30' : 'bg-green-500/20 text-green-400 hover:bg-green-500/30'} px-3 py-1 rounded text-sm font-mono transition-all duration-300"
+                  class="toggle-key-btn ${key.is_active !== false ? "bg-orange-500/20 text-orange-400 hover:bg-orange-500/30" : "bg-green-500/20 text-green-400 hover:bg-green-500/30"} px-3 py-1 rounded text-sm font-mono transition-all duration-300"
                   data-key-id="${key.key_id}"
-                  title="${key.is_active !== false ? 'Disable this API key' : 'Enable this API key'}"
+                  title="${key.is_active !== false ? "Disable this API key" : "Enable this API key"}"
                 >
-                  ${key.is_active !== false ? '✎ Disable' : '✎ Enable'}
+                  ${key.is_active !== false ? "✎ Disable" : "✎ Enable"}
                 </button>
                 <button
                   class="delete-key-btn bg-red-500/20 text-red-400 hover:bg-red-500/30 px-3 py-1 rounded text-sm font-mono transition-all duration-300"
@@ -1120,41 +1290,59 @@ import Footer from "../components/Footer.astro";
                 </button>
               </div>
             </div>
-          `).join('');
+          `
+            )
+            .join("");
 
-          document.querySelectorAll('.toggle-key-btn').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-              const button = (e.currentTarget as HTMLElement);
-              const keyId = button.getAttribute('data-key-id');
-              const badge = document.querySelector(`[data-key-id="${keyId}"].key-status-badge`) as HTMLElement;
-              const isCurrentlyActive = badge && badge.textContent?.includes('ACTIVE');
-              
-              console.log('🔘 Toggle button clicked:', { keyId, isCurrentlyActive });
-              
-              if (keyId && confirm(`⚠️ ${isCurrentlyActive ? 'Disable' : 'Enable'} API Key?\n\nAre you sure you want to ${isCurrentlyActive ? 'disable' : 'enable'} this API key?\n\nProceed?`)) {
+          document.querySelectorAll(".toggle-key-btn").forEach((btn) => {
+            btn.addEventListener("click", async (e) => {
+              const button = e.currentTarget as HTMLElement;
+              const keyId = button.getAttribute("data-key-id");
+              const badge = document.querySelector(
+                `[data-key-id="${keyId}"].key-status-badge`
+              ) as HTMLElement;
+              const isCurrentlyActive =
+                badge && badge.textContent?.includes("ACTIVE");
+
+              logger.debug("Toggle button clicked", {
+                keyId,
+                isCurrentlyActive,
+              });
+
+              if (
+                keyId &&
+                confirm(
+                  `⚠️ ${isCurrentlyActive ? "Disable" : "Enable"} API Key?\n\nAre you sure you want to ${isCurrentlyActive ? "disable" : "enable"} this API key?\n\nProceed?`
+                )
+              ) {
                 await toggleApiKey(keyId, !isCurrentlyActive);
               }
             });
           });
 
-          document.querySelectorAll('.delete-key-btn').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-              const button = (e.currentTarget as HTMLElement);
-              const keyId = button.getAttribute('data-key-id');
-              
-              console.log('🗑️ Delete button clicked:', { keyId });
-              
-              if (keyId && confirm('⚠️ Delete API Key?\n\nAre you sure you want to permanently delete this API key?\n\n⚠️ This action cannot be undone\n⚠️ All services using this key will stop working immediately\n\nProceed with deletion?')) {
+          document.querySelectorAll(".delete-key-btn").forEach((btn) => {
+            btn.addEventListener("click", async (e) => {
+              const button = e.currentTarget as HTMLElement;
+              const keyId = button.getAttribute("data-key-id");
+
+              logger.debug("Delete button clicked", { keyId });
+
+              if (
+                keyId &&
+                confirm(
+                  "⚠️ Delete API Key?\n\nAre you sure you want to permanently delete this API key?\n\n⚠️ This action cannot be undone\n⚠️ All services using this key will stop working immediately\n\nProceed with deletion?"
+                )
+              ) {
                 await deleteApiKey(keyId);
               }
             });
           });
-
         } catch (error) {
-          console.error('Error loading API keys:', error);
-          const container = document.getElementById('api-keys-container');
+          logger.error("Error loading API keys", error);
+          const container = document.getElementById("api-keys-container");
           if (container) {
-            const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+            const errorMsg =
+              error instanceof Error ? error.message : "Unknown error";
             container.innerHTML = `
               <div class="text-center py-8">
                 <div class="text-red-400 mb-2">❌ Failed to load API keys</div>
@@ -1173,342 +1361,325 @@ import Footer from "../components/Footer.astro";
 
       async function deleteApiKey(keyId: string) {
         try {
-          console.log('🔑 Attempting to revoke API key:', keyId);
-          
+          logger.debug("Attempting to revoke API key", { keyId });
+
           // Get current keys from DOM before making the request
-          const currentKeyElements = document.querySelectorAll('[data-key-id]');
+          const currentKeyElements = document.querySelectorAll("[data-key-id]");
           const currentKeys: string[] = [];
           currentKeyElements.forEach((el) => {
-            const id = el.getAttribute('data-key-id');
+            const id = el.getAttribute("data-key-id");
             if (id) currentKeys.push(id);
           });
-          
-          console.log('📋 Current key IDs in DOM BEFORE revoke:', currentKeys);
-          console.log('🎯 Target key ID:', keyId);
-          console.log('✅ Key exists in DOM?', currentKeys.includes(keyId) ? 'YES' : 'NO ⚠️');
-          
-          const response = await fetch(`${API_BASE_URL}/api/v1/auth/api-keys/${keyId}`, {
-            method: 'DELETE',
-            headers: {
-              'Authorization': `Bearer ${authService.getToken()}`
-            }
+
+          logger.debug("Current key IDs in DOM BEFORE revoke", {
+            currentKeys,
+            targetKeyId: keyId,
+            exists: currentKeys.includes(keyId),
           });
 
-          console.log('📡 Revoke response status:', response.status);
-          console.log('📋 Response headers:', {
-            contentType: response.headers.get('content-type'),
-            contentLength: response.headers.get('content-length')
-          });
+          const response = await authService.revokeApiKey(keyId);
 
-          if (!response.ok) {
-            let errorMsg = 'Failed to revoke API key';
-            
+          logger.debug("Revoke response status", { status: response.status });
+
+          if (!response.success) {
+            let errorMsg = response.error || "Failed to revoke API key";
+
             if (response.status === 404) {
-              console.log('⚠️ Got 404 - Key not found on server');
-              
-              // Try to parse response body for more info
-              let errorDetails = null;
+              logger.warn("Got 404 - Key not found on server");
+
+              // Try to get error details from response
+              let errorDetails: any = null;
               try {
-                const contentType = response.headers.get('content-type');
-                if (contentType && contentType.includes('application/json')) {
-                  errorDetails = await response.json();
-                  console.log('📄 404 Error details:', errorDetails);
-                  errorMsg = errorDetails.message || errorDetails.detail || 'API key not found';
-                }
+                errorDetails = response.data;
+                logger.debug("404 Error details", errorDetails);
+                errorMsg =
+                  errorDetails?.message ||
+                  errorDetails?.detail ||
+                  "API key not found";
               } catch (e) {
-                console.log('Could not parse 404 response:', e);
+                logger.warn("Could not parse 404 response", e);
               }
-              
+
               // Reload list to verify current state
               const keysCountBefore = currentKeys.length;
               await loadApiKeys();
-              
+
               // Get keys after reload
-              const updatedKeyElements = document.querySelectorAll('[data-key-id]');
+              const updatedKeyElements =
+                document.querySelectorAll("[data-key-id]");
               const updatedKeys: string[] = [];
               updatedKeyElements.forEach((el) => {
-                const id = el.getAttribute('data-key-id');
+                const id = el.getAttribute("data-key-id");
                 if (id) updatedKeys.push(id);
               });
               const keysCountAfter = updatedKeys.length;
-              
-              console.log(`📊 Keys count: Before=${keysCountBefore}, After=${keysCountAfter}`);
-              console.log('📋 Key IDs AFTER reload:', updatedKeys);
-              
+
+              logger.debug("Keys count after reload", {
+                before: keysCountBefore,
+                after: keysCountAfter,
+                updatedKeys,
+              });
+
               // Check if the key we tried to delete is still in the list
               const keyStillExists = updatedKeys.includes(keyId);
-              
+
               if (keyStillExists) {
                 // KEY MISMATCH: Key exists in UI but backend says not found
-                console.error('🚨 DATA MISMATCH: Key exists in list but backend says not found!');
-                
+                logger.error(
+                  "DATA MISMATCH: Key exists in list but backend says not found",
+                  { keyId }
+                );
+
                 // Get the masked key for display
-                const keyElement = document.querySelector(`[data-key-id="${keyId}"]`);
-                const maskedKey = keyElement?.closest('tr')?.querySelector('.font-mono')?.textContent || 'Unknown';
-                
+                const keyElement = document.querySelector(
+                  `[data-key-id="${keyId}"]`
+                );
+                const maskedKey =
+                  keyElement?.closest("tr")?.querySelector(".font-mono")
+                    ?.textContent || "Unknown";
+
                 alert(
                   `🚨 Data Synchronization Error\n\n` +
-                  `The API key appears in your list, but the backend server says it doesn't exist.\n\n` +
-                  `Key ID: ${keyId}\n` +
-                  `Masked: ${maskedKey}\n\n` +
-                  `This indicates a data synchronization issue between frontend and backend.\n\n` +
-                  `Possible causes:\n` +
-                  `• Backend database inconsistency\n` +
-                  `• Cached/stale data\n` +
-                  `• Key was created but not properly stored\n\n` +
-                  `Recommendation: Try refreshing the page.`
+                    `The API key appears in your list, but the backend server says it doesn't exist.\n\n` +
+                    `Key ID: ${keyId}\n` +
+                    `Masked: ${maskedKey}\n\n` +
+                    `This indicates a data synchronization issue between frontend and backend.\n\n` +
+                    `Possible causes:\n` +
+                    `• Backend database inconsistency\n` +
+                    `• Cached/stale data\n` +
+                    `• Key was created but not properly stored\n\n` +
+                    `Recommendation: Try refreshing the page.`
                 );
               } else {
                 // Key was removed from list
-                console.log('✅ Key no longer in list after reload');
+                logger.debug("Key no longer in list after reload");
                 if (keysCountAfter < keysCountBefore) {
-                  alert('✅ API Key Removed\n\nThe key has been removed from your account.');
+                  alert(
+                    "✅ API Key Removed\n\nThe key has been removed from your account."
+                  );
                 } else {
-                  alert(`ℹ️ API Key Not Found\n\nThe key was not found on the server (may have been already revoked).\n\n${errorDetails?.message || ''}`);
+                  alert(
+                    `ℹ️ API Key Not Found\n\nThe key was not found on the server (may have been already revoked).\n\n${errorDetails?.message || ""}`
+                  );
                 }
               }
               return; // Exit gracefully
-              
             } else if (response.status === 403) {
-              errorMsg = 'You do not have permission to revoke this API key';
+              errorMsg = "You do not have permission to revoke this API key";
             } else if (response.status === 401) {
-              errorMsg = 'Authentication required. Please log in again';
+              errorMsg = "Authentication required. Please log in again";
             } else {
-              // Try to get error details from response
-              try {
-                const contentType = response.headers.get('content-type');
-                if (contentType && contentType.includes('application/json')) {
-                  const errorData = await response.json();
-                  errorMsg = errorData.message || errorData.detail || errorMsg;
-                  console.log('Error details:', errorData);
-                }
-              } catch (e) {
-                console.error('Could not parse error response:', e);
+              // Error details are already in response.error or response.data
+              if (response.data) {
+                const errorData = response.data as any;
+                errorMsg = errorData?.message || errorData?.detail || errorMsg;
+                logger.debug("Error details", errorData);
               }
             }
-            
+
             throw new Error(errorMsg + ` (HTTP ${response.status})`);
           }
 
-          console.log('API key revoked successfully');
-          alert('✅ API key revoked successfully\n\nThe key has been permanently deleted and can no longer be used.');
+          logger.info("API key revoked successfully");
+          alert(
+            "✅ API key revoked successfully\n\nThe key has been permanently deleted and can no longer be used."
+          );
           await loadApiKeys();
         } catch (error) {
-          console.error('Error revoking API key:', error);
-          const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-          alert('❌ Failed to revoke API key\n\n' + errorMsg);
+          logger.error("Error revoking API key", error);
+          const errorMsg =
+            error instanceof Error ? error.message : "Unknown error";
+          alert("❌ Failed to revoke API key\n\n" + errorMsg);
         }
       }
-
-      // Note: Enable/Disable feature is not available yet on backend
-      // Endpoint /api/v1/auth/api-keys/{id}/activate returns 404
-      // Uncomment this function when backend implements it:
-      /*
-      async function toggleApiKey(keyId: string, activate: boolean) {
-        try {
-          const response = await fetch(`${API_BASE_URL}/api/v1/auth/api-keys/${keyId}/${activate ? 'activate' : 'deactivate'}`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${authService.getToken()}`,
-              'Content-Type': 'application/json'
-            }
-          });
-
-          if (!response.ok) {
-            throw new Error(`Failed to ${activate ? 'activate' : 'deactivate'} API key (HTTP ${response.status})`);
-          }
-
-          alert(`✅ API key ${activate ? 'activated' : 'deactivated'} successfully`);
-          await loadApiKeys();
-        } catch (error) {
-          console.error('Error toggling API key:', error);
-          const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-          alert(`❌ Failed to ${activate ? 'activate' : 'deactivate'} API key\n\n${errorMsg}`);
-        }
-      }
-      */
 
       async function toggleApiKey(keyId: string, shouldActivate: boolean) {
         try {
-          console.log(`🔄 Toggling API key ${keyId} to ${shouldActivate ? 'ACTIVE' : 'INACTIVE'}`);
-          
-          // Try the PATCH endpoint first (activate/deactivate)
-          let response = await fetch(`${API_BASE_URL}/api/v1/auth/api-keys/${keyId}/${shouldActivate ? 'activate' : 'deactivate'}`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${authService.getToken()}`,
-              'Content-Type': 'application/json'
-            }
-          });
+          logger.debug("Toggling API key", { keyId, shouldActivate });
 
-          if (response.status === 404) {
-            console.warn('⚠️ Toggle endpoint not implemented, trying PATCH method...');
+          // Try the activate/deactivate endpoint first
+          let response = await apiClient.post(
+            `${API_ENDPOINTS.AUTH.REVOKE_API_KEY.replace(":key_id", keyId)}/${shouldActivate ? "activate" : "deactivate"}`,
+            {}
+          );
+
+          if (!response.success && response.status === 404) {
+            logger.warn("Toggle endpoint not implemented, trying PATCH method");
             // Try PATCH method as fallback
-            response = await fetch(`${API_BASE_URL}/api/v1/auth/api-keys/${keyId}`, {
-              method: 'PATCH',
-              headers: {
-                'Authorization': `Bearer ${authService.getToken()}`,
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({ is_active: shouldActivate })
-            });
+            response = await apiClient.patch(
+              API_ENDPOINTS.AUTH.REVOKE_API_KEY.replace(":key_id", keyId),
+              { is_active: shouldActivate }
+            );
           }
 
-          if (!response.ok) {
-            let errorMsg = `Failed to ${shouldActivate ? 'enable' : 'disable'} API key`;
-            try {
-              const errorData = await response.json();
-              errorMsg = errorData.message || errorData.detail || errorMsg;
-              console.log('Toggle error:', errorData);
-            } catch (e) {
-              console.error('Could not parse error response');
-            }
-            throw new Error(`${errorMsg} (HTTP ${response.status})`);
+          if (!response.success) {
+            const errorMsg =
+              response.error ||
+              `Failed to ${shouldActivate ? "enable" : "disable"} API key`;
+            logger.debug("Toggle error", response.data);
+            throw new Error(`${errorMsg} (HTTP ${response.status || 500})`);
           }
 
-          console.log(`✅ API key toggled successfully to ${shouldActivate ? 'ACTIVE' : 'INACTIVE'}`);
-          alert(`✅ API key ${shouldActivate ? 'enabled' : 'disabled'} successfully`);
+          logger.info("API key toggled successfully", { shouldActivate });
+          alert(
+            `✅ API key ${shouldActivate ? "enabled" : "disabled"} successfully`
+          );
           await loadApiKeys();
         } catch (error) {
-          console.error('Error toggling API key:', error);
-          const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-          alert(`❌ Failed to ${shouldActivate ? 'enable' : 'disable'} API key\n\n${errorMsg}`);
+          logger.error("Error toggling API key", error);
+          const errorMsg =
+            error instanceof Error ? error.message : "Unknown error";
+          alert(
+            `❌ Failed to ${shouldActivate ? "enable" : "disable"} API key\n\n${errorMsg}`
+          );
         }
       }
 
       await loadApiKeys();
 
-      const createBtn = document.getElementById('create-api-key-btn');
-      const createBtnText = document.getElementById('create-api-key-text');
-      const createBtnLoading = document.getElementById('create-api-key-loading');
-      const modal = document.getElementById('create-key-modal');
-      const closeModalBtn = document.getElementById('close-modal-btn');
-      const cancelModalBtn = document.getElementById('cancel-modal-btn');
-      const createKeyForm = document.getElementById('create-key-form');
-      const keyDisplayModal = document.getElementById('key-display-modal');
-      const closeKeyDisplayBtn = document.getElementById('close-key-display-btn');
-      const copyKeyBtn = document.getElementById('copy-key-btn');
+      const createBtn = document.getElementById("create-api-key-btn");
+      const createBtnText = document.getElementById("create-api-key-text");
+      const createBtnLoading = document.getElementById(
+        "create-api-key-loading"
+      );
+      const modal = document.getElementById("create-key-modal");
+      const closeModalBtn = document.getElementById("close-modal-btn");
+      const cancelModalBtn = document.getElementById("cancel-modal-btn");
+      const createKeyForm = document.getElementById("create-key-form");
+      const keyDisplayModal = document.getElementById("key-display-modal");
+      const closeKeyDisplayBtn = document.getElementById(
+        "close-key-display-btn"
+      );
+      const copyKeyBtn = document.getElementById("copy-key-btn");
 
-      const MODAL_VISIBLE_CLASSES = ['flex', 'items-center', 'justify-center'];
+      const MODAL_VISIBLE_CLASSES = ["flex", "items-center", "justify-center"];
 
       function showModal(element: HTMLElement | null) {
         if (!element) return;
-        element.classList.remove('hidden');
+        element.classList.remove("hidden");
         element.classList.add(...MODAL_VISIBLE_CLASSES);
       }
 
       function hideModal(element: HTMLElement | null) {
         if (!element) return;
-        element.classList.add('hidden');
+        element.classList.add("hidden");
         element.classList.remove(...MODAL_VISIBLE_CLASSES);
       }
 
-      createBtn?.addEventListener('click', () => {
+      createBtn?.addEventListener("click", () => {
         showModal(modal as HTMLElement | null);
       });
 
-      closeModalBtn?.addEventListener('click', () => {
+      closeModalBtn?.addEventListener("click", () => {
         hideModal(modal as HTMLElement | null);
       });
 
-      cancelModalBtn?.addEventListener('click', () => {
+      cancelModalBtn?.addEventListener("click", () => {
         hideModal(modal as HTMLElement | null);
       });
 
-      createKeyForm?.addEventListener('submit', async (e) => {
+      createKeyForm?.addEventListener("submit", async (e) => {
         e.preventDefault();
-        
-        const nameInput = document.getElementById('key-name') as HTMLInputElement;
-        const descInput = document.getElementById('key-description') as HTMLTextAreaElement;
+
+        const nameInput = document.getElementById(
+          "key-name"
+        ) as HTMLInputElement;
+        const descInput = document.getElementById(
+          "key-description"
+        ) as HTMLTextAreaElement;
 
         // Show loading state
         if (createBtn) (createBtn as HTMLButtonElement).disabled = true;
-        createBtnText?.classList.add('hidden');
-        createBtnLoading?.classList.remove('hidden');
+        createBtnText?.classList.add("hidden");
+        createBtnLoading?.classList.remove("hidden");
 
         try {
-          const response = await fetch(`${API_BASE_URL}/api/v1/auth/api-keys`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${authService.getToken()}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              name: nameInput.value,
-              description: descInput.value || undefined
-            })
+          const response = await authService.createApiKey({
+            name: nameInput.value,
+            expires_at: descInput.value || undefined,
           });
 
-          if (!response.ok) {
-            let errorMsg = 'Failed to create API key';
-            try {
-              const contentType = response.headers.get('content-type');
-              if (contentType && contentType.includes('application/json')) {
-                const errorData = await response.json();
-                errorMsg = errorData.message || errorData.detail || errorMsg;
-              } else {
-                const text = await response.text();
-                if (text.includes('404') || response.status === 404) {
-                  errorMsg = 'API Keys endpoint not implemented on backend';
-                }
-              }
-            } catch (e) {
-              console.error('Error parsing error response:', e);
+          if (!response.success) {
+            let errorMsg = response.error || "Failed to create API key";
+            if (response.status === 404) {
+              errorMsg = "API Keys endpoint not implemented on backend";
             }
-            throw new Error(errorMsg + ` (HTTP ${response.status})`);
+            throw new Error(errorMsg + ` (HTTP ${response.status || 500})`);
           }
 
-          const data = await response.json();
-          
-          console.log('Create API Key Response:', data);
-          console.log('API Key value:', data.api_key || data.key);
-          
+          const data = response.data as any;
+
+          logger.debug("Create API Key Response", {
+            data,
+            apiKey: data?.api_key || data?.key,
+          });
+
           hideModal(modal as HTMLElement | null);
-          
-          const generatedKeyInput = document.getElementById('generated-key') as HTMLInputElement;
-          generatedKeyInput.value = data.api_key || data.key || data.token || 'Error: Key not found in response';
+
+          const generatedKeyInput = document.getElementById(
+            "generated-key"
+          ) as HTMLInputElement;
+          if (generatedKeyInput && data) {
+            generatedKeyInput.value =
+              data.api_key ||
+              data.key ||
+              data.token ||
+              "Error: Key not found in response";
+          }
           showModal(keyDisplayModal as HTMLElement | null);
 
-          nameInput.value = '';
-          descInput.value = '';
+          nameInput.value = "";
+          descInput.value = "";
 
-          console.log('Reloading API keys list...');
+          logger.debug("Reloading API keys list");
           await loadApiKeys();
-          console.log('API keys list reloaded');
+          logger.debug("API keys list reloaded");
         } catch (error) {
-          console.error('Error creating API key:', error);
-          const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-          
-          if (errorMsg.includes('not implemented') || errorMsg.includes('404')) {
-            alert('⚠️ API Keys Feature Not Available\n\n' + 
-                  'The API Keys endpoint is not implemented on the backend server.\n\n' +
-                  'This feature requires:\n' +
-                  '• Backend API endpoint: POST /api/v1/auth/api-keys\n' +
-                  '• Proper authentication and authorization\n\n' +
-                  'Please contact your system administrator or check backend implementation.');
+          logger.error("Error creating API key", error);
+          const errorMsg =
+            error instanceof Error ? error.message : "Unknown error";
+
+          if (
+            errorMsg.includes("not implemented") ||
+            errorMsg.includes("404")
+          ) {
+            alert(
+              "⚠️ API Keys Feature Not Available\n\n" +
+                "The API Keys endpoint is not implemented on the backend server.\n\n" +
+                "This feature requires:\n" +
+                "• Backend API endpoint: POST /api/v1/auth/api-keys\n" +
+                "• Proper authentication and authorization\n\n" +
+                "Please contact your system administrator or check backend implementation."
+            );
           } else {
-            alert('❌ Failed to create API key\n\n' + errorMsg + '\n\nPlease try again or contact support.');
+            alert(
+              "❌ Failed to create API key\n\n" +
+                errorMsg +
+                "\n\nPlease try again or contact support."
+            );
           }
         } finally {
           // Hide loading state
           if (createBtn) (createBtn as HTMLButtonElement).disabled = false;
-          createBtnText?.classList.remove('hidden');
-          createBtnLoading?.classList.add('hidden');
+          createBtnText?.classList.remove("hidden");
+          createBtnLoading?.classList.add("hidden");
         }
       });
 
-      closeKeyDisplayBtn?.addEventListener('click', () => {
+      closeKeyDisplayBtn?.addEventListener("click", () => {
         hideModal(keyDisplayModal as HTMLElement | null);
       });
 
-      copyKeyBtn?.addEventListener('click', () => {
-        const generatedKeyInput = document.getElementById('generated-key') as HTMLInputElement;
+      copyKeyBtn?.addEventListener("click", () => {
+        const generatedKeyInput = document.getElementById(
+          "generated-key"
+        ) as HTMLInputElement;
         generatedKeyInput.select();
-        document.execCommand('copy');
-        
-        copyKeyBtn.textContent = 'Copied!';
+        document.execCommand("copy");
+
+        copyKeyBtn.textContent = "Copied!";
         setTimeout(() => {
-          copyKeyBtn.textContent = 'Copy';
+          copyKeyBtn.textContent = "Copy";
         }, 2000);
       });
     });
