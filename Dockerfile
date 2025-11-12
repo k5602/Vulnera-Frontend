@@ -22,8 +22,9 @@ FROM node:20-alpine
 # Set working directory
 WORKDIR /app
 
-# Install serve globally to serve static files
-RUN npm install -g serve
+# Install serve globally and curl for healthcheck
+RUN npm install -g serve && \
+    apk add --no-cache curl
 
 # Copy built files from builder stage
 COPY --from=builder /app/dist ./dist
@@ -34,10 +35,10 @@ EXPOSE 8080
 # Set default port
 ENV PORT=8080
 
-# Health check
+# Health check using curl
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD node -e "require('http').get('http://localhost:' + process.env.PORT + '/', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+    CMD curl -f http://localhost:${PORT}/ || exit 1
 
 # Start the server
-CMD ["sh", "-c", "serve -s dist -l ${PORT} --no-clipboard --no-open"]
+CMD ["sh", "-c", "serve -s dist -l ${PORT}"]
 
