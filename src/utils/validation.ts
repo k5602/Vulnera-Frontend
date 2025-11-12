@@ -78,6 +78,17 @@ export function validateLoginCredentials(
   };
 }
 
+const MIME_WHITELIST: Record<string, string[]> = {
+  json: ['application/json'],
+  xml: ['application/xml', 'text/xml'],
+  txt: ['text/plain'],
+  csv: ['text/csv'],
+  lock: ['text/plain'],
+  yaml: ['application/x-yaml', 'text/x-yaml'],
+  yml: ['application/x-yaml', 'text/x-yaml'],
+  md: ['text/markdown', 'text/plain'],
+};
+
 /**
  * Validate file upload
  */
@@ -93,21 +104,32 @@ export function validateFileUpload(
     return { isValid: false, errors };
   }
 
-  // Check file size
+  // Get file extension
+  const ext = file.name.split('.').pop()?.toLowerCase() || '';
+
+  // 1. Validate extension
+  if (!allowedExtensions.includes(ext)) {
+    errors.push({
+      field: 'file',
+      message: `Invalid file extension. Allowed: ${allowedExtensions.join(', ')}`,
+    });
+  }
+
+  // 2. Validate MIME type against whitelist
+  const allowedMimes = MIME_WHITELIST[ext] || [];
+  if (allowedMimes.length > 0 && !allowedMimes.includes(file.type)) {
+    errors.push({
+      field: 'file',
+      message: `Invalid file type: ${file.type}. Expected: ${allowedMimes.join(', ')}`,
+    });
+  }
+
+  // 3. Validate file size
   const maxSizeBytes = maxSizeMB * 1024 * 1024;
   if (file.size > maxSizeBytes) {
     errors.push({
       field: 'file',
-      message: `File size exceeds ${maxSizeMB}MB limit`,
-    });
-  }
-
-  // Check file extension
-  const fileExtension = file.name.split('.').pop()?.toLowerCase() || '';
-  if (!allowedExtensions.includes(fileExtension)) {
-    errors.push({
-      field: 'file',
-      message: `Invalid file type. Allowed: ${allowedExtensions.join(', ')}`,
+      message: `File size exceeds ${maxSizeMB}MB limit (actual: ${(file.size / 1024 / 1024).toFixed(2)}MB)`,
     });
   }
 

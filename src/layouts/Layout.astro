@@ -244,5 +244,11 @@ const {
             });
         })();
     </script>
+    <script>
+        import { tokenRefreshManager } from '../utils/api/token-refresh';
+        if (typeof window !== 'undefined') {
+            tokenRefreshManager.startAutoRefresh();
+        }
+    </script>
 </body>
 </html>

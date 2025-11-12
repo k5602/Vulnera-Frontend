@@ -99,7 +99,7 @@ class AuthService {
       // Support both 'token' and 'access_token' field names
       const token = response.data.token || response.data.access_token;
       
-      console.log('✅ Registration completed');
+      // Registration completed - token stored
       if (token) {
         tokenManager.setToken(token);
         if (response.data.user) {

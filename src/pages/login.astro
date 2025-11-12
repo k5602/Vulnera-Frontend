@@ -5,26 +5,9 @@ import Footer from "../components/Footer.astro";
 ---
 
 <Layout title="Login — Vulnera" description="Access your Vulnera account">
-  <!-- Guest Guard - Redirect to dashboard if already authenticated -->
-  <script is:inline>
-    (function() {
-      function getCookie(name) {
-        const nameEQ = encodeURIComponent(name) + '=';
-        const cookies = document.cookie.split(';');
-        for (let cookie of cookies) {
-          cookie = cookie.trim();
-          if (cookie.startsWith(nameEQ)) {
-            return decodeURIComponent(cookie.substring(nameEQ.length));
-          }
-        }
-        return null;
-      }
-      
-      const token = getCookie('auth_token');
-      if (token) {
-        window.location.href = '/dashboard';
-      }
-    })();
+  <script>
+    import { setupAuthGuard } from '../utils/auth-guard';
+    setupAuthGuard({ requireAuth: false, redirectTo: '/dashboard' });
   </script>
 
   <Navigation />
@@ -127,6 +110,7 @@ import Footer from "../components/Footer.astro";
 
   <script>
     import { authService } from '../utils/api/index';
+    import { loginLimiter } from '../utils/api/rate-limiter';
 
     const form = document.getElementById('login-form') as HTMLFormElement;
     const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
@@ -178,6 +162,16 @@ import Footer from "../components/Footer.astro";
         return;
       }
 
+      // Check rate limiting
+      if (!loginLimiter.isAllowed(email, 5, 60 * 1000)) {
+        const remaining = loginLimiter.getRemainingTime(email);
+        const minutes = Math.ceil(remaining / 60000);
+        showError(
+          `Too many login attempts. Please try again in ${minutes} minute${minutes !== 1 ? 's' : ''}.`
+        );
+        return;
+      }
+
       // Disable submit button
       submitBtn.disabled = true;
       submitBtn.innerHTML = '<span class="mr-2">&gt;</span> AUTHENTICATING...';
@@ -190,6 +184,8 @@ import Footer from "../components/Footer.astro";
         );
 
         if (response.success) {
+          // Clear rate limit on success
+          loginLimiter.reset(email);
           showSuccess('Login successful! Redirecting...');
           
           // Redirect after short delay
@@ -199,7 +195,6 @@ import Footer from "../components/Footer.astro";
             window.location.href = next;
           }, 500);
         } else {
-          console.error('❌ Login failed:', response.error);
           showError(response.error || 'Login failed. Please check your credentials.');
           submitBtn.disabled = false;
           submitBtn.innerHTML = '<span class="mr-2">&gt;</span> LOGIN';

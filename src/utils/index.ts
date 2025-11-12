@@ -6,8 +6,7 @@
 // API utilities
 export * from './api/index';
 
-// Route and authentication utilities
-export * from './route-guards';
+// Authentication utilities
 export * from './sanitize';
 
 // Ecosystem utilities

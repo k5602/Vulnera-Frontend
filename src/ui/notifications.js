@@ -1,5 +1,5 @@
 // Accessible Notyf wrapper
-import { sanitizeMessage } from '../utils/sanitize.js';
+import { sanitizeMessage } from '../utils/sanitize.ts';
 let notyfInstance; // allow re-init without const reassignment errors
 
 function createNotyf() {

@@ -5,6 +5,9 @@
 
 import { API_CONFIG } from '../../config/api';
 import { tokenManager } from './token-manager';
+import { parseApiResponse, ApiResponseSchema } from '../../types/api';
+import { requestCache } from './request-cache';
+import { logger } from '../logger';
 
 export interface ApiResponse<T = any> {
   success: boolean;
@@ -62,30 +65,48 @@ class ApiClient {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), this.timeout);
 
-      const response = await fetch(url, {
-        ...options,
-        headers,
-        signal: controller.signal,
-      });
+      try {
+        const response = await fetch(url, {
+          ...options,
+          credentials: 'include', // Include httpOnly cookies
+          headers,
+          signal: controller.signal,
+        });
 
-      clearTimeout(timeoutId);
+        clearTimeout(timeoutId);
 
-      // Parse response
-  const data = await this.parseResponse(response);
+        // Parse response
+        const data = await this.parseResponse(response);
 
-      if (!response.ok) {
-        throw {
-          message: data.error || data.message || 'API Error',
+        // Validate response schema
+        const validatedData = parseApiResponse(data, ApiResponseSchema);
+
+        if (!response.ok) {
+          throw {
+            message: validatedData.error || validatedData.message || 'API Error',
+            status: response.status,
+            details: validatedData,
+          };
+        }
+
+        return {
+          success: true,
+          data: validatedData.data || validatedData,
           status: response.status,
-          details: data,
         };
-      }
+      } catch (error) {
+        clearTimeout(timeoutId);
 
-      return {
-        success: true,
-        data: data.data || data,
-        status: response.status,
-      };
+        // Explicitly handle timeout
+        if (error instanceof DOMException && error.name === 'AbortError') {
+          return {
+            success: false,
+            error: `Request timeout after ${this.timeout}ms`,
+            status: 408,
+          };
+        }
+        throw error;
+      }
     } catch (error) {
       return this.handleError<T>(error);
     }
@@ -110,9 +131,7 @@ class ApiClient {
   private handleError<T>(_error: any): ApiResponse<T> {
     const error = _error as ApiError;
 
-    if (import.meta.env.DEV) {
-      console.error('API Error:', error);
-    }
+    logger.error('API Error:', error);
 
     return {
       success: false,
@@ -122,12 +141,16 @@ class ApiClient {
   }
 
   /**
-   * GET request
+   * GET request with caching
    */
   async get<T = any>(endpoint: string): Promise<ApiResponse<T>> {
-    return this.request<T>(endpoint, {
-      method: 'GET',
-    });
+    return requestCache.dedupe(
+      `GET:${endpoint}`,
+      () => this.request<T>(endpoint, {
+        method: 'GET',
+      }),
+      5 * 60 * 1000 // 5 min cache
+    );
   }
 
   /**
