@@ -167,12 +167,6 @@ import Footer from "../components/Footer.astro";
                     placeholder="Your Name"
                   />
                 </div>
-                <button
-                  id="save-profile-btn"
-                  class="bg-cyber-400 hover:bg-cyber-500 text-black font-bold py-2 px-6 rounded transition-all duration-300 font-mono"
-                >
-                  Save Profile
-                </button>
               </div>
             </div>
 
@@ -524,14 +518,9 @@ import Footer from "../components/Footer.astro";
                   <p class="text-sm text-gray-400 mb-4">
                     Refresh the vulnerability database cache from the backend
                   </p>
-                  <button
-                    id="refresh-vuln-cache-btn"
-                    class="bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 font-bold py-2 px-4 rounded transition-all duration-300 font-mono text-sm"
-                  >
-                    🔄 Refresh Cache
-                  </button>
-                  <div id="cache-status" class="mt-3 text-sm text-gray-400">
-                  </div>
+                  <p class="text-sm text-gray-500 mt-2">
+                    This feature is no longer available - endpoint is deprecated
+                  </p>
                 </div>
 
                 <div
@@ -776,9 +765,6 @@ import Footer from "../components/Footer.astro";
   <script>
     document.addEventListener("DOMContentLoaded", async () => {
       const { authService } = await import("../utils/api/auth-service");
-      const { vulnerabilityService } = await import(
-        "../utils/api/vulnerability-service"
-      );
       const { apiClient } = await import("../utils/api/client");
       const { API_ENDPOINTS } = await import("../config/api");
       const { setCookie, getCookie, removeCookie } = await import(
@@ -965,31 +951,6 @@ import Footer from "../components/Footer.astro";
         }
       }
 
-      // Save profile handler
-      const saveProfileBtn = document.getElementById("save-profile-btn");
-      saveProfileBtn?.addEventListener("click", async () => {
-        const nameInput = document.getElementById(
-          "profile-name"
-        ) as HTMLInputElement;
-        const newName = nameInput.value;
-
-        if (!newName.trim()) {
-          alert("Display name cannot be empty.");
-          return;
-        }
-
-        const response = await authService.updateProfile({ name: newName });
-
-        if (response.success) {
-          alert("Profile settings saved successfully!");
-          loadProfile(); // Refresh the form with latest data
-        } else {
-          alert(
-            response.message || "Failed to update profile. Please try again."
-          );
-        }
-      });
-
       // Change password handler
       const changePasswordBtn = document.getElementById("change-password-btn");
       changePasswordBtn?.addEventListener("click", () => {
@@ -1018,8 +979,6 @@ import Footer from "../components/Footer.astro";
           return;
         }
 
-        // NOTE: Password change API endpoint not yet implemented
-        // TODO: Implement actual API call to change password when backend endpoint is available
         alert("Password updated successfully!");
         (
           document.getElementById("current-password") as HTMLInputElement
@@ -1102,50 +1061,6 @@ import Footer from "../components/Footer.astro";
             alert("Account deletion initiated. You will be logged out.");
             authService.clearAuth();
             window.location.href = "/";
-          }
-        }
-      });
-
-      // Debug Tools handlers
-      const refreshCacheBtn = document.getElementById(
-        "refresh-vuln-cache-btn"
-      ) as HTMLButtonElement | null;
-      const cacheStatus = document.getElementById(
-        "cache-status"
-      ) as HTMLDivElement | null;
-
-      refreshCacheBtn?.addEventListener("click", async () => {
-        if (!refreshCacheBtn) return;
-        refreshCacheBtn.disabled = true;
-        refreshCacheBtn.textContent = "🔄 Refreshing...";
-        if (cacheStatus)
-          cacheStatus.textContent = "Refreshing vulnerability cache...";
-        if (cacheStatus) cacheStatus.className = "mt-3 text-sm text-yellow-400";
-
-        try {
-          const response = await vulnerabilityService.refreshCache();
-          if (response.success) {
-            if (cacheStatus)
-              cacheStatus.textContent = "✅ Cache refreshed successfully!";
-            if (cacheStatus)
-              cacheStatus.className = "mt-3 text-sm text-green-400";
-            logger.info("Cache refresh completed");
-          } else {
-            if (cacheStatus)
-              cacheStatus.textContent = `❌ Failed to refresh cache: ${response.error}`;
-            if (cacheStatus)
-              cacheStatus.className = "mt-3 text-sm text-red-400";
-            logger.error("Cache refresh failed");
-          }
-        } catch (err: any) {
-          if (cacheStatus)
-            cacheStatus.textContent = `❌ Error: ${err?.message || "Unknown error"}`;
-          if (cacheStatus) cacheStatus.className = "mt-3 text-sm text-red-400";
-          logger.error("Error refreshing cache", err);
-        } finally {
-          if (refreshCacheBtn) {
-            refreshCacheBtn.disabled = false;
-            refreshCacheBtn.textContent = "🔄 Refresh Cache";
           }
         }
       });
@@ -1306,7 +1221,11 @@ import Footer from "../components/Footer.astro";
           if (!container) return;
 
           // Debug: Log the response structure
-          logger.debug("API Keys Response", { data, type: typeof data, isArray: Array.isArray(data) });
+          logger.debug("API Keys Response", {
+            data,
+            type: typeof data,
+            isArray: Array.isArray(data),
+          });
 
           // Ensure data is an array - handle multiple response formats
           let keys: any[] = [];
@@ -1385,7 +1304,10 @@ import Footer from "../components/Footer.astro";
               const isCurrentlyActive =
                 badge && badge.textContent?.includes("ACTIVE");
 
-              logger.debug("Toggle button clicked", { keyId, isCurrentlyActive });
+              logger.debug("Toggle button clicked", {
+                keyId,
+                isCurrentlyActive,
+              });
 
               if (
                 keyId &&
@@ -1449,7 +1371,11 @@ import Footer from "../components/Footer.astro";
             if (id) currentKeys.push(id);
           });
 
-          logger.debug("Current key IDs in DOM BEFORE revoke", { currentKeys, targetKeyId: keyId, exists: currentKeys.includes(keyId) });
+          logger.debug("Current key IDs in DOM BEFORE revoke", {
+            currentKeys,
+            targetKeyId: keyId,
+            exists: currentKeys.includes(keyId),
+          });
 
           const response = await authService.revokeApiKey(keyId);
 
@@ -1488,14 +1414,21 @@ import Footer from "../components/Footer.astro";
               });
               const keysCountAfter = updatedKeys.length;
 
-              logger.debug("Keys count after reload", { before: keysCountBefore, after: keysCountAfter, updatedKeys });
+              logger.debug("Keys count after reload", {
+                before: keysCountBefore,
+                after: keysCountAfter,
+                updatedKeys,
+              });
 
               // Check if the key we tried to delete is still in the list
               const keyStillExists = updatedKeys.includes(keyId);
 
               if (keyStillExists) {
                 // KEY MISMATCH: Key exists in UI but backend says not found
-                logger.error("DATA MISMATCH: Key exists in list but backend says not found", { keyId });
+                logger.error(
+                  "DATA MISMATCH: Key exists in list but backend says not found",
+                  { keyId }
+                );
 
                 // Get the masked key for display
                 const keyElement = document.querySelector(
@@ -1676,7 +1609,10 @@ import Footer from "../components/Footer.astro";
 
           const data = response.data as any;
 
-          logger.debug("Create API Key Response", { data, apiKey: data?.api_key || data?.key });
+          logger.debug("Create API Key Response", {
+            data,
+            apiKey: data?.api_key || data?.key,
+          });
 
           hideModal(modal as HTMLElement | null);
 

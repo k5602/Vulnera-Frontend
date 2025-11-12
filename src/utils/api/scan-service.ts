@@ -1,18 +1,30 @@
 /**
  * Scan Service
  * Provides helpers around the backend vulnerability analysis endpoints
- * including the orchestrator job workflow and legacy direct analysis APIs.
+ * including the orchestrator job workflow.
+ * 
+ * Types are aligned with OpenAPI schema definitions where possible.
  */
 
 import { API_ENDPOINTS } from '../../config/api';
 import { apiClient, type ApiResponse } from './client';
 
-export type AnalysisSourceType = 'git' | 'directory' | 'file_upload' | 'manifest';
+export type AnalysisSourceType = 'git' | 'directory' | 'file_upload' | 's3_bucket';
 export type AnalysisDepth = 'minimal' | 'standard' | 'full';
 export type AnalysisJobStatus = 'queued' | 'running' | 'completed' | 'failed' | 'cancelled';
 
+/**
+ * AnalyzeJobRequest matches AnalysisRequest from OpenAPI
+ * Required: source_type, source_uri, analysis_depth
+ * Optional: callback_url
+ */
 export interface AnalyzeJobRequest {
-  sourceType: AnalysisSourceType;
+  source_type: AnalysisSourceType;
+  source_uri: string;
+  analysis_depth: AnalysisDepth;
+  callback_url?: string | null;
+  // Legacy fields kept for backward compatibility (not in OpenAPI spec)
+  sourceType?: AnalysisSourceType;
   sourceUri?: string;
   analysisDepth?: AnalysisDepth;
   filename?: string;
@@ -24,7 +36,27 @@ export interface AnalyzeJobRequest {
   metadata?: Record<string, unknown>;
 }
 
-export interface AnalysisJobSummary {
+/**
+ * ReportSummary matches ReportSummary from OpenAPI
+ * Required: total_findings, critical, high, medium, low, info, modules_completed, modules_failed
+ */
+export interface ReportSummary {
+  total_findings: number;
+  critical: number;
+  high: number;
+  medium: number;
+  low: number;
+  info: number;
+  modules_completed: number;
+  modules_failed: number;
+}
+
+/**
+ * AnalysisJobSummary - legacy name, use ReportSummary instead
+ * @deprecated Use ReportSummary to match OpenAPI schema
+ */
+export interface AnalysisJobSummary extends ReportSummary {
+  // Legacy field names kept for backward compatibility
   totalFindings?: number;
   criticalCount?: number;
   highCount?: number;
@@ -34,23 +66,56 @@ export interface AnalysisJobSummary {
   [key: string]: unknown;
 }
 
-export interface AnalysisFindingIdentifier {
-  type: string;
-  value: string;
+/**
+ * Finding matches Finding from OpenAPI
+ * Required: id, type, location, severity, confidence, description
+ * Optional: recommendation, rule_id
+ */
+export interface Finding {
+  id: string;
+  type: 'Vulnerability' | 'Secret' | 'LicenseViolation' | 'Misconfiguration';
+  location: {
+    path: string;
+    line?: number | null;
+    column?: number | null;
+    end_line?: number | null;
+    end_column?: number | null;
+  };
+  severity: 'Critical' | 'High' | 'Medium' | 'Low' | 'Info';
+  confidence: 'High' | 'Medium' | 'Low';
+  description: string;
+  recommendation?: string | null;
+  rule_id?: string | null;
 }
 
+/**
+ * AnalysisFinding - legacy interface, use Finding instead
+ * @deprecated Use Finding to match OpenAPI schema
+ */
 export interface AnalysisFinding {
   id?: string;
-  module: string;
-  severity: 'critical' | 'high' | 'medium' | 'low' | 'info';
-  title: string;
+  module?: string;
+  severity?: 'critical' | 'high' | 'medium' | 'low' | 'info';
+  title?: string;
   description?: string;
   remediation?: string;
   packageName?: string;
   packageVersion?: string;
   ecosystem?: string;
-  identifiers?: AnalysisFindingIdentifier[];
+  identifiers?: Array<{ type: string; value: string }>;
   metadata?: Record<string, unknown>;
+  // OpenAPI Finding fields
+  type?: 'Vulnerability' | 'Secret' | 'LicenseViolation' | 'Misconfiguration';
+  location?: {
+    path: string;
+    line?: number | null;
+    column?: number | null;
+    end_line?: number | null;
+    end_column?: number | null;
+  };
+  confidence?: 'High' | 'Medium' | 'Low';
+  recommendation?: string | null;
+  rule_id?: string | null;
 }
 
 export interface AnalysisJobError {
@@ -59,6 +124,20 @@ export interface AnalysisJobError {
   details?: Record<string, unknown>;
 }
 
+/**
+ * FinalReportResponse matches FinalReportResponse from OpenAPI
+ * Required: job_id, status, summary, findings
+ */
+export interface FinalReportResponse {
+  job_id: string;
+  status: string;
+  summary: ReportSummary;
+  findings: Finding[];
+}
+
+/**
+ * AnalyzeJobResponseData - partial response when job is submitted
+ */
 export interface AnalyzeJobResponseData {
   job_id: string;
   status: AnalysisJobStatus;
@@ -66,12 +145,21 @@ export interface AnalyzeJobResponseData {
   queued_at?: string;
 }
 
-export interface AnalysisJobStatusData extends AnalyzeJobResponseData {
+/**
+ * AnalysisJobStatusData - extended response with full report data
+ * Contains FinalReportResponse fields plus additional timing fields
+ */
+export interface AnalysisJobStatusData {
+  job_id: string;
+  status: AnalysisJobStatus | string;
+  summary: ReportSummary | AnalysisJobSummary;
+  findings: Finding[] | AnalysisFinding[];
   started_at?: string;
   completed_at?: string;
   expires_at?: string;
-  summary?: AnalysisJobSummary;
-  findings?: AnalysisFinding[];
+  submitted_at?: string;
+  queued_at?: string;
+  // Legacy fields for backward compatibility
   errors?: AnalysisJobError[];
 }
 
@@ -86,11 +174,33 @@ export interface PollAnalysisJobOptions {
 class ScanService {
   /**
    * Submit a new orchestrated analysis job.
+   * 
+   * Request body should match AnalysisRequest from OpenAPI:
+   * - source_type (required): 'git' | 'directory' | 'file_upload' | 's3_bucket'
+   * - source_uri (required): string
+   * - analysis_depth (required): 'minimal' | 'standard' | 'full'
+   * - callback_url (optional): string | null
+   * 
+   * Returns FinalReportResponse per OpenAPI spec (may be synchronous or async depending on backend)
    */
   async submitAnalysisJob(
     payload: AnalyzeJobRequest
-  ): Promise<ApiResponse<AnalyzeJobResponseData>> {
-    return apiClient.post<AnalyzeJobResponseData>(API_ENDPOINTS.ANALYSIS.ANALYZE, payload);
+  ): Promise<ApiResponse<FinalReportResponse | AnalyzeJobResponseData>> {
+    // Normalize payload to match OpenAPI schema (support both snake_case and camelCase)
+    const normalizedPayload: any = {
+      source_type: payload.source_type || payload.sourceType,
+      source_uri: payload.source_uri || payload.sourceUri,
+      analysis_depth: payload.analysis_depth || payload.analysisDepth,
+    };
+    
+    if (payload.callback_url !== undefined) {
+      normalizedPayload.callback_url = payload.callback_url;
+    }
+    
+    return apiClient.post<FinalReportResponse | AnalyzeJobResponseData>(
+      API_ENDPOINTS.ANALYSIS.ANALYZE,
+      normalizedPayload
+    );
   }
 
   /**
@@ -167,7 +277,7 @@ class ScanService {
   }
 
 
-  private isTerminalStatus(status: AnalysisJobStatus): boolean {
+  private isTerminalStatus(status: AnalysisJobStatus | string): boolean {
     return status === 'completed' || status === 'failed' || status === 'cancelled';
   }
 

@@ -48,15 +48,6 @@ const getApiBase = (): string => {
         }
     }
 
-    // Otherwise, use configured public base if provided
-    if (publicBase) {
-        return publicBase.replace(/\/$/, "");
-    }
-
-    // Last resort, same-origin if available
-    if (typeof window !== "undefined" && window.location?.origin) {
-        return window.location.origin.replace(/\/$/, "");
-    }
 
     // SSR/build-time fallback: empty string means relative requests
     return "";
@@ -89,24 +80,13 @@ export const API_ENDPOINTS = {
         LIST_API_KEYS: "/api/v1/auth/api-keys",
         CREATE_API_KEY: "/api/v1/auth/api-keys",
         REVOKE_API_KEY: "/api/v1/auth/api-keys/:key_id",
-        UPDATE_ME: "/api/v1/auth/me",
     },
 
     // Analysis endpoints
     ANALYSIS: {
         ANALYZE: "/api/v1/analyze/job",
-        ANALYZE_DIRECT: "/api/v1/analyze",
         ANALYZE_DEPENDENCIES: "/api/v1/dependencies/analyze",
         GET_JOB: "/api/v1/analyze/job/:job_id",
-        POPULAR: "/api/v1/popular",
-        GET_REPORT: "/api/v1/reports/:id",
-    },
-
-    // Vulnerability endpoints
-    VULNERABILITIES: {
-        LIST: "/api/v1/vulnerabilities",
-        GET: "/api/v1/vulnerabilities/:id",
-        REFRESH_CACHE: "/api/v1/vulnerabilities/refresh-cache",
     },
 
     // Health endpoints

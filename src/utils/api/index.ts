@@ -8,4 +8,3 @@ export { authService, type LoginCredentials, type LoginResponse, type RegisterDa
 export { tokenManager } from './token-manager';
 export { healthService } from './health-service';
 export { scanService } from './scan-service';
-export { vulnerabilityService } from './vulnerability-service';

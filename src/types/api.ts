@@ -14,9 +14,24 @@ export const ApiResponseSchema = z.object({
 
 export type ApiResponse = z.infer<typeof ApiResponseSchema>;
 
-export const LoginResponseSchema = z.object({
-  token: z.string().optional(),
-  access_token: z.string().optional(),
+/**
+ * TokenResponseSchema matches the TokenResponse schema from OpenAPI
+ * Required fields: access_token, refresh_token, token_type, expires_in
+ */
+export const TokenResponseSchema = z.object({
+  access_token: z.string(),
+  refresh_token: z.string(),
+  token_type: z.string(),
+  expires_in: z.number().int().min(0),
+});
+
+export type TokenResponse = z.infer<typeof TokenResponseSchema>;
+
+/**
+ * @deprecated Use TokenResponseSchema instead. This is kept for backward compatibility.
+ * LoginResponseSchema matches TokenResponse but allows optional user field for frontend convenience.
+ */
+export const LoginResponseSchema = TokenResponseSchema.extend({
   user: z.object({
     id: z.string(),
     email: z.string().email(),

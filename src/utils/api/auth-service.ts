@@ -6,17 +6,20 @@
 import { API_ENDPOINTS } from '../../config/api';
 import { apiClient, type ApiResponse } from './client';
 import { tokenManager } from './token-manager';
-import { getCookie } from '../cookies';
 
 export interface LoginCredentials {
   email: string;
   password: string;
 }
 
+/**
+ * The backend returns access_token, refresh_token, token_type, and expires_in
+ */
 export interface LoginResponse {
-  // Handle both "token" and "access_token" field names
-  token?: string;
-  access_token?: string;
+  access_token: string;
+  refresh_token: string;
+  token_type: string;
+  expires_in: number;
   user?: {
     id: string;
     email: string;
@@ -72,11 +75,9 @@ class AuthService {
     );
 
     if (response.success && response.data) {
-      // Support both 'token' and 'access_token' field names
-      const token = response.data.token || response.data.access_token;
-      
-      if (token) {
-        tokenManager.setToken(token, rememberMe);
+      // Use access_token from TokenResponse (OpenAPI spec)
+      if (response.data.access_token) {
+        tokenManager.setToken(response.data.access_token, rememberMe);
         if (response.data.user) {
           tokenManager.setUser(response.data.user, rememberMe);
         }
@@ -96,12 +97,9 @@ class AuthService {
     );
 
     if (response.success && response.data) {
-      // Support both 'token' and 'access_token' field names
-      const token = response.data.token || response.data.access_token;
-      
-      // Registration completed - token stored
-      if (token) {
-        tokenManager.setToken(token);
+      // Use access_token from TokenResponse (OpenAPI spec)
+      if (response.data.access_token) {
+        tokenManager.setToken(response.data.access_token);
         if (response.data.user) {
           tokenManager.setUser(response.data.user);
         }
@@ -132,10 +130,9 @@ class AuthService {
     );
 
     if (response.success && response.data) {
-      // Support both 'token' and 'access_token' field names
-      const token = response.data.token || response.data.access_token;
-      if (token) {
-        tokenManager.setToken(token);
+      // Use access_token from TokenResponse (OpenAPI spec)
+      if (response.data.access_token) {
+        tokenManager.setToken(response.data.access_token);
         if (response.data.user) {
           tokenManager.setUser(response.data.user);
         }
@@ -150,23 +147,6 @@ class AuthService {
    */
   setUser(user: any, rememberMe: boolean = false): void {
     tokenManager.setUser(user, rememberMe);
-  }
-
-  /**
-   * Update user profile data
-   */
-  async updateProfile(data: { name: string }): Promise<ApiResponse<any>> {
-    const response = await apiClient.patch<any>(
-      API_ENDPOINTS.AUTH.UPDATE_ME,
-      data
-    );
-
-    if (response.success && response.data) {
-      const rememberMe = !!getCookie('auth_token');
-      this.setUser(response.data, rememberMe);
-    }
-
-    return response;
   }
 
   /**
