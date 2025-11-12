@@ -18,7 +18,16 @@
 
 import { config } from './validation';
 
-// Get API base URL from environment or use safe same-origin fallback
+/**
+ * Get API base URL from environment or use safe same-origin fallback
+ * 
+ * Fallback chain (in order of preference):
+ * 1. PUBLIC_API_BASE with PUBLIC_FORCE_API_BASE=true (forced direct URL)
+ * 2. Same-origin in browser during local dev (unless forced)
+ * 3. PUBLIC_API_BASE from config (if provided)
+ * 4. Same-origin in browser (if available)
+ * 5. Empty string (relative requests for SSR/build-time)
+ */
 const getApiBase = (): string => {
     const env =
         typeof import.meta !== "undefined" && import.meta.env ? import.meta.env : ({} as any);

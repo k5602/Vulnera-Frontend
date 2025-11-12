@@ -5,6 +5,7 @@
 
 import { API_ENDPOINTS } from '../../config/api';
 import { apiClient, type ApiResponse } from './client';
+import { logger } from '../logger';
 
 export interface HealthCheckResponse {
   status: 'healthy' | 'degraded' | 'unhealthy';
@@ -109,7 +110,7 @@ class HealthService {
           lastStatus = response.data;
         }
       } catch (error) {
-        console.error('Health check failed:', error);
+        logger.error('Health check failed', error);
       }
     }, intervalMs);
 

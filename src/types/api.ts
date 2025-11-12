@@ -38,9 +38,6 @@ export function parseApiResponse<T extends z.ZodType>(
   try {
     return schema.parse(data);
   } catch (error) {
-    if (import.meta.env.DEV) {
-      console.error('Failed to parse API response:', error);
-    }
     throw new Error('Invalid API response format');
   }
 }

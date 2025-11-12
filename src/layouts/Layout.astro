@@ -121,14 +121,6 @@ const {
 
             function clearLog(): void { if (logEl) logEl.innerHTML = ''; }
 
-            function appendLine(text: string): void {
-                if (!(logEl instanceof HTMLDivElement)) return;
-                const line = document.createElement('div');
-                line.className = 'vt-line';
-                line.textContent = text;
-                logEl.appendChild(line);
-            }
-
             /**
              * Type text with small per-char delay, resolve when done.
              * @param {HTMLElement} el

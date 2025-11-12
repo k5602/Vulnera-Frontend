@@ -8,6 +8,3 @@ export * from './api/index';
 
 // Authentication utilities
 export * from './sanitize';
-
-// Ecosystem utilities
-export * from './ecosystems';

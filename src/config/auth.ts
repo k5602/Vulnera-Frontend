@@ -1,6 +1,8 @@
 // OIDC Configuration for AWS Cognito
 // Configuration values are loaded from environment variables
 
+import { logger } from '../utils/logger';
+
 // Helper function to get environment variables. Use several fallbacks so tests
 // that mock env via globalThis.import.meta.env still work.
 // Helper to read runtime env dynamically so test setup (which mutates
@@ -16,9 +18,7 @@ function readRuntimeEnv(name: string): string | undefined {
 const getEnvVar = (name: string, defaultValue?: string): string => {
   const value = readRuntimeEnv(name) ?? defaultValue;
   if (!value) {
-    if (import.meta.env.DEV) {
-      console.warn(`Environment variable ${name} is not set`);
-    }
+    logger.warn(`Environment variable ${name} is not set`);
     return defaultValue || '';
   }
   return String(value);

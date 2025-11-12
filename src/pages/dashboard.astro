@@ -145,6 +145,7 @@ import Footer from "../components/Footer.astro";
   <Footer />
 
   <script type="module">
+    import { logger } from '../utils/logger';
     // Public dashboard: no auth guard
 
     function renderOverview(o) {
@@ -269,7 +270,7 @@ import Footer from "../components/Footer.astro";
       try {
         scanHistory = JSON.parse(localStorage.getItem('scan_history') || '[]');
       } catch (e) {
-        console.error('Failed to load scan history:', e);
+        logger.error('Failed to load scan history', e);
       }
 
       // Calculate overview stats

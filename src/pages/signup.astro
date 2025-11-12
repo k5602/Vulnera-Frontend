@@ -6,25 +6,12 @@ import Footer from "../components/Footer.astro";
 
 <Layout title="Sign Up — Vulnera" description="Create your Vulnera account to start scanning and reporting vulnerabilities.">
   <!-- Guest Guard - Redirect to dashboard if already authenticated -->
-  <script is:inline>
-    (function() {
-      function getCookie(name) {
-        const nameEQ = encodeURIComponent(name) + '=';
-        const cookies = document.cookie.split(';');
-        for (let cookie of cookies) {
-          cookie = cookie.trim();
-          if (cookie.startsWith(nameEQ)) {
-            return decodeURIComponent(cookie.substring(nameEQ.length));
-          }
-        }
-        return null;
-      }
-      
-      const token = getCookie('auth_token');
-      if (token) {
-        window.location.href = '/dashboard';
-      }
-    })();
+  <script>
+    import { getCookie } from '../utils/cookies';
+    const token = getCookie('auth_token');
+    if (token) {
+      window.location.href = '/dashboard';
+    }
   </script>
 
   <Navigation />
@@ -132,6 +119,8 @@ import Footer from "../components/Footer.astro";
   <Footer />
 
   <script>
+    import { logger } from '../utils/logger';
+    
     // Preserve ?next across auth pages
     try {
       const params = new URLSearchParams(location.search);
@@ -199,7 +188,7 @@ import Footer from "../components/Footer.astro";
           alert(response.error || response.message || 'Registration failed. Please try again.');
         }
       } catch (error) {
-        console.error('Registration error:', error);
+        logger.error('Registration error', error);
         alert('An error occurred during registration. Please try again.');
       }
     });

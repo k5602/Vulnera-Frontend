@@ -83,43 +83,6 @@ export interface PollAnalysisJobOptions {
   onUpdate?: (snapshot: AnalysisJobStatusData) => void;
 }
 
-/**
- * Legacy request/response types kept temporarily to avoid mass refactors.
- * Prefer using the new AnalyzeJob* interfaces moving forward.
- */
-export interface LegacyScanRequest {
-  packageName: string;
-  packageVersion?: string;
-  ecosystem?: string;
-}
-
-export interface LegacyVulnerability {
-  id: string;
-  cveId: string;
-  severity: 'critical' | 'high' | 'medium' | 'low';
-  description: string;
-  affectedVersions: string[];
-  fixedVersion?: string;
-  references: string[];
-}
-
-export interface LegacyScanResult {
-  id: string;
-  packageName: string;
-  packageVersion: string;
-  ecosystem: string;
-  vulnerabilities: LegacyVulnerability[];
-  scanDate: string;
-  status: 'completed' | 'in_progress' | 'failed';
-}
-
-export interface LegacyScanListResponse {
-  scans: LegacyScanResult[];
-  total: number;
-  page: number;
-  pageSize: number;
-}
-
 class ScanService {
   /**
    * Submit a new orchestrated analysis job.

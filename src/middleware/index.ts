@@ -27,12 +27,6 @@ export const onRequest = defineMiddleware((context, next) => {
     }
 
     // TODO: Add server-side token validation against backend
-    // Example:
-    // const isValid = await validateTokenWithBackend(token.value);
-    // if (!isValid) {
-    //   context.cookies.delete('auth_token');
-    //   return context.redirect('/login');
-    // }
   }
 
   return next();

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { logger } from '../utils/logger';
 
 const EnvSchema = z.object({
   PUBLIC_API_BASE: z
@@ -43,7 +44,7 @@ export function validateEnvironment(): EnvConfig {
       .map(([key, msgs]) => `${key}: ${msgs?.join(', ')}`)
       .join('\n');
 
-    console.error('❌ Invalid environment configuration:\n', errorMessage);
+    logger.error('Invalid environment configuration', { errorMessage });
 
     if (import.meta.env.PROD) {
       throw new Error('Invalid environment configuration');
@@ -51,7 +52,7 @@ export function validateEnvironment(): EnvConfig {
   }
 
   if (import.meta.env.DEV) {
-    console.log('✅ Environment validated successfully');
+    logger.info('Environment validated successfully');
   }
 
   return result.data || {};
