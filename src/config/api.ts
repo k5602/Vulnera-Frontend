@@ -109,11 +109,6 @@ export const API_ENDPOINTS = {
         REFRESH_CACHE: "/api/v1/vulnerabilities/refresh-cache",
     },
 
-    // Repository endpoints
-    REPOSITORY: {
-        ANALYZE: "/api/v1/analyze/repository",
-    },
-
     // Health endpoints
     HEALTH: {
         CHECK: "/health",
