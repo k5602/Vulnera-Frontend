@@ -76,55 +76,98 @@ class ApiClient {
       headers.set('Content-Type', 'application/json');
     }
 
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), this.timeout);
-
       try {
-        const response = await fetch(url, {
-          ...options,
-          credentials: 'include', // Include httpOnly cookies
-          headers,
-          signal: controller.signal,
-        });
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), this.timeout);
 
-        clearTimeout(timeoutId);
+        try {
+          const response = await fetch(url, {
+            ...options,
+            // Only include credentials if backend supports it (not with wildcard CORS)
+            // credentials: 'include', // Commented out - backend uses wildcard CORS
+            headers,
+            signal: controller.signal,
+          });
 
-        // Parse response
-        const data = await this.parseResponse(response);
+          clearTimeout(timeoutId);
 
-        // Validate response schema
-        const validatedData = parseApiResponse(data, ApiResponseSchema);
+          // Parse response
+          const data = await this.parseResponse(response);
 
-        if (!response.ok) {
-          throw {
-            message: validatedData.error || validatedData.message || 'API Error',
-            status: response.status,
-            details: validatedData,
-          };
-        }
+          // Handle error responses
+          if (!response.ok) {
+            // Try to extract error message from response
+            let errorMessage = 'API Error';
+            if (data && typeof data === 'object') {
+              errorMessage = (data as any).error || (data as any).message || (data as any).detail || JSON.stringify(data);
+            } else if (typeof data === 'string') {
+              errorMessage = data;
+            }
+            
+            throw {
+              message: errorMessage,
+              status: response.status,
+              details: data,
+            };
+          }
+
+          // For successful responses, try to validate but be flexible
+          let responseData: any = data;
+          try {
+            // Try to validate against schema, but don't fail if it doesn't match
+            const validatedData = parseApiResponse(data, ApiResponseSchema);
+            // If validation succeeds and has a data field, use it
+            if (validatedData && typeof validatedData === 'object' && 'data' in validatedData) {
+              responseData = validatedData.data || validatedData;
+            } else {
+              responseData = validatedData;
+            }
+          } catch (validationError) {
+            // If validation fails, just use the raw data
+            // This handles cases where backend returns data directly (e.g., token response)
+            console.debug('[API] Response validation failed, using raw data:', validationError);
+            responseData = data;
+          }
 
         return {
           success: true,
-          data: validatedData.data || validatedData,
+          data: responseData as T,
           status: response.status,
         };
-      } catch (error) {
-        clearTimeout(timeoutId);
+        } catch (error) {
+          clearTimeout(timeoutId);
 
-        // Explicitly handle timeout
-        if (error instanceof DOMException && error.name === 'AbortError') {
+          // Explicitly handle timeout
+          if (error instanceof DOMException && error.name === 'AbortError') {
+            return {
+              success: false,
+              error: `Request timeout after ${this.timeout}ms`,
+              status: 408,
+            };
+          }
+          throw error;
+        }
+      } catch (error) {
+        // Handle network errors (CORS, connection refused, etc.)
+        if (error instanceof TypeError && error.message === 'Failed to fetch') {
+          const errorMsg = `Cannot connect to API server at ${this.baseUrl || 'configured URL'}. This is likely a CORS issue. Please ensure:\n1. Backend is running and accessible\n2. CORS is configured to allow origin: ${typeof window !== 'undefined' ? window.location.origin : 'frontend origin'}\n3. Backend allows credentials if using cookies`;
+          
+          console.error('[Network Error]', {
+            message: errorMsg,
+            url,
+            baseUrl: this.baseUrl,
+            endpoint,
+            frontendOrigin: typeof window !== 'undefined' ? window.location.origin : 'unknown',
+          });
+          
           return {
             success: false,
-            error: `Request timeout after ${this.timeout}ms`,
-            status: 408,
+            error: errorMsg,
+            status: 0,
           };
         }
-        throw error;
+        return this.handleError<T>(error);
       }
-    } catch (error) {
-      return this.handleError<T>(error);
-    }
   }
 
   /**
@@ -144,14 +187,39 @@ class ApiClient {
    * Handle API errors
    */
   private handleError<T>(_error: any): ApiResponse<T> {
-    const error = _error as ApiError;
+    // Extract error information more thoroughly
+    let errorMessage = 'An error occurred';
+    let status = 500;
+    
+    if (_error) {
+      // Handle different error types
+      if (typeof _error === 'string') {
+        errorMessage = _error;
+      } else if (_error instanceof Error) {
+        errorMessage = _error.message;
+        // Check for network errors
+        if (_error.message === 'Failed to fetch') {
+          errorMessage = `Cannot connect to API server at ${this.baseUrl || 'configured URL'}. Check CORS configuration and network connectivity.`;
+          status = 0;
+        }
+      } else if (typeof _error === 'object') {
+        errorMessage = _error.message || _error.error || JSON.stringify(_error);
+        status = _error.status || status;
+      }
+    }
 
-    logger.error('API Error:', error);
+    // Always log errors with full context 
+    console.error('[API Error]', {
+      message: errorMessage,
+      status,
+      baseUrl: this.baseUrl,
+      error: _error,
+    });
 
     return {
       success: false,
-      error: error.message || 'An error occurred',
-      status: error.status || 500,
+      error: errorMessage,
+      status,
     };
   }
 

@@ -31,22 +31,37 @@ import { config } from './validation';
 const getApiBase = (): string => {
     const env =
         typeof import.meta !== "undefined" && import.meta.env ? import.meta.env : ({} as any);
-    const publicBase = config.PUBLIC_API_BASE || env.PUBLIC_API_BASE as string | undefined;
+    
+    // Get PUBLIC_API_BASE from environment (embedded at build time)
+    const publicBase = env.PUBLIC_API_BASE || config.PUBLIC_API_BASE;
     const forceDirect = (env.PUBLIC_FORCE_API_BASE as string | undefined)?.toLowerCase() === "true";
 
-    // If PUBLIC_API_BASE is set, use it (especially in production)
-    if (publicBase) {
+    if (typeof window !== "undefined") {
+        console.debug('[API Config]', {
+            PUBLIC_API_BASE: publicBase,
+            PUBLIC_FORCE_API_BASE: forceDirect,
+            importMetaEnv: env.PUBLIC_API_BASE,
+            configValue: config.PUBLIC_API_BASE,
+            windowOrigin: window.location.origin,
+        });
+    }
+
+    // Priority 1: If PUBLIC_API_BASE is explicitly set, use it (especially in production)
+    if (publicBase && publicBase !== 'http://localhost:8000') {
         // If forceDirect is true, always use it
         if (forceDirect) {
             return publicBase.replace(/\/$/, "");
         }
         
-        // In production (non-dev), use PUBLIC_API_BASE if set
+        // In production (non-dev), always use PUBLIC_API_BASE if it's not the default
         if (typeof window !== "undefined") {
             const isLocalhost = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(window.location.hostname);
-            const isDev = !!env?.DEV || isLocalhost;
-            // In production, use the configured API base
-            if (!isDev) {
+            // If not localhost, use the configured API base
+            if (!isLocalhost) {
+                return publicBase.replace(/\/$/, "");
+            }
+            // Even on localhost, if PUBLIC_API_BASE is set and not default, use it
+            if (publicBase && publicBase !== 'http://localhost:8000') {
                 return publicBase.replace(/\/$/, "");
             }
         } else {
@@ -55,7 +70,7 @@ const getApiBase = (): string => {
         }
     }
 
-    // In the browser during local dev, prefer same-origin
+    // Priority 2: In the browser during local dev, prefer same-origin
     if (typeof window !== "undefined") {
         const isLocalhost = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(window.location.hostname);
         const isDev = !!env?.DEV || isLocalhost;
@@ -64,7 +79,7 @@ const getApiBase = (): string => {
         }
     }
 
-    // SSR/build-time fallback: empty string means relative requests
+    // Fallback: empty string means relative requests
     return "";
 };
 
@@ -80,9 +95,14 @@ const getTimeout = (): number => {
     return 30000; // 30 seconds default
 };
 
+// Make BASE_URL a getter function so it's evaluated at runtime
 export const API_CONFIG = {
-    BASE_URL: getApiBase(),
-    TIMEOUT: getTimeout(),
+    get BASE_URL() {
+        return getApiBase();
+    },
+    get TIMEOUT() {
+        return getTimeout();
+    },
     VERSION: "v1",
 } as const;
 
