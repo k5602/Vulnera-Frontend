@@ -12,18 +12,6 @@ export interface DragDropOptions {
 
 export function initDragAndDrop(): void;
 
-// ========== File Fixers ==========
-export interface FixResult {
-  content: string;
-  fixedCount: number;
-  fixLog: string[];
-}
-
-export function fixPackageJson(originalContent: string): FixResult;
-export function fixRequirementsTxt(originalContent: string): FixResult;
-export function fixPomXml(originalContent: string): FixResult;
-export function fixCargotoml(originalContent: string): FixResult;
-
 // ========== UI ==========
 export interface ThemeOptions {
   isDark: boolean;
@@ -31,7 +19,6 @@ export interface ThemeOptions {
 
 export function initThemeToggle(): void;
 export function initNotyf(): void;
-export function showVsCodeExtensionPreview(): void;
 export function onModalToggle(): void;
 
 // ========== Notifications ==========

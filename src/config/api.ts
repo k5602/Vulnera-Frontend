@@ -30,7 +30,7 @@ const getApiBase = (): string => {
         return publicBase.replace(/\/$/, "");
     }
 
-    // In the browser during local dev, prefer same-origin (for proxy)
+    // In the browser during local dev, prefer same-origin
     if (typeof window !== "undefined") {
         const isLocalhost = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(window.location.hostname);
         const isDev = !!env?.DEV || isLocalhost;
