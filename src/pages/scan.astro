@@ -346,6 +346,7 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
     import { API_ENDPOINTS } from "../config/api";
     import { getCookie } from "../utils/cookies";
     import { logger } from "../utils/logger";
+    import { detectEcosystem } from "../utils/scan-handler";
 
     // GitHub Token Management
     function checkGithubToken() {
@@ -618,25 +619,7 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
               const content = await file.text();
 
               // Detect ecosystem from filename
-              let ecosystem = "npm"; // default
-              const lowerName = file.name.toLowerCase();
-
-              if (lowerName.includes("pom.xml")) ecosystem = "maven";
-              else if (
-                lowerName.includes("cargo.lock") ||
-                lowerName.includes("cargo.toml")
-              )
-                ecosystem = "cargo";
-              else if (lowerName.includes("go.mod")) ecosystem = "go";
-              else if (lowerName.includes("composer.json"))
-                ecosystem = "packagist";
-              else if (lowerName.includes("gemfile")) ecosystem = "ruby";
-              else if (
-                lowerName.includes("requirements") &&
-                lowerName.includes(".txt")
-              )
-                ecosystem = "pypi";
-              else if (lowerName.endsWith(".json")) ecosystem = "npm";
+              const ecosystem = detectEcosystem(file.name);
 
               filesPayload.push({
                 filename: file.name,

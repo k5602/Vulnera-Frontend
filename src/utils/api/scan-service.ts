@@ -203,26 +203,6 @@ class ScanService {
     }
   }
 
-  /**
-   * Legacy direct dependency analysis (synchronous).
-   * Prefer using submitAnalysisJob + pollAnalysisJob.
-   */
-  async analyzeDependencies(
-    request: LegacyScanRequest
-  ): Promise<ApiResponse<LegacyScanResult>> {
-    return apiClient.post<LegacyScanResult>(API_ENDPOINTS.ANALYSIS.ANALYZE_DIRECT, request);
-  }
-
-  /**
-   * Legacy multi-package analysis helper.
-   */
-  async analyzePackages(
-    packages: LegacyScanRequest[]
-  ): Promise<ApiResponse<LegacyScanResult[]>> {
-    return apiClient.post<LegacyScanResult[]>(API_ENDPOINTS.ANALYSIS.ANALYZE_DIRECT, {
-      packages,
-    });
-  }
 
   private isTerminalStatus(status: AnalysisJobStatus): boolean {
     return status === 'completed' || status === 'failed' || status === 'cancelled';

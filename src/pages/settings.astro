@@ -774,7 +774,6 @@ import Footer from "../components/Footer.astro";
   </div>
 
   <script>
-    // Note: API_BASE_URL is no longer used directly - apiClient handles base URL
     document.addEventListener("DOMContentLoaded", async () => {
       const { authService } = await import("../utils/api/auth-service");
       const { vulnerabilityService } = await import(
@@ -785,6 +784,7 @@ import Footer from "../components/Footer.astro";
       const { setCookie, getCookie, removeCookie } = await import(
         "../utils/cookies"
       );
+      const { logger } = await import("../utils/logger");
 
       // Tab switching functionality
       const tabButtons = document.querySelectorAll(".settings-tab");
@@ -921,7 +921,6 @@ import Footer from "../components/Footer.astro";
       });
 
       // Clear GitHub token
-      // Clear GitHub token
       clearGithubTokenBtn?.addEventListener("click", () => {
         if (confirm("Are you sure you want to remove your GitHub token?")) {
           removeCookie("github_token");
@@ -1019,8 +1018,9 @@ import Footer from "../components/Footer.astro";
           return;
         }
 
+        // NOTE: Password change API endpoint not yet implemented
+        // TODO: Implement actual API call to change password when backend endpoint is available
         alert("Password updated successfully!");
-        // TODO: Implement actual API call to change password
         (
           document.getElementById("current-password") as HTMLInputElement
         ).value = "";
@@ -1045,8 +1045,9 @@ import Footer from "../components/Footer.astro";
             alert("Two-factor authentication disabled");
           }
         } else {
+          // NOTE: 2FA setup flow not yet implemented
+          // TODO: Implement 2FA setup flow when backend endpoint is available
           alert("Two-factor authentication setup coming soon!");
-          // TODO: Implement 2FA setup flow
           toggle2FABtn.textContent = "Disable";
         }
       });
@@ -1060,7 +1061,8 @@ import Footer from "../components/Footer.astro";
       notificationToggles.forEach((id) => {
         const toggle = document.getElementById(id);
         toggle?.addEventListener("change", () => {
-          // TODO: Save notification preference to backend
+          // NOTE: Notification preferences API endpoint not yet implemented
+          // TODO: Save notification preference to backend when endpoint is available
         });
       });
 
@@ -1068,8 +1070,9 @@ import Footer from "../components/Footer.astro";
       const themeSelect = document.getElementById("theme-select");
       themeSelect?.addEventListener("change", (e) => {
         const theme = (e.target as HTMLSelectElement).value;
+        // NOTE: Theme switching not yet implemented
+        // TODO: Implement theme switching when theme system is available
         alert(`Theme changed to: ${theme}`);
-        // TODO: Implement theme switching
       });
 
       // Scan frequency selection
@@ -1078,8 +1081,9 @@ import Footer from "../components/Footer.astro";
       );
       scanFrequencySelect?.addEventListener("change", (e) => {
         const frequency = (e.target as HTMLSelectElement).value;
+        // NOTE: Scan frequency preference API endpoint not yet implemented
+        // TODO: Save scan frequency preference to backend when endpoint is available
         alert(`Scan frequency updated to: ${frequency}`);
-        // TODO: Save scan frequency preference to backend
       });
 
       // Delete account handler
@@ -1093,8 +1097,9 @@ import Footer from "../components/Footer.astro";
             'Type "DELETE" to confirm account deletion:'
           );
           if (doubleConfirm === "DELETE") {
+            // NOTE: Account deletion API endpoint not yet implemented
+            // TODO: Implement actual account deletion API call when backend endpoint is available
             alert("Account deletion initiated. You will be logged out.");
-            // TODO: Implement actual account deletion API call
             authService.clearAuth();
             window.location.href = "/";
           }
@@ -1124,19 +1129,19 @@ import Footer from "../components/Footer.astro";
               cacheStatus.textContent = "✅ Cache refreshed successfully!";
             if (cacheStatus)
               cacheStatus.className = "mt-3 text-sm text-green-400";
-            console.log("✅ Cache refresh completed");
+            logger.info("Cache refresh completed");
           } else {
             if (cacheStatus)
               cacheStatus.textContent = `❌ Failed to refresh cache: ${response.error}`;
             if (cacheStatus)
               cacheStatus.className = "mt-3 text-sm text-red-400";
-            console.error("❌ Cache refresh failed");
+            logger.error("Cache refresh failed");
           }
         } catch (err: any) {
           if (cacheStatus)
             cacheStatus.textContent = `❌ Error: ${err?.message || "Unknown error"}`;
           if (cacheStatus) cacheStatus.className = "mt-3 text-sm text-red-400";
-          console.error("Error refreshing cache:", err);
+          logger.error("Error refreshing cache", err);
         } finally {
           if (refreshCacheBtn) {
             refreshCacheBtn.disabled = false;
@@ -1179,7 +1184,7 @@ import Footer from "../components/Footer.astro";
             backupStatus.className = "mt-2 text-sm text-green-400";
           }
         } catch (e) {
-          console.error("Export failed:", e);
+          logger.error("Export failed", e);
           if (backupStatus) {
             backupStatus.textContent = "❌ Export failed";
             backupStatus.className = "mt-2 text-sm text-red-400";
@@ -1233,10 +1238,9 @@ import Footer from "../components/Footer.astro";
           }
 
           // Clear input
-          const target = e.target as HTMLInputElement;
           if (target) target.value = "";
         } catch (err) {
-          console.error("Import failed:", err);
+          logger.error("Import failed", err);
           if (backupStatus) {
             const errorMsg =
               err instanceof Error ? err.message : "Unknown error";
@@ -1302,9 +1306,7 @@ import Footer from "../components/Footer.astro";
           if (!container) return;
 
           // Debug: Log the response structure
-          console.log("API Keys Response:", data);
-          console.log("Response type:", typeof data);
-          console.log("Is Array?", Array.isArray(data));
+          logger.debug("API Keys Response", { data, type: typeof data, isArray: Array.isArray(data) });
 
           // Ensure data is an array - handle multiple response formats
           let keys: any[] = [];
@@ -1319,11 +1321,10 @@ import Footer from "../components/Footer.astro";
           } else if (data?.items && Array.isArray(data.items)) {
             keys = data.items;
           } else {
-            console.warn("Unknown API keys response format:", data);
+            logger.warn("Unknown API keys response format", data);
           }
 
-          console.log("Extracted keys:", keys);
-          console.log("Keys count:", keys.length);
+          logger.debug("Extracted keys", { keys, count: keys.length });
 
           if (!keys || keys.length === 0) {
             container.innerHTML = `
@@ -1384,10 +1385,7 @@ import Footer from "../components/Footer.astro";
               const isCurrentlyActive =
                 badge && badge.textContent?.includes("ACTIVE");
 
-              console.log("🔘 Toggle button clicked:", {
-                keyId,
-                isCurrentlyActive,
-              });
+              logger.debug("Toggle button clicked", { keyId, isCurrentlyActive });
 
               if (
                 keyId &&
@@ -1405,7 +1403,7 @@ import Footer from "../components/Footer.astro";
               const button = e.currentTarget as HTMLElement;
               const keyId = button.getAttribute("data-key-id");
 
-              console.log("🗑️ Delete button clicked:", { keyId });
+              logger.debug("Delete button clicked", { keyId });
 
               if (
                 keyId &&
@@ -1418,7 +1416,7 @@ import Footer from "../components/Footer.astro";
             });
           });
         } catch (error) {
-          console.error("Error loading API keys:", error);
+          logger.error("Error loading API keys", error);
           const container = document.getElementById("api-keys-container");
           if (container) {
             const errorMsg =
@@ -1441,7 +1439,7 @@ import Footer from "../components/Footer.astro";
 
       async function deleteApiKey(keyId: string) {
         try {
-          console.log("🔑 Attempting to revoke API key:", keyId);
+          logger.debug("Attempting to revoke API key", { keyId });
 
           // Get current keys from DOM before making the request
           const currentKeyElements = document.querySelectorAll("[data-key-id]");
@@ -1451,34 +1449,29 @@ import Footer from "../components/Footer.astro";
             if (id) currentKeys.push(id);
           });
 
-          console.log("📋 Current key IDs in DOM BEFORE revoke:", currentKeys);
-          console.log("🎯 Target key ID:", keyId);
-          console.log(
-            "✅ Key exists in DOM?",
-            currentKeys.includes(keyId) ? "YES" : "NO ⚠️"
-          );
+          logger.debug("Current key IDs in DOM BEFORE revoke", { currentKeys, targetKeyId: keyId, exists: currentKeys.includes(keyId) });
 
           const response = await authService.revokeApiKey(keyId);
 
-          console.log("📡 Revoke response status:", response.status);
+          logger.debug("Revoke response status", { status: response.status });
 
           if (!response.success) {
             let errorMsg = response.error || "Failed to revoke API key";
 
             if (response.status === 404) {
-              console.log("⚠️ Got 404 - Key not found on server");
+              logger.warn("Got 404 - Key not found on server");
 
               // Try to get error details from response
               let errorDetails: any = null;
               try {
                 errorDetails = response.data;
-                console.log("📄 404 Error details:", errorDetails);
+                logger.debug("404 Error details", errorDetails);
                 errorMsg =
                   errorDetails?.message ||
                   errorDetails?.detail ||
                   "API key not found";
               } catch (e) {
-                console.log("Could not parse 404 response:", e);
+                logger.warn("Could not parse 404 response", e);
               }
 
               // Reload list to verify current state
@@ -1495,19 +1488,14 @@ import Footer from "../components/Footer.astro";
               });
               const keysCountAfter = updatedKeys.length;
 
-              console.log(
-                `📊 Keys count: Before=${keysCountBefore}, After=${keysCountAfter}`
-              );
-              console.log("📋 Key IDs AFTER reload:", updatedKeys);
+              logger.debug("Keys count after reload", { before: keysCountBefore, after: keysCountAfter, updatedKeys });
 
               // Check if the key we tried to delete is still in the list
               const keyStillExists = updatedKeys.includes(keyId);
 
               if (keyStillExists) {
                 // KEY MISMATCH: Key exists in UI but backend says not found
-                console.error(
-                  "🚨 DATA MISMATCH: Key exists in list but backend says not found!"
-                );
+                logger.error("DATA MISMATCH: Key exists in list but backend says not found", { keyId });
 
                 // Get the masked key for display
                 const keyElement = document.querySelector(
@@ -1531,7 +1519,7 @@ import Footer from "../components/Footer.astro";
                 );
               } else {
                 // Key was removed from list
-                console.log("✅ Key no longer in list after reload");
+                logger.debug("Key no longer in list after reload");
                 if (keysCountAfter < keysCountBefore) {
                   alert(
                     "✅ API Key Removed\n\nThe key has been removed from your account."
@@ -1552,20 +1540,20 @@ import Footer from "../components/Footer.astro";
               if (response.data) {
                 const errorData = response.data as any;
                 errorMsg = errorData?.message || errorData?.detail || errorMsg;
-                console.log("Error details:", errorData);
+                logger.debug("Error details", errorData);
               }
             }
 
             throw new Error(errorMsg + ` (HTTP ${response.status})`);
           }
 
-          console.log("API key revoked successfully");
+          logger.info("API key revoked successfully");
           alert(
             "✅ API key revoked successfully\n\nThe key has been permanently deleted and can no longer be used."
           );
           await loadApiKeys();
         } catch (error) {
-          console.error("Error revoking API key:", error);
+          logger.error("Error revoking API key", error);
           const errorMsg =
             error instanceof Error ? error.message : "Unknown error";
           alert("❌ Failed to revoke API key\n\n" + errorMsg);
@@ -1574,9 +1562,7 @@ import Footer from "../components/Footer.astro";
 
       async function toggleApiKey(keyId: string, shouldActivate: boolean) {
         try {
-          console.log(
-            `🔄 Toggling API key ${keyId} to ${shouldActivate ? "ACTIVE" : "INACTIVE"}`
-          );
+          logger.debug("Toggling API key", { keyId, shouldActivate });
 
           // Try the activate/deactivate endpoint first
           let response = await apiClient.post(
@@ -1585,9 +1571,7 @@ import Footer from "../components/Footer.astro";
           );
 
           if (!response.success && response.status === 404) {
-            console.warn(
-              "⚠️ Toggle endpoint not implemented, trying PATCH method..."
-            );
+            logger.warn("Toggle endpoint not implemented, trying PATCH method");
             // Try PATCH method as fallback
             response = await apiClient.patch(
               API_ENDPOINTS.AUTH.REVOKE_API_KEY.replace(":key_id", keyId),
@@ -1599,19 +1583,17 @@ import Footer from "../components/Footer.astro";
             const errorMsg =
               response.error ||
               `Failed to ${shouldActivate ? "enable" : "disable"} API key`;
-            console.log("Toggle error:", response.data);
+            logger.debug("Toggle error", response.data);
             throw new Error(`${errorMsg} (HTTP ${response.status || 500})`);
           }
 
-          console.log(
-            `✅ API key toggled successfully to ${shouldActivate ? "ACTIVE" : "INACTIVE"}`
-          );
+          logger.info("API key toggled successfully", { shouldActivate });
           alert(
             `✅ API key ${shouldActivate ? "enabled" : "disabled"} successfully`
           );
           await loadApiKeys();
         } catch (error) {
-          console.error("Error toggling API key:", error);
+          logger.error("Error toggling API key", error);
           const errorMsg =
             error instanceof Error ? error.message : "Unknown error";
           alert(
@@ -1694,8 +1676,7 @@ import Footer from "../components/Footer.astro";
 
           const data = response.data as any;
 
-          console.log("Create API Key Response:", data);
-          console.log("API Key value:", data?.api_key || data?.key);
+          logger.debug("Create API Key Response", { data, apiKey: data?.api_key || data?.key });
 
           hideModal(modal as HTMLElement | null);
 
@@ -1714,11 +1695,11 @@ import Footer from "../components/Footer.astro";
           nameInput.value = "";
           descInput.value = "";
 
-          console.log("Reloading API keys list...");
+          logger.debug("Reloading API keys list");
           await loadApiKeys();
-          console.log("API keys list reloaded");
+          logger.debug("API keys list reloaded");
         } catch (error) {
-          console.error("Error creating API key:", error);
+          logger.error("Error creating API key", error);
           const errorMsg =
             error instanceof Error ? error.message : "Unknown error";
 
