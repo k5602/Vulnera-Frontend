@@ -34,9 +34,25 @@ const getApiBase = (): string => {
     const publicBase = config.PUBLIC_API_BASE || env.PUBLIC_API_BASE as string | undefined;
     const forceDirect = (env.PUBLIC_FORCE_API_BASE as string | undefined)?.toLowerCase() === "true";
 
-    // If PUBLIC_API_BASE is set and forceDirect is true, use it directly
-    if (publicBase && forceDirect) {
-        return publicBase.replace(/\/$/, "");
+    // If PUBLIC_API_BASE is set, use it (especially in production)
+    if (publicBase) {
+        // If forceDirect is true, always use it
+        if (forceDirect) {
+            return publicBase.replace(/\/$/, "");
+        }
+        
+        // In production (non-dev), use PUBLIC_API_BASE if set
+        if (typeof window !== "undefined") {
+            const isLocalhost = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(window.location.hostname);
+            const isDev = !!env?.DEV || isLocalhost;
+            // In production, use the configured API base
+            if (!isDev) {
+                return publicBase.replace(/\/$/, "");
+            }
+        } else {
+            // SSR/build-time: if PUBLIC_API_BASE is set, use it
+            return publicBase.replace(/\/$/, "");
+        }
     }
 
     // In the browser during local dev, prefer same-origin
@@ -47,7 +63,6 @@ const getApiBase = (): string => {
             return window.location.origin.replace(/\/$/, "");
         }
     }
-
 
     // SSR/build-time fallback: empty string means relative requests
     return "";

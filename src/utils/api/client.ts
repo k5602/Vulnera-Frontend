@@ -39,7 +39,22 @@ class ApiClient {
     endpoint: string,
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
-    const url = new URL(endpoint, this.baseUrl).toString();
+    // Handle empty baseUrl - use absolute URL if endpoint is absolute, otherwise error
+    let url: string;
+    if (!this.baseUrl) {
+      // If baseUrl is empty and endpoint is relative, this is a configuration error
+      if (!endpoint.startsWith('http://') && !endpoint.startsWith('https://')) {
+        logger.error('API base URL is not configured. Please set PUBLIC_API_BASE environment variable.');
+        return {
+          success: false,
+          error: 'API base URL is not configured. Please set PUBLIC_API_BASE environment variable.',
+          status: 500,
+        };
+      }
+      url = endpoint;
+    } else {
+      url = new URL(endpoint, this.baseUrl).toString();
+    }
     
     // Add auth token if available
     const headers = new Headers(options.headers || {});
