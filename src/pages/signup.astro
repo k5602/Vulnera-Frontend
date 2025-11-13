@@ -183,7 +183,7 @@ import Footer from "../components/Footer.astro";
           const next = params.get('next');
           const target = next && /^\/[a-zA-Z0-9_\-/]*$/.test(next) ? next : '/dashboard';
           alert('Signup successful. Redirecting to dashboard...');
-          window.location.href = target;
+          window.location.replace(target);
         } else {
           alert(response.error || response.message || 'Registration failed. Please try again.');
         }
