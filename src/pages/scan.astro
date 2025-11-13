@@ -343,7 +343,7 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
 
   <Footer />
 
-  <script type="module">
+  <script >
     import { apiClient } from "../utils/api/client";
     import { API_ENDPOINTS } from "../config/api";
     import { getCookie } from "../utils/cookies";
@@ -563,9 +563,9 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
         dz.classList.add("bg-black/50");
       });
 
-      dz?.addEventListener("dragleave", () =>
-        dz.classList.remove("bg-black/50")
-      );
+      dz?.addEventListener("dragleave", () => {
+        dz.classList.remove("bg-black/50");
+      });
 
       dz?.addEventListener("drop", (e) => {
         e.preventDefault();
@@ -573,7 +573,6 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
         handleFiles(e.dataTransfer?.files ?? null);
       });
 
-      btnSelect?.addEventListener("click", () => input?.click());
       input?.addEventListener("change", () => handleFiles(input?.files));
 
       // RESET_FILES handler
