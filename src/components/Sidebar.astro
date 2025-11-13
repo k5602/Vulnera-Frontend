@@ -450,20 +450,14 @@
     const homeElement = document.getElementById('home-page');
     const isLoggedIn = authService.isAuthenticated();
 
-    authElements?.forEach(el => {
       if (isLoggedIn) {
-        (el as HTMLElement).style.removeProperty("display");
+        authElements?.forEach(el => (el as HTMLElement).style.removeProperty("display"));
+        guestElements?.forEach(el => (el as HTMLElement).style.display = 'none');
         homeElement.style.display = "none";
       } else {
-        authElements?.forEach(el => {
-          (el as HTMLElement).style.display = "none";
-        });
+        authElements?.forEach(el => (el as HTMLElement).style.display = 'none');
+        guestElements?.forEach(el => (el as HTMLElement).style.removeProperty("display"));
       }
-    });
-    
-    guestElements?.forEach(el => {
-      (el as HTMLElement).style.display = isLoggedIn ? 'none' : '';
-    });
   }
 
   // Logout functionality
