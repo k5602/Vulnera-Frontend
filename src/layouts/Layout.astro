@@ -2,6 +2,8 @@
 import '../styles/global.css';
 import Sidebar from '../components/Sidebar.astro';
 
+export const prerender = false;
+
 export interface Props {
   title?: string;
   description?: string;
@@ -212,6 +214,13 @@ const {
                 if (!(tgt instanceof Element)) return;
                 const a = tgt.closest('a');
                 if (!a) return;
+
+                // ✅ ADD: Skip if click is inside a form (prevents form submission interference)
+                const closestForm = tgt.closest('form');
+                if (closestForm) return;
+
+                // ✅ ADD: Skip buttons entirely
+                if (tgt.tagName === 'BUTTON' || tgt.closest('button')) return;
 
                 // Skip if modified click or target is new tab
                 if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;

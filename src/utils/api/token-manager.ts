@@ -37,7 +37,7 @@ class TokenManager {
       setCookie(this.TOKEN_KEY, token, {
         days: rememberMe ? 7 : undefined, // undefined = session cookie
         path: '/',
-        secure: true,
+        secure: false,
         sameSite: 'Lax'
       });
     } catch (e) {

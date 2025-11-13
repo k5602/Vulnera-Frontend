@@ -2,13 +2,11 @@
 import Layout from "../layouts/Layout.astro";
 import Navigation from "../components/Navigation.astro";
 import Footer from "../components/Footer.astro";
+
+export const prerender = false;
 ---
 
 <Layout title="Login — Vulnera" description="Access your Vulnera account">
-  <script>
-    import { setupAuthGuard } from '../utils/auth-guard';
-    setupAuthGuard({ requireAuth: false, redirectTo: '/dashboard' });
-  </script>
 
   <Navigation />
 
@@ -111,6 +109,13 @@ import Footer from "../components/Footer.astro";
   <script>
     import { authService } from '../utils/api/index';
     import { loginLimiter } from '../utils/api/rate-limiter';
+    import { logger } from '../utils/logger';
+
+    if (authService.isAuthenticated()) {
+      const params = new URLSearchParams(window.location.search);
+      const next = params.get('next') || '/dashboard';
+      window.location.replace(next);
+    }
 
     const form = document.getElementById('login-form') as HTMLFormElement;
     const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
@@ -140,6 +145,7 @@ import Footer from "../components/Footer.astro";
       clearBtn.addEventListener('click', () => {
         localStorage.clear();
         sessionStorage.clear();
+        logger.info('Session cleared by user');
         showSuccess('Session cleared. You can now log in again.');
       });
     }
@@ -158,6 +164,7 @@ import Footer from "../components/Footer.astro";
 
       // Validate inputs
       if (!email || !password) {
+        logger.warn('Login validation failed: missing email or password');
         showError('Email and password are required');
         return;
       }
@@ -166,6 +173,7 @@ import Footer from "../components/Footer.astro";
       if (!loginLimiter.isAllowed(email, 5, 60 * 1000)) {
         const remaining = loginLimiter.getRemainingTime(email);
         const minutes = Math.ceil(remaining / 60000);
+        logger.warn(`Rate limit exceeded for ${email}, remaining time: ${minutes}m`);
         showError(
           `Too many login attempts. Please try again in ${minutes} minute${minutes !== 1 ? 's' : ''}.`
         );
@@ -177,29 +185,41 @@ import Footer from "../components/Footer.astro";
       submitBtn.innerHTML = '<span class="mr-2">&gt;</span> AUTHENTICATING...';
 
       try {
+        logger.info(`Login attempt for email: ${email}`);
+
         // Call the real API
         const response = await authService.login(
           { email, password },
           remember
         );
 
+        logger.debug('Login response received', { 
+          success: response.success, 
+          hasToken: !!localStorage.getItem('token'),
+          isAuthenticated: authService.isAuthenticated()
+        });
+
         if (response.success) {
           // Clear rate limit on success
           loginLimiter.reset(email);
+          logger.info(`Login successful for ${email}`);
           showSuccess('Login successful! Redirecting...');
           
           // Redirect after short delay
           setTimeout(() => {
             const params = new URLSearchParams(window.location.search);
             const next = params.get('next') || '/dashboard';
-            window.location.href = next;
+            logger.debug(`Redirecting to: ${next}`);
+            window.location.replace(next);
           }, 500);
         } else {
+          logger.error('Login failed', { error: response.error });
           showError(response.error || 'Login failed. Please check your credentials.');
           submitBtn.disabled = false;
           submitBtn.innerHTML = '<span class="mr-2">&gt;</span> LOGIN';
         }
       } catch (err: any) {
+        logger.error('Login network error', { error: err?.message || err });
         showError('Network error: ' + (err?.message || 'Unable to connect to server'));
         submitBtn.disabled = false;
         submitBtn.innerHTML = '<span class="mr-2">&gt;</span> LOGIN';
