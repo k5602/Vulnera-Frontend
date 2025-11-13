@@ -42,6 +42,7 @@
       href="/" 
       class="sidebar-link group relative flex items-center h-12 rounded-lg hover:bg-gradient-to-r hover:from-cyber-400/20 hover:to-transparent transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyber-400 overflow-hidden"
       data-label="Home"
+      id="home-page"
     >
       <!-- Ripple Effect Container -->
       <span class="ripple-container absolute inset-0 overflow-hidden"></span>
@@ -446,10 +447,13 @@
   function updateSidebarVisibility() {
     const authElements = sidebar?.querySelectorAll('.auth-only');
     const guestElements = sidebar?.querySelectorAll('.guest-only');
-    const isLoggedIn = authService.isAuthenticated();    
+    const homeElement = document.getElementById('home-page');
+    const isLoggedIn = authService.isAuthenticated();
+
     authElements?.forEach(el => {
       if (isLoggedIn) {
         (el as HTMLElement).style.removeProperty("display");
+        homeElement.style.display = "none";
       } else {
         authElements?.forEach(el => {
           (el as HTMLElement).style.display = "none";
