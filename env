@@ -1,0 +1,26 @@
+# =============================================================================
+# Vulnera Frontend - Environment Configuration
+# =============================================================================
+# Copy this file to .env and update the values for your environment
+# cp .env.example .env
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# API Configuration
+# -----------------------------------------------------------------------------
+
+# Backend API base URL
+# Default: http://localhost:8000
+# Examples:
+#   Development: http://localhost:8000
+#   Production: https://api.example.com
+PUBLIC_API_BASE=http://fo8w0o08w80g0wgs48kcgwss.121.91.156.227.sslip.io
+
+# API request timeout in milliseconds
+# Default: 30000 (30 seconds)
+PUBLIC_API_TIMEOUT=30000
+
+# Force direct API base URL usage (bypasses same-origin fallback in dev)
+# Set to "true" to always use PUBLIC_API_BASE, even in local development
+# Default: false (unset)
+# PUBLIC_FORCE_API_BASE=false
