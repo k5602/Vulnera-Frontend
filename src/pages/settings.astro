@@ -80,17 +80,6 @@ import Footer from "../components/Footer.astro";
                   </span>
                 </button>
               </li>
-              <li class="border-t border-matrix-500/30 mt-2 pt-2">
-                <button
-                  class="settings-tab w-full text-left px-6 py-3 font-mono text-sm transition-all duration-200 hover:bg-red-500/10 hover:border-l-4 hover:border-red-500"
-                  data-tab="danger"
-                >
-                  <span class="flex items-center gap-2 text-red-400">
-                    <span>⚠️</span>
-                    <span>Danger Zone</span>
-                  </span>
-                </button>
-              </li>
             </ul>
           </nav>
 
@@ -354,34 +343,6 @@ import Footer from "../components/Footer.astro";
               </div>
             </div>
 
-            <!-- Danger Zone Tab -->
-            <div id="danger-tab" class="tab-content hidden">
-              <h2 class="text-2xl font-bold text-red-400 mb-6 font-mono">
-                Danger Zone
-              </h2>
-              <div>
-                <div
-                  class="bg-red-900/10 border border-red-500/30 rounded-lg p-4 space-y-3"
-                >
-                  <div class="flex items-center justify-between">
-                    <div>
-                      <p class="text-white font-mono font-bold">
-                        Delete Account
-                      </p>
-                      <p class="text-sm text-gray-500">
-                        Permanently delete your account and all data
-                      </p>
-                    </div>
-                    <button
-                      id="delete-account-btn"
-                      class="bg-red-500/20 hover:bg-red-500/30 text-red-400 font-bold py-2 px-4 rounded transition-all duration-300 font-mono text-sm"
-                    >
-                      Delete Account
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -563,19 +524,14 @@ import Footer from "../components/Footer.astro";
       if (
         hash &&
         [
-          "profile",
-          "security",
-          "notifications",
           "api-keys",
-          "preferences",
           "debug",
-          "danger",
         ].includes(hash)
       ) {
         switchTab(hash);
       } else {
         // Initialize first tab
-        switchTab("profile");
+        switchTab("api-keys");
       }
 
       // GitHub Token Management
@@ -669,26 +625,6 @@ import Footer from "../components/Footer.astro";
 
       // Load token on page load
       loadGithubToken();
-
-      // Delete account handler
-      const deleteAccountBtn = document.getElementById("delete-account-btn");
-      deleteAccountBtn?.addEventListener("click", () => {
-        const confirmed = confirm(
-          "⚠️ WARNING: This will permanently delete your account and all associated data. This action cannot be undone.\n\nAre you absolutely sure?"
-        );
-        if (confirmed) {
-          const doubleConfirm = prompt(
-            'Type "DELETE" to confirm account deletion:'
-          );
-          if (doubleConfirm === "DELETE") {
-            // NOTE: Account deletion API endpoint not yet implemented
-            // TODO: Implement actual account deletion API call when backend endpoint is available
-            alert("Account deletion initiated. You will be logged out.");
-            authService.clearAuth();
-            window.location.href = "/";
-          }
-        }
-      });
 
       // Export scan history
       const exportScansBtn = document.getElementById("export-scans-btn");
