@@ -74,6 +74,7 @@ class AuthService {
       credentials
     );
 
+
     if (response.success && response.data) {
       // Use access_token from TokenResponse (OpenAPI spec)
       if (response.data.access_token) {

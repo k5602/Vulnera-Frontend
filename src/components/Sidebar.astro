@@ -42,6 +42,7 @@
       href="/" 
       class="sidebar-link group relative flex items-center h-12 rounded-lg hover:bg-gradient-to-r hover:from-cyber-400/20 hover:to-transparent transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyber-400 overflow-hidden"
       data-label="Home"
+      id="home-page"
     >
       <!-- Ripple Effect Container -->
       <span class="ripple-container absolute inset-0 overflow-hidden"></span>
@@ -68,6 +69,7 @@
       href="/scan" 
       class="sidebar-link auth-only group relative flex items-center h-12 rounded-lg hover:bg-gradient-to-r hover:from-cyber-400/20 hover:to-transparent transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyber-400 overflow-hidden"
       data-label="Scan"
+      style="display: none"
     >
       <!-- Ripple Effect Container -->
       <span class="ripple-container absolute inset-0 overflow-hidden"></span>
@@ -96,6 +98,7 @@
       href="/dashboard" 
       class="sidebar-link auth-only group relative flex items-center h-12 rounded-lg hover:bg-gradient-to-r hover:from-matrix-400/20 hover:to-transparent transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyber-400 overflow-hidden"
       data-label="Dashboard"
+      style="display: none"
     >
       <!-- Ripple Effect Container -->
       <span class="ripple-container absolute inset-0 overflow-hidden"></span>
@@ -154,6 +157,7 @@
       href="/settings" 
       class="sidebar-link auth-only group relative flex items-center h-12 rounded-lg hover:bg-gradient-to-r hover:from-purple-400/20 hover:to-transparent transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 overflow-hidden"
       data-label="Settings"
+      style="display: none"
     >
       <!-- Ripple Effect Container -->
       <span class="ripple-container absolute inset-0 overflow-hidden"></span>
@@ -207,6 +211,7 @@
       id="sidebar-logout-btn"
       class="sidebar-link auth-only group relative flex items-center h-12 rounded-lg hover:bg-gradient-to-r hover:from-red-500/30 hover:to-transparent transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400 w-full overflow-hidden"
       data-label="Logout"
+      style="display: none"
     >
       <!-- Ripple Effect Container -->
       <span class="ripple-container absolute inset-0 overflow-hidden"></span>
@@ -340,7 +345,7 @@
   }
 
   /* Hide sidebar below 1400px - show as mobile menu instead */
-  @media (max-width: 1399px) {
+  @media (max-width: 1535px) {
     #sidebar {
       transform: translateX(-100%);
       width: 140px !important;
@@ -361,7 +366,7 @@
   }
 
   /* Show sidebar on large screens (1400px and above) */
-  @media (min-width: 1400px) {
+  @media (min-width: 1536px) {
     #sidebar {
       transform: translateX(0) !important;
     }
@@ -438,19 +443,21 @@
   // Auth-based visibility
   import { authService } from '../utils/api/index';
 
+
   function updateSidebarVisibility() {
-    const isLoggedIn = authService.isAuthenticated();
-    
     const authElements = sidebar?.querySelectorAll('.auth-only');
     const guestElements = sidebar?.querySelectorAll('.guest-only');
-    
-    authElements?.forEach(el => {
-      (el as HTMLElement).style.display = isLoggedIn ? '' : 'none';
-    });
-    
-    guestElements?.forEach(el => {
-      (el as HTMLElement).style.display = isLoggedIn ? 'none' : '';
-    });
+    const homeElement = document.getElementById('home-page');
+    const isLoggedIn = authService.isAuthenticated();
+
+      if (isLoggedIn) {
+        authElements?.forEach(el => (el as HTMLElement).style.removeProperty("display"));
+        guestElements?.forEach(el => (el as HTMLElement).style.display = 'none');
+        homeElement.style.display = "none";
+      } else {
+        authElements?.forEach(el => (el as HTMLElement).style.display = 'none');
+        guestElements?.forEach(el => (el as HTMLElement).style.removeProperty("display"));
+      }
   }
 
   // Logout functionality
