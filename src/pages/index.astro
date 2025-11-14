@@ -165,10 +165,8 @@ const stats = [
     <script>
         import { authService } from '../utils/api/index';
 
-        let cPath = window.location.pathname;
-        
-        if (cPath === '/index' || cPath === '/') {
-            authService.logout();
+        if (authService.isAuthenticated()) {
+            window.location.replace('/dashboard');
         }
     </script>
 </Layout>
