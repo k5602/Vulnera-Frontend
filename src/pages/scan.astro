@@ -132,7 +132,7 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
           <!-- Analysis Modules - Always Active -->
           <div class="border border-cyber-400/30 rounded-lg p-3 bg-black/30">
             <label class="block text-xs text-matrix-300 font-mono mb-2"
-              >ACTIVE_ANALYSIS_MODULES</label
+              >ALL_ANALYSIS_MODULES "Enabled by default, can not be edited"</label
             >
             <div class="grid grid-cols-2 gap-2">
               <div
@@ -211,23 +211,10 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
           <!-- Secondary Actions -->
           <div class="flex flex-wrap gap-2">
             <button
-              id="btn-load-demo"
-              class="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 border border-matrix-400/40 text-matrix-300 px-3 py-2 rounded-lg font-mono text-xs hover:bg-matrix-400/10 hover:border-matrix-400/60 transition-all"
-            >
-              <span>🎯</span> DEMO
-            </button>
-            <button
               id="btn-reset-files"
               class="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 border border-red-400/40 text-red-300 px-3 py-2 rounded-lg font-mono text-xs hover:bg-red-400/10 hover:border-red-400/60 transition-all"
             >
               <span>🗑️</span> RESET
-            </button>
-            <button
-              id="btn-preview-report"
-              type="button"
-              class="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 border border-cyan-400/40 text-cyan-300 px-3 py-2 rounded-lg font-mono text-xs hover:bg-cyan-400/10 hover:border-cyan-400/60 transition-all"
-            >
-              <span>👁️</span> PREVIEW
             </button>
           </div>
 
@@ -285,12 +272,6 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
             type="url"
             placeholder="github.com/owner/repo"
             class="w-full px-3 py-2 rounded-lg bg-black/60 border border-cyber-400/30 focus:border-cyber-400 focus:ring-1 focus:ring-cyber-400 text-white placeholder-gray-500 text-xs sm:text-sm"
-          />
-          <input
-            type="password"
-            id="github-token-input"
-            placeholder="Enter GitHub Token (optional for private repos)"
-            class="w-full px-3 py-2 rounded-lg bg-black/60 border border-cyber-400/30 focus:border-cyber-400 focus:ring-1 focus:ring-cyber-400 text-white placeholder-gray-500 text-xs sm:text-sm mt-2"
           />
 
           <!-- Analysis Depth Selection -->
@@ -417,9 +398,7 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
       const btnSelect = document.getElementById("btn-select");
       const btnScan = document.getElementById("btn-scan");
       const btnImport = document.getElementById("btn-import");
-      const btnLoadDemo = document.getElementById("btn-load-demo");
       const btnReset = document.getElementById("btn-reset-files");
-      const btnPreview = document.getElementById("btn-preview-report");
       const repoUrl = document.getElementById("repo-url");
       const detailLevelBtns = document.querySelectorAll(".detail-level-btn");
       const analysisDepthBtns = document.querySelectorAll(
@@ -1183,150 +1162,6 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
           btnImport.disabled = false;
           btnImport.textContent = "> IMPORT_REPO";
         }
-      });
-
-      // LOAD_DEMO_FILES handler
-      btnLoadDemo?.addEventListener("click", async () => {
-        try {
-          const demoFiles = [
-            {
-              url: "/demo/package.json",
-              name: "package.json",
-              type: "application/json",
-            },
-            {
-              url: "/demo/requirements.txt",
-              name: "requirements.txt",
-              type: "text/plain",
-            },
-            { url: "/demo/Cargo.lock", name: "Cargo.lock", type: "text/plain" },
-          ];
-          const fetched = await Promise.all(
-            demoFiles.map(async (d) => {
-              const resp = await fetch(d.url);
-              if (!resp.ok) throw new Error(`Failed to fetch ${d.url}`);
-              const blob = await resp.blob();
-              return new File([blob], d.name, { type: d.type });
-            })
-          );
-          pickedFiles = [...pickedFiles, ...fetched].slice(0, 50);
-          renderFiles();
-        } catch (err) {
-          logger.error("Failed to load demo files", err);
-          alert("Failed to load demo files");
-        }
-      });
-
-      // PREVIEW_REPORT handler
-      btnPreview?.addEventListener("click", () => {
-        const now = new Date();
-        const mock = {
-          startedAt: new Date(now.getTime() - 2500).toISOString(),
-          finishedAt: now.toISOString(),
-          durationMs: 2500,
-          detailLevel: selectedDetailLevel, // Add current detail level
-          summary: {
-            files: 3,
-            dependencies: 120,
-            vulnerabilities: 6,
-            critical: 2,
-            high: 2,
-            medium: 2,
-            low: 0,
-          },
-          files: [
-            {
-              file: "Cargo.lock",
-              ecosystem: "cargo",
-              dependencies: 45,
-              vulnerable: 2,
-            },
-            {
-              file: "package.json",
-              ecosystem: "npm",
-              dependencies: 38,
-              vulnerable: 2,
-            },
-            {
-              file: "requirements.txt",
-              ecosystem: "pypi",
-              dependencies: 37,
-              vulnerable: 2,
-            },
-          ],
-          vulnerabilities: [
-            {
-              id: "1",
-              severity: "CRITICAL",
-              package: "openssl",
-              version: "1.1.1",
-              title: "Memory corruption in TLS handler",
-              cve: "CVE-2024-12345",
-              cvss: 9.8,
-              affectedFiles: ["Cargo.lock"],
-              recommendation: "Upgrade to 1.1.1u or 3.x.",
-            },
-            {
-              id: "2",
-              severity: "CRITICAL",
-              package: "glibc",
-              version: "2.28",
-              title: "Stack smashing vulnerability",
-              cve: "CVE-2024-99999",
-              cvss: 9.1,
-              affectedFiles: ["requirements.txt"],
-              recommendation: "Patch to latest LTS.",
-            },
-            {
-              id: "3",
-              severity: "HIGH",
-              package: "lodash",
-              version: "4.17.15",
-              title: "Prototype pollution",
-              cve: "CVE-2020-8203",
-              cvss: 7.2,
-              affectedFiles: ["package.json"],
-              recommendation: "Update to >= 4.17.21.",
-            },
-            {
-              id: "4",
-              severity: "HIGH",
-              package: "urllib3",
-              version: "1.25.8",
-              title: "CRLF injection",
-              cve: "CVE-2020-26137",
-              cvss: 7.5,
-              affectedFiles: ["requirements.txt"],
-              recommendation: "Upgrade to >= 1.26.5.",
-            },
-            {
-              id: "5",
-              severity: "MEDIUM",
-              package: "moment",
-              version: "2.24.0",
-              title: "Regex DoS",
-              cvss: 5.3,
-              affectedFiles: ["package.json"],
-            },
-            {
-              id: "6",
-              severity: "MEDIUM",
-              package: "requests",
-              version: "2.19.0",
-              title: "Open redirect",
-              cvss: 5.8,
-              affectedFiles: ["requirements.txt"],
-            },
-          ],
-        };
-        window.dispatchEvent(
-          new CustomEvent("vulnera:scan-report", { detail: mock })
-        );
-        setTimeout(() => {
-          document
-            .getElementById("scan-report-anchor")
-            ?.scrollIntoView({ behavior: "smooth", block: "start" });
-        }, 50);
       });
     }
 
