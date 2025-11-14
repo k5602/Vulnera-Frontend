@@ -64,7 +64,7 @@ class TokenManager {
       setCookie(this.USER_KEY, JSON.stringify(user), {
         days: rememberMe ? 7 : undefined,
         path: '/',
-        secure: true,
+        secure: false,
         sameSite: 'Lax'
       });
     } catch (e) {
@@ -133,7 +133,7 @@ class TokenManager {
       setCookie(this.API_KEY, apiKey, {
         days: options.days ?? 30,
         path: '/',
-        secure: true,
+        secure: false,
         sameSite: 'Lax'
       });
     } catch (e) {
