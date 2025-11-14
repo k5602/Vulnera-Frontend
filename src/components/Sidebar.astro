@@ -453,7 +453,7 @@
       if (isLoggedIn) {
         authElements?.forEach(el => (el as HTMLElement).style.removeProperty("display"));
         guestElements?.forEach(el => (el as HTMLElement).style.display = 'none');
-        homeElement.style.display = "none";
+        if (homeElement) homeElement.style.display = "none";
       } else {
         authElements?.forEach(el => (el as HTMLElement).style.display = 'none');
         guestElements?.forEach(el => (el as HTMLElement).style.removeProperty("display"));
