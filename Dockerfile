@@ -7,8 +7,8 @@ WORKDIR /app
 # Copy package files
 COPY package.json package-lock.json ./
 
-# Install dependencies
-RUN npm ci --only=production=false
+# Install all dependencies (including dev dependencies needed for build)
+RUN npm ci
 
 # Copy source files
 COPY . .
@@ -24,6 +24,12 @@ WORKDIR /app
 
 # Install curl for healthcheck
 RUN apk add --no-cache curl
+
+# Copy package files
+COPY --from=builder /app/package.json /app/package-lock.json ./
+
+# Install only production dependencies (needed for SSR server runtime)
+RUN npm ci --only=production
 
 # Copy built files from builder stage (includes dist/server/ with Astro's generated server)
 COPY --from=builder /app/dist ./dist
