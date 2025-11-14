@@ -250,11 +250,11 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
               <h3
                 class="text-xs sm:text-sm text-purple-400 font-bold font-mono"
               >
-                GitHub Token Required
+                GitHub Token Required For Private Repo
               </h3>
             </div>
             <p class="text-xs text-gray-300">
-              Add token in Settings to import repos.
+              Add token in Settings to import private repos. If repo is public ignore this notice.
             </p>
             <a
               href="/settings#api-keys"
@@ -342,27 +342,9 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
       if (!token) {
         // No token - show notice and disable controls
         notice?.classList.remove("hidden");
-        if (btnImport) {
-          btnImport.disabled = true;
-          btnImport.classList.add("opacity-50", "cursor-not-allowed");
-          btnImport.classList.remove("cursor-pointer");
-        }
-        if (repoUrl) {
-          repoUrl.disabled = true;
-          repoUrl.classList.add("opacity-50", "cursor-not-allowed");
-        }
       } else {
         // Token exists - hide notice and enable controls
         notice?.classList.add("hidden");
-        if (btnImport) {
-          btnImport.disabled = false;
-          btnImport.classList.remove("opacity-50", "cursor-not-allowed");
-          btnImport.classList.add("cursor-pointer");
-        }
-        if (repoUrl) {
-          repoUrl.disabled = false;
-          repoUrl.classList.remove("opacity-50", "cursor-not-allowed");
-        }
       }
 
       return token;
@@ -866,10 +848,8 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
           return;
         }
 
-        // Get GitHub token from input field or cookie
-        const githubTokenInput = document.getElementById("github-token-input");
-        const githubToken =
-          githubTokenInput?.value?.trim() || getCookie("github_token");
+        // Get GitHub token from cookie
+        const githubToken = getCookie("github_token");
 
         try {
           btnImport.disabled = true;
@@ -909,7 +889,7 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
           const requestBody = {
             source_type: "git",
             source_uri: `https://github.com/${owner}/${repo}.git`,
-            analysis_depth: analysisDepth,
+            analysis_depth: "full",
           };
 
           // Call analyze/job endpoint
@@ -938,6 +918,8 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
           }
 
           const result = apiResponse.data;
+
+          console.log(result);
 
           // Check job status
           if (result.status === "failed") {
