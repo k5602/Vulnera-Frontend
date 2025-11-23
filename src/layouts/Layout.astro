@@ -81,14 +81,7 @@ const {
         />
     </head>
     <body class="font-mono bg-black text-white overflow-x-hidden vt-preload">
-        <!-- ========================================
-         BACKGROUND EFFECTS LAYER
-         Layered backgrounds for cybersecurity theme:
-         1. Matrix Rain (deepest, z-index: -2)
-         2. Cyber Grid (z-index: default)
-         3. Scanning Line (z-index: default)
-         All are pointer-events-none for performance
-         ======================================== -->
+       
 
         <!-- Matrix Rain Background (Canvas Animation) -->
         <MatrixRain />
@@ -106,9 +99,7 @@ const {
         >
         </div>
 
-        <!-- ========================================
-         ACCESSIBILITY
-         ======================================== -->
+        
 
         <!-- Skip to content link for accessibility -->
         <a
@@ -117,11 +108,7 @@ const {
             >Skip to content</a
         >
 
-        <!-- ========================================
-         PAGE TRANSITION OVERLAY
-         Matrix terminal-style loading screen
-         ======================================== -->
-
+      
         <!-- View-Transition overlay (matrix terminal style) -->
         <div id="vt-overlay" class="vt-overlay is-active" aria-hidden="true">
             <div class="vt-backdrop"></div>
@@ -142,10 +129,6 @@ const {
             </div>
         </div>
 
-        <!-- ========================================
-         MAIN CONTENT AREA
-         ======================================== -->
-
         <div
             id="vt-content"
             class="vt-content"
@@ -155,11 +138,12 @@ const {
             <slot />
         </div>
 
-        <!-- ========================================
-         NAVIGATION SIDEBAR
-         ======================================== -->
 
-        <Sidebar />
+        {
+            !["/", "/login", "/signup", "/about"].includes(Astro.url.pathname) && (
+                <Sidebar />
+            )
+        }
 
         <!-- ========================================
          SCRIPTS
@@ -360,10 +344,7 @@ const {
         </script>
 
         <script>
-            // ========================================
-            // TOKEN REFRESH MANAGER
-            // Auto-refresh authentication tokens
-            // ========================================
+    
             import { tokenRefreshManager } from "../utils/api/token-refresh";
             if (typeof window !== "undefined") {
                 tokenRefreshManager.startAutoRefresh();

@@ -1,56 +1,104 @@
 ---
 // Navigation component for the site
+import Logo from "./Logo.astro";
 ---
 
-<nav class="absolute top-0 left-0 right-0 z-20 p-6 bg-black/80 backdrop-blur-sm border-b border-cyber-500/30" aria-label="Main">
+<nav
+    class="absolute top-0 left-0 right-0 z-20 p-6 bg-black/80 backdrop-blur-sm border-b border-cyber-500/30"
+    aria-label="Main"
+>
     <div class="max-w-7xl mx-auto flex justify-between items-center">
         <div class="flex items-center gap-4">
             <!-- Burger Menu Toggle Button (Hidden on screens >= 1536px) -->
-            <button id="menu-toggle" class="2xl:hidden text-cyber-400 hover:text-cyber-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyber-400 rounded p-2" aria-label="Toggle menu" aria-expanded="false">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <button
+                id="menu-toggle"
+                class="2xl:hidden text-cyber-400 hover:text-cyber-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyber-400 rounded p-2"
+                aria-label="Toggle menu"
+                aria-expanded="false"
+            >
+                <svg
+                    class="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    viewBox="0 0 24 24"
+                >
                     <line x1="3" y1="12" x2="21" y2="12"></line>
                     <line x1="3" y1="6" x2="21" y2="6"></line>
                     <line x1="3" y1="18" x2="21" y2="18"></line>
                 </svg>
             </button>
-            <a href="/" class="text-cyber-400 font-bold text-xl font-mono tracking-wider focus:outline-none focus-visible:ring-2 focus-visible:ring-cyber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded" aria-label="Brand home">
-                &gt; VULNERA_
+            <a
+                href="/"
+                class="flex items-center gap-2 group focus:outline-none"
+                aria-label="Brand home"
+            >
+                <Logo class="w-10 h-10" />
+                <span
+                    class="text-cyber-400 font-bold text-xl font-mono tracking-wider group-hover:text-cyber-300 transition-colors"
+                    >VULNERA_</span
+                >
             </a>
         </div>
+
+        <!-- Public Navigation Links -->
+        {
+            ["/", "/login", "/signup"].includes(Astro.url.pathname) && (
+                <div class="hidden sm:flex items-center gap-6">
+                    <a
+                        href="/about"
+                        class="text-matrix-300 hover:text-cyber-400 font-mono text-sm tracking-wider transition-colors duration-300 relative group"
+                    >
+                        <span class="relative z-10">ABOUT</span>
+                        <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-cyber-400 transition-all duration-300 group-hover:w-full" />
+                    </a>
+                    <a
+                        href="/login"
+                        class="text-matrix-300 hover:text-cyber-400 font-mono text-sm tracking-wider transition-colors duration-300 relative group"
+                    >
+                        <span class="relative z-10">LOGIN</span>
+                        <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-cyber-400 transition-all duration-300 group-hover:w-full" />
+                    </a>
+                </div>
+            )
+        }
     </div>
-    
 </nav>
 
 <script>
     // Mobile sidebar toggle
-    const toggleBtn = document.getElementById('menu-toggle');
-    const sidebar = document.getElementById('sidebar');
-    
+    const toggleBtn = document.getElementById("menu-toggle");
+    const sidebar = document.getElementById("sidebar");
+
     function toggleMobileSidebar() {
         if (window.innerWidth < 1536) {
-            sidebar?.classList.toggle('mobile-open');
-            const isOpen = sidebar?.classList.contains('mobile-open');
-            toggleBtn?.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            sidebar?.classList.toggle("mobile-open");
+            const isOpen = sidebar?.classList.contains("mobile-open");
+            toggleBtn?.setAttribute("aria-expanded", isOpen ? "true" : "false");
         }
     }
-    
+
     if (toggleBtn) {
-        toggleBtn.addEventListener('click', toggleMobileSidebar);
+        toggleBtn.addEventListener("click", toggleMobileSidebar);
     }
 
     // Close sidebar when clicking outside on mobile
-    document.addEventListener('click', (e) => {
-        if (window.innerWidth < 1536 && 
-            sidebar?.classList.contains('mobile-open') && 
-            !sidebar.contains(e.target as Node) && 
-            !toggleBtn?.contains(e.target as Node)) {
-            sidebar?.classList.remove('mobile-open');
-            toggleBtn?.setAttribute('aria-expanded', 'false');
+    document.addEventListener("click", (e) => {
+        if (
+            window.innerWidth < 1536 &&
+            sidebar?.classList.contains("mobile-open") &&
+            !sidebar.contains(e.target as Node) &&
+            !toggleBtn?.contains(e.target as Node)
+        ) {
+            sidebar?.classList.remove("mobile-open");
+            toggleBtn?.setAttribute("aria-expanded", "false");
         }
     });
 
     // Listen for storage changes (multi-tab sync)
-    window.addEventListener('storage', () => {
+    window.addEventListener("storage", () => {
         // Reload to update auth state
         location.reload();
     });
