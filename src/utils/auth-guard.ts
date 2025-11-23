@@ -18,15 +18,14 @@ function getAuthToken(): string | null {
 }
 
 /**
- * Get redirect destination from URL params
+ * Determine redirection target safely
  */
-function getRedirectPath(defaultPath: string): string {
+function resolveRedirect(defaultPath: string): string {
   if (typeof window === 'undefined') return defaultPath;
 
   const params = new URLSearchParams(window.location.search);
   const next = params.get('next');
 
-  // Validate it's a safe relative path
   if (next && next.startsWith('/') && !next.includes('//')) {
     return next;
   }
@@ -36,7 +35,6 @@ function getRedirectPath(defaultPath: string): string {
 
 /**
  * Setup authentication guard for a page
- * Call this in a module script on pages that need auth
  */
 export function setupAuthGuard(options: AuthGuardOptions = {}): void {
   if (typeof window === 'undefined') return;
@@ -50,16 +48,14 @@ export function setupAuthGuard(options: AuthGuardOptions = {}): void {
     const loginUrl = `/login?next=${encodeURIComponent(currentPath)}`;
     window.location.href = loginUrl;
   } else if (!requireAuth && hasAuth) {
-    // Guest page - user already authenticated
-    window.location.href = redirectTo;
+    // Guest page - redirect authenticated user
+    const target = resolveRedirect(redirectTo);
+    window.location.href = target;
   }
 }
 
 /**
- * String to embed directly in Astro pages as inline script
- * Usage: <script is:inline define:vars={{requireAuth: true}}>
- *        {INLINE_GUARD_SCRIPT}
- *        </script>
+ * Inline guard script for Astro pages
  */
 export const INLINE_GUARD_SCRIPT = `
   (function() {
@@ -81,8 +77,14 @@ export const INLINE_GUARD_SCRIPT = `
       const currentPath = window.location.pathname + window.location.search;
       window.location.href = '/login?next=' + encodeURIComponent(currentPath);
     } else if (!requireAuth && hasAuth) {
-      window.location.href = '/dashboard';
+      const params = new URLSearchParams(window.location.search);
+      const next = params.get('next');
+
+      if (next && next.startsWith('/') && !next.includes('//')) {
+        window.location.href = next;
+      } else {
+        window.location.href = '/dashboard';
+      }
     }
   })();
 `;
-

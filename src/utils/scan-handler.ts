@@ -18,6 +18,19 @@ export interface ScanResult {
   results?: FileResult[];
 }
 
+export interface Vulnerability {
+  id: any;
+  type: string;
+  severity: string;
+  package: string;
+  version: string;
+  title: string;
+  cve: string;
+  affectedFiles: string[];
+  cvss: any;
+  recommendation?: string;
+}
+
 export interface TransformedReport {
   fileAnalyses: Array<{
     file: string;
@@ -25,9 +38,9 @@ export interface TransformedReport {
     dependencies: number;
     vulnerable: number;
   }>;
-  allVulnerabilities: any[];
+  allVulnerabilities: Vulnerability[];
   allFindings: {
-    dependencies: any[];
+    dependencies: Vulnerability[];
     sast: any[];
     secrets: any[];
     api: any[];
@@ -38,10 +51,11 @@ export interface TransformedReport {
  * Transform API response to report format
  */
 export function transformScanResponse(result: ScanResult): TransformedReport {
-  const fileAnalyses: TransformedReport['fileAnalyses'] = [];
-  const allVulnerabilities: any[] = [];
-  const allFindings = {
-    dependencies: [],
+  const fileAnalyses: TransformedReport["fileAnalyses"] = [];
+  const allVulnerabilities: Vulnerability[] = [];
+
+  const allFindings: TransformedReport["allFindings"] = {
+    dependencies: [] as Vulnerability[],
     sast: [],
     secrets: [],
     api: [],
@@ -49,9 +63,7 @@ export function transformScanResponse(result: ScanResult): TransformedReport {
 
   if (result.results && Array.isArray(result.results)) {
     result.results.forEach((fileResult) => {
-      if (fileResult.error) {
-        return;
-      }
+      if (fileResult.error) return;
 
       // Add file analysis
       fileAnalyses.push({
@@ -61,13 +73,10 @@ export function transformScanResponse(result: ScanResult): TransformedReport {
         vulnerable: fileResult.metadata?.vulnerable_packages || 0,
       });
 
-      // Process dependency vulnerabilities
-      if (
-        fileResult.vulnerabilities &&
-        Array.isArray(fileResult.vulnerabilities)
-      ) {
+      // Process vulnerabilities
+      if (Array.isArray(fileResult.vulnerabilities)) {
         fileResult.vulnerabilities.forEach((vuln) => {
-          const vulnerability = {
+          const vulnerability: Vulnerability = {
             id: vuln.id,
             type: "dependency",
             severity: vuln.severity?.toUpperCase() || "UNKNOWN",
@@ -77,11 +86,11 @@ export function transformScanResponse(result: ScanResult): TransformedReport {
             cve: vuln.id,
             affectedFiles: [fileResult.filename],
             cvss: vuln.cvss_score,
-            recommendation: vuln.affected_packages?.[0]
-              ?.fixed_versions?.[0]
+            recommendation: vuln.affected_packages?.[0]?.fixed_versions?.[0]
               ? `Upgrade to ${vuln.affected_packages[0].fixed_versions[0]}`
               : undefined,
           };
+
           allVulnerabilities.push(vulnerability);
           allFindings.dependencies.push(vulnerability);
         });
@@ -112,4 +121,3 @@ export function detectEcosystem(filename: string): string {
 
   return "npm"; // default
 }
-
