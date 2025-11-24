@@ -4,7 +4,7 @@ const PUBLIC_PAGES = [
   '/',
   '/login',
   '/signup',
-  '/about',
+  '/docs',
 ];
 
 export const onRequest = defineMiddleware((context, next) => {

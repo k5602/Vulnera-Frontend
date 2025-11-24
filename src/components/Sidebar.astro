@@ -1,5 +1,122 @@
 ---
 // Enhanced interactive sidebar with animations and effects
+
+const currentPath = Astro.url.pathname;
+const isDocs = currentPath.startsWith("/docs");
+
+interface Link {
+  href: string;
+  label: string;
+  icon: string;
+  guestOnly: boolean;
+  authOnly: boolean;
+  id?: string;
+}
+
+const mainLinks: Link[] = [
+  {
+    href: "/",
+    label: "HOME",
+    icon: "home",
+    guestOnly: false,
+    authOnly: false,
+    id: "home-page",
+  },
+  {
+    href: "/scan",
+    label: "SCAN",
+    icon: "scan",
+    guestOnly: false,
+    authOnly: true,
+  },
+  {
+    href: "/dashboard",
+    label: "DASHBOARD",
+    icon: "dashboard",
+    guestOnly: false,
+    authOnly: true,
+  },
+  {
+    href: "/docs",
+    label: "DOCS",
+    icon: "docs",
+    guestOnly: false,
+    authOnly: false,
+  },
+  {
+    href: "/settings",
+    label: "SETTINGS",
+    icon: "settings",
+    guestOnly: false,
+    authOnly: true,
+  },
+  {
+    href: "/login",
+    label: "LOGIN",
+    icon: "login",
+    guestOnly: true,
+    authOnly: false,
+  },
+];
+
+const docsLinks: Link[] = [
+  {
+    href: "/",
+    label: "BACK TO APP",
+    icon: "arrow-left",
+    guestOnly: false,
+    authOnly: false,
+  },
+  {
+    href: "/docs/overview",
+    label: "OVERVIEW",
+    icon: "book",
+    guestOnly: false,
+    authOnly: false,
+  },
+  {
+    href: "/docs/getting-started",
+    label: "GET STARTED",
+    icon: "rocket",
+    guestOnly: false,
+    authOnly: false,
+  },
+  {
+    href: "/docs/api",
+    label: "API REF",
+    icon: "code",
+    guestOnly: false,
+    authOnly: false,
+  },
+  {
+    href: "/docs/configuration",
+    label: "CONFIG",
+    icon: "settings",
+    guestOnly: false,
+    authOnly: false,
+  },
+];
+
+const icons: Record<string, string> = {
+  home: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6",
+  scan: "M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z",
+  dashboard:
+    "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z",
+  docs: "M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
+  settings:
+    "M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z",
+  login:
+    "M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1",
+  logout:
+    "M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1",
+  "arrow-left": "M10 19l-7-7m0 0l7-7m-7 7h18",
+  book: "M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253",
+  rocket:
+    "M15.59 14.37a6 6 0 01-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 006.16-12.12A14.98 14.98 0 009.631 8.41m5.96 5.96a14.926 14.926 0 01-5.841 2.58m-.119-8.54a6 6 0 00-7.381 5.84h4.8m2.581-5.84a14.927 14.927 0 00-2.58 5.84m2.699 2.7c-.103.021-.207.041-.311.06a15.09 15.09 0 01-2.448-2.448 14.9 14.9 0 01.06-.312m-2.24 2.39a4.493 4.493 0 00-1.757 4.306 4.493 4.493 0 004.306-1.758M16.5 9a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z",
+  code: "M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4",
+};
+
+const linksToRender = isDocs ? docsLinks : mainLinks;
 ---
 
 <aside
@@ -62,301 +179,54 @@
     class="flex flex-col gap-2 p-4 relative z-10"
     aria-label="Sidebar navigation"
   >
-    <!-- Home -->
-    <a
-      href="/"
-      class="sidebar-link group relative flex items-center h-12 rounded-lg hover:bg-gradient-to-r hover:from-cyber-400/20 hover:to-transparent transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyber-400 overflow-hidden"
-      data-label="Home"
-      id="home-page"
-    >
-      <!-- Ripple Effect Container -->
-      <span class="ripple-container absolute inset-0 overflow-hidden"></span>
-
-      <!-- Active Indicator -->
-      <span
-        class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-0 bg-gradient-to-b from-cyber-400 to-matrix-400 rounded-r-full transition-all duration-300 group-hover:h-8"
-      ></span>
-
-      <div class="flex items-center justify-center w-12 h-12 relative z-10">
-        <svg
-          class="w-6 h-6 text-cyber-400 group-hover:text-cyber-300 group-hover:scale-110 transition-all duration-300"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-          ></path>
-        </svg>
-      </div>
-      <span
-        class="sidebar-text ml-3 text-matrix-300 group-hover:text-cyber-300 whitespace-nowrap opacity-0 pointer-events-none transition-all duration-300 font-mono font-bold tracking-wider relative z-10"
-        >HOME</span
+    {linksToRender.map((link) => (
+      <a
+        href={link.href}
+        class={`sidebar-link group relative flex items-center h-12 rounded-lg hover:bg-gradient-to-r hover:from-cyber-400/20 hover:to-transparent transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyber-400 overflow-hidden ${link.guestOnly ? 'guest-only' : ''} ${link.authOnly ? 'auth-only' : ''}`}
+        data-label={link.label}
+        id={link.id}
+        style={link.guestOnly || link.authOnly ? 'display: none' : ''}
       >
+        <!-- Ripple Effect Container -->
+        <span class="ripple-container absolute inset-0 overflow-hidden"></span>
 
-      <!-- Enhanced Tooltip -->
-      <div
-        class="sidebar-tooltip absolute left-full ml-3 px-4 py-2 bg-gradient-to-r from-black/95 to-cyber-900/50 terminal-border rounded-lg text-cyber-400 text-sm whitespace-nowrap opacity-0 pointer-events-none transition-all duration-200 z-50 shadow-lg"
-      >
-        <span class="font-mono">Home</span>
-        <div
-          class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-2 h-2 bg-cyber-400 rounded-full animate-ping"
-        >
-        </div>
-      </div>
-    </a>
-
-    <!-- Scan -->
-    <a
-      href="/scan"
-      class="sidebar-link auth-only group relative flex items-center h-12 rounded-lg hover:bg-gradient-to-r hover:from-cyber-400/20 hover:to-transparent transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyber-400 overflow-hidden"
-      data-label="Scan"
-      style="display: none"
-    >
-      <!-- Ripple Effect Container -->
-      <span class="ripple-container absolute inset-0 overflow-hidden"></span>
-
-      <!-- Active Indicator -->
-      <span
-        class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-0 bg-gradient-to-b from-cyber-400 to-matrix-400 rounded-r-full transition-all duration-300 group-hover:h-8"
-      ></span>
-
-      <div class="flex items-center justify-center w-12 h-12 relative z-10">
-        <svg
-          class="w-6 h-6 text-cyber-400 group-hover:text-cyber-300 group-hover:scale-110 group-hover:rotate-12 transition-all duration-300"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-        </svg>
-        <!-- Pulse indicator -->
+        <!-- Active Indicator -->
         <span
-          class="absolute top-2 right-2 w-2 h-2 bg-matrix-400 rounded-full animate-pulse"
+          class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-0 bg-gradient-to-b from-cyber-400 to-matrix-400 rounded-r-full transition-all duration-300 group-hover:h-8"
         ></span>
-      </div>
-      <span
-        class="sidebar-text ml-3 text-matrix-300 group-hover:text-cyber-300 whitespace-nowrap opacity-0 pointer-events-none transition-all duration-300 font-mono font-bold tracking-wider relative z-10"
-        >SCAN</span
-      >
 
-      <!-- Enhanced Tooltip -->
-      <div
-        class="sidebar-tooltip absolute left-full ml-3 px-4 py-2 bg-gradient-to-r from-black/95 to-cyber-900/50 terminal-border rounded-lg text-cyber-400 text-sm whitespace-nowrap opacity-0 pointer-events-none transition-all duration-200 z-50 shadow-lg"
-      >
-        <span class="font-mono">Scan Project</span>
-        <div
-          class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-2 h-2 bg-cyber-400 rounded-full animate-ping"
-        >
+        <div class="flex items-center justify-center w-12 h-12 relative z-10">
+          <svg
+            class="w-6 h-6 text-cyber-400 group-hover:text-cyber-300 group-hover:scale-110 transition-all duration-300"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d={icons[link.icon]}
+            ></path>
+          </svg>
         </div>
-      </div>
-    </a>
-
-    <!-- Dashboard -->
-    <a
-      href="/dashboard"
-      class="sidebar-link auth-only group relative flex items-center h-12 rounded-lg hover:bg-gradient-to-r hover:from-matrix-400/20 hover:to-transparent transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyber-400 overflow-hidden"
-      data-label="Dashboard"
-      style="display: none"
-    >
-      <!-- Ripple Effect Container -->
-      <span class="ripple-container absolute inset-0 overflow-hidden"></span>
-
-      <!-- Active Indicator -->
-      <span
-        class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-0 bg-gradient-to-b from-matrix-400 to-cyber-400 rounded-r-full transition-all duration-300 group-hover:h-8"
-      ></span>
-
-      <div class="flex items-center justify-center w-12 h-12 relative z-10">
-        <svg
-          class="w-6 h-6 text-matrix-400 group-hover:text-matrix-300 group-hover:scale-110 transition-all duration-300"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          viewBox="0 0 24 24"
+        <span
+          class="sidebar-text ml-3 text-matrix-300 group-hover:text-cyber-300 whitespace-nowrap opacity-0 pointer-events-none transition-all duration-300 font-mono font-bold tracking-wider relative z-10"
+          >{link.label}</span
         >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-          ></path>
-        </svg>
-      </div>
-      <span
-        class="sidebar-text ml-3 text-matrix-300 group-hover:text-matrix-200 whitespace-nowrap opacity-0 pointer-events-none transition-all duration-300 font-mono font-bold tracking-wider relative z-10"
-        >DASHBOARD</span
-      >
 
-      <!-- Enhanced Tooltip -->
-      <div
-        class="sidebar-tooltip absolute left-full ml-3 px-4 py-2 bg-gradient-to-r from-black/95 to-matrix-900/50 terminal-border rounded-lg text-matrix-400 text-sm whitespace-nowrap opacity-0 pointer-events-none transition-all duration-200 z-50 shadow-lg"
-      >
-        <span class="font-mono">Dashboard</span>
+        <!-- Enhanced Tooltip -->
         <div
-          class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-2 h-2 bg-matrix-400 rounded-full animate-ping"
+          class="sidebar-tooltip absolute left-full ml-3 px-4 py-2 bg-gradient-to-r from-black/95 to-cyber-900/50 terminal-border rounded-lg text-cyber-400 text-sm whitespace-nowrap opacity-0 pointer-events-none transition-all duration-200 z-50 shadow-lg"
         >
+          <span class="font-mono">{link.label}</span>
+          <div
+            class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-2 h-2 bg-cyber-400 rounded-full animate-ping"
+          >
+          </div>
         </div>
-      </div>
-    </a>
-
-    <!-- About -->
-    <a
-      href="/about"
-      class="sidebar-link group relative flex items-center h-12 rounded-lg hover:bg-gradient-to-r hover:from-cyan-400/20 hover:to-transparent transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 overflow-hidden"
-      data-label="About"
-    >
-      <!-- Ripple Effect Container -->
-      <span class="ripple-container absolute inset-0 overflow-hidden"></span>
-
-      <!-- Active Indicator -->
-      <span
-        class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-0 bg-gradient-to-b from-cyan-400 to-blue-400 rounded-r-full transition-all duration-300 group-hover:h-8"
-      ></span>
-
-      <div class="flex items-center justify-center w-12 h-12 relative z-10">
-        <svg
-          class="w-6 h-6 text-cyan-400 group-hover:text-cyan-300 group-hover:scale-110 group-hover:rotate-12 transition-all duration-300"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-          ></path>
-        </svg>
-      </div>
-      <span
-        class="sidebar-text ml-3 text-matrix-300 group-hover:text-cyan-300 whitespace-nowrap opacity-0 pointer-events-none transition-all duration-300 font-mono font-bold tracking-wider relative z-10"
-        >ABOUT</span
-      >
-
-      <!-- Enhanced Tooltip -->
-      <div
-        class="sidebar-tooltip absolute left-full ml-3 px-4 py-2 bg-gradient-to-r from-black/95 to-cyan-900/50 terminal-border rounded-lg text-cyan-400 text-sm whitespace-nowrap opacity-0 pointer-events-none transition-all duration-200 z-50 shadow-lg"
-      >
-        <span class="font-mono">About</span>
-        <div
-          class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-2 h-2 bg-cyan-400 rounded-full animate-ping"
-        >
-        </div>
-      </div>
-    </a>
-
-    <!-- Animated Divider -->
-    <div class="my-2 relative overflow-hidden">
-      <div class="border-t border-cyber-400/20"></div>
-      <div
-        class="absolute inset-0 bg-gradient-to-r from-transparent via-cyber-400/30 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"
-      >
-      </div>
-    </div>
-
-    <!-- Settings (auth only) -->
-    <a
-      href="/settings"
-      class="sidebar-link auth-only group relative flex items-center h-12 rounded-lg hover:bg-gradient-to-r hover:from-purple-400/20 hover:to-transparent transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 overflow-hidden"
-      data-label="Settings"
-      style="display: none"
-    >
-      <!-- Ripple Effect Container -->
-      <span class="ripple-container absolute inset-0 overflow-hidden"></span>
-
-      <!-- Active Indicator -->
-      <span
-        class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-0 bg-gradient-to-b from-purple-400 to-pink-400 rounded-r-full transition-all duration-300 group-hover:h-8"
-      ></span>
-
-      <div class="flex items-center justify-center w-12 h-12 relative z-10">
-        <svg
-          class="w-6 h-6 text-purple-400 group-hover:text-purple-300 group-hover:scale-110 group-hover:rotate-90 transition-all duration-500"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-          ></path>
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-        </svg>
-      </div>
-      <span
-        class="sidebar-text ml-3 text-matrix-300 group-hover:text-purple-300 whitespace-nowrap opacity-0 pointer-events-none transition-all duration-300 font-mono font-bold tracking-wider relative z-10"
-        >SETTINGS</span
-      >
-
-      <!-- Enhanced Tooltip -->
-      <div
-        class="sidebar-tooltip absolute left-full ml-3 px-4 py-2 bg-gradient-to-r from-black/95 to-purple-900/50 terminal-border rounded-lg text-purple-400 text-sm whitespace-nowrap opacity-0 pointer-events-none transition-all duration-200 z-50 shadow-lg"
-      >
-        <span class="font-mono">Settings</span>
-        <div
-          class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-2 h-2 bg-purple-400 rounded-full animate-ping"
-        >
-        </div>
-      </div>
-    </a>
-
-    <!-- Login (guest only) -->
-    <a
-      href="/login"
-      class="sidebar-link guest-only group relative flex items-center h-12 rounded-lg hover:bg-gradient-to-r hover:from-green-400/20 hover:to-transparent transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-green-400 overflow-hidden"
-      data-label="Login"
-    >
-      <!-- Ripple Effect Container -->
-      <span class="ripple-container absolute inset-0 overflow-hidden"></span>
-
-      <!-- Active Indicator -->
-      <span
-        class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-0 bg-gradient-to-b from-green-400 to-emerald-400 rounded-r-full transition-all duration-300 group-hover:h-8"
-      ></span>
-
-      <div class="flex items-center justify-center w-12 h-12 relative z-10">
-        <svg
-          class="w-6 h-6 text-green-400 group-hover:text-green-300 group-hover:scale-110 group-hover:translate-x-1 transition-all duration-300"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"
-          ></path>
-        </svg>
-      </div>
-      <span
-        class="sidebar-text ml-3 text-matrix-300 group-hover:text-green-300 whitespace-nowrap opacity-0 pointer-events-none transition-all duration-300 font-mono font-bold tracking-wider relative z-10"
-        >LOGIN</span
-      >
-
-      <!-- Enhanced Tooltip -->
-      <div
-        class="sidebar-tooltip absolute left-full ml-3 px-4 py-2 bg-gradient-to-r from-black/95 to-green-900/50 terminal-border rounded-lg text-green-400 text-sm whitespace-nowrap opacity-0 pointer-events-none transition-all duration-200 z-50 shadow-lg"
-      >
-        <span class="font-mono">Login</span>
-        <div
-          class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-2 h-2 bg-green-400 rounded-full animate-ping"
-        >
-        </div>
-      </div>
-    </a>
+      </a>
+    ))}
 
     <!-- Logout (auth only) -->
     <button
@@ -384,7 +254,7 @@
           <path
             stroke-linecap="round"
             stroke-linejoin="round"
-            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+            d={icons.logout}
           ></path>
         </svg>
       </div>
@@ -623,21 +493,28 @@
   // Auth-based visibility
   import { authService } from "../utils/api/index";
 
-
   function updateSidebarVisibility() {
-    const authElements = sidebar?.querySelectorAll('.auth-only');
-    const guestElements = sidebar?.querySelectorAll('.guest-only');
-    const homeElement = document.getElementById('home-page');
+    const authElements = sidebar?.querySelectorAll(".auth-only");
+    const guestElements = sidebar?.querySelectorAll(".guest-only");
+    const homeElement = document.getElementById("home-page");
     const isLoggedIn = authService.isAuthenticated();
 
-      if (isLoggedIn) {
-        authElements?.forEach(el => (el as HTMLElement).style.removeProperty("display"));
-        guestElements?.forEach(el => (el as HTMLElement).style.display = 'none');
-        if (homeElement) homeElement.style.display = "none";
-      } else {
-        authElements?.forEach(el => (el as HTMLElement).style.display = 'none');
-        guestElements?.forEach(el => (el as HTMLElement).style.removeProperty("display"));
-      }
+    if (isLoggedIn) {
+      authElements?.forEach((el) =>
+        (el as HTMLElement).style.removeProperty("display"),
+      );
+      guestElements?.forEach(
+        (el) => ((el as HTMLElement).style.display = "none"),
+      );
+      if (homeElement) homeElement.style.display = "none";
+    } else {
+      authElements?.forEach(
+        (el) => ((el as HTMLElement).style.display = "none"),
+      );
+      guestElements?.forEach((el) =>
+        (el as HTMLElement).style.removeProperty("display"),
+      );
+    }
   }
 
   // Logout functionality

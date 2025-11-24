@@ -1,9 +1,10 @@
 ---
 import "../styles/global.css";
-import Sidebar from "../components/Sidebar.astro";
 import MatrixRain from "../components/MatrixRain.astro";
-
-export const prerender = false;
+import Navigation from "../components/Navigation.astro";
+import Sidebar from "../components/Sidebar.astro";
+import Footer from "../components/Footer.astro";
+import { THEME_CLASSES } from "../config/theme";
 
 export interface Props {
     title?: string;
@@ -11,8 +12,8 @@ export interface Props {
 }
 
 const {
-    title = "Vulnera — High‑Performance Vulnerability Analysis API",
-    description = "Vulnera is a fast, scalable vulnerability analysis API in Rust. Multi‑ecosystem support, aggregated OSV/NVD/GHSA advisories, async concurrency, OpenAPI docs, and smart caching.",
+    title = "Documentation - Vulnera",
+    description = "Vulnera documentation, guides, and API reference.",
 } = Astro.props;
 ---
 
@@ -20,7 +21,6 @@ const {
 <html lang="en" class="no-js">
     <head>
         <script>
-            // Flip class to 'js' ASAP to apply JS-gated CSS before first paint
             (function () {
                 var de = document.documentElement;
                 de.className = de.className.replace("no-js", "js");
@@ -80,29 +80,16 @@ const {
             rel="stylesheet"
         />
     </head>
-    <body class="font-mono bg-black text-white overflow-x-hidden vt-preload">
-        <!-- Matrix Rain Background (Canvas Animation) -->
+    <body
+        class="font-mono bg-black text-white overflow-x-hidden min-h-screen flex flex-col vt-preload"
+    >
         <MatrixRain />
 
-        <!-- Cyber Grid Background -->
         <div
             class="fixed inset-0 cyber-grid opacity-20 pointer-events-none"
             style="z-index: -1;"
         >
         </div>
-
-        <!-- Scanning Line Effect -->
-        <div
-            class="fixed top-0 left-0 w-1 h-full bg-gradient-to-b from-transparent via-cyber-400 to-transparent opacity-60 animate-scan pointer-events-none"
-        >
-        </div>
-
-        <!-- Skip to content link for accessibility -->
-        <a
-            href="#main"
-            class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 bg-cyber-500 text-black px-4 py-2 rounded-md shadow terminal-border"
-            >Skip to content</a
-        >
 
         <!-- View-Transition overlay (matrix terminal style) -->
         <div id="vt-overlay" class="vt-overlay is-active" aria-hidden="true">
@@ -126,23 +113,31 @@ const {
 
         <div
             id="vt-content"
-            class="vt-content"
+            class="vt-content flex flex-col min-h-screen"
             style="opacity:0"
             aria-hidden="true"
         >
-            <slot />
+            <Navigation />
+
+            {
+                !["/", "/login", "/signup"].includes(Astro.url.pathname) && (
+                    <Sidebar />
+                )
+            }
+
+            <div
+                class="flex-1 flex flex-col md:flex-row pt-24 md:pl-24 max-w-7xl mx-auto w-full px-4 sm:px-6 gap-8"
+            >
+                <!-- Main Content -->
+                <main class="flex-1 pb-8 min-w-0">
+                    <div class={`${THEME_CLASSES.animations.fadeIn}`}>
+                        <slot />
+                    </div>
+                </main>
+            </div>
+
+            <Footer />
         </div>
-
-        {
-            !["/", "/login", "/signup"].includes(
-                Astro.url.pathname,
-            ) && <Sidebar />
-        }
-
-        <!-- ========================================
-         SCRIPTS
-         ======================================== -->
-
         <script>
             // ========================================
             // PAGE TRANSITION SYSTEM
@@ -303,8 +298,6 @@ const {
                 }
 
                 // Intercept internal navigations
-
-                // Intercept internal navigations
                 document.addEventListener("click", (e) => {
                     const tgt = e.target;
                     if (!(tgt instanceof Element)) return;
@@ -337,12 +330,6 @@ const {
                     void playLeaveAndNavigate(a.href);
                 });
             })();
-        </script>
-        <script>
-            import { tokenRefreshManager } from "../utils/api/token-refresh";
-            if (typeof window !== "undefined") {
-                tokenRefreshManager.startAutoRefresh();
-            }
         </script>
     </body>
 </html>
