@@ -108,8 +108,8 @@ export const prerender = false;
 
   <script>
     import { authService } from '../utils/api/index';
-    import { loginLimiter } from '../utils/api/rate-limiter';
     import { logger } from '../utils/logger';
+    import { UserLogin, message } from '../modules/Userdata';
 
     if (authService.isAuthenticated()) {
       const params = new URLSearchParams(window.location.search);
@@ -123,22 +123,7 @@ export const prerender = false;
     const successDiv = document.getElementById('success-message') as HTMLDivElement;
     const clearBtn = document.getElementById('clear-session-btn') as HTMLButtonElement;
 
-    const showError = (message: string) => {
-      errorDiv.textContent = message;
-      errorDiv.classList.remove('hidden');
-      successDiv.classList.add('hidden');
-    };
-
-    const showSuccess = (message: string) => {
-      successDiv.textContent = message;
-      successDiv.classList.remove('hidden');
-      errorDiv.classList.add('hidden');
-    };
-
-    const hideMessages = () => {
-      errorDiv.classList.add('hidden');
-      successDiv.classList.add('hidden');
-    };
+    const messageHandler = new message(errorDiv, successDiv);
 
     // Clear session button
     if (clearBtn) {
@@ -146,84 +131,35 @@ export const prerender = false;
         localStorage.clear();
         sessionStorage.clear();
         logger.info('Session cleared by user');
-        showSuccess('Session cleared. You can now log in again.');
+        messageHandler.showSuccess('Session cleared. You can now log in again.');
       });
     }
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      hideMessages();
-      
+      messageHandler.hideMessages();      
       const emailEl = document.getElementById('email') as HTMLInputElement;
       const passwordEl = document.getElementById('password') as HTMLInputElement;
       const rememberEl = document.getElementById('remember') as HTMLInputElement;
 
-      const email = emailEl.value.trim();
-      const password = passwordEl.value;
-      const remember = rememberEl.checked;
+      const userLoginData = new UserLogin(
+        emailEl.value.trim(),
+        passwordEl.value,
+        rememberEl.checked
+      );
 
       // Validate inputs
-      if (!email || !password) {
-        logger.warn('Login validation failed: missing email or password');
-        showError('Email and password are required');
-        return;
-      }
+      userLoginData.validateInputs(messageHandler);
 
       // Check rate limiting
-      if (!loginLimiter.isAllowed(email, 5, 60 * 1000)) {
-        const remaining = loginLimiter.getRemainingTime(email);
-        const minutes = Math.ceil(remaining / 60000);
-        logger.warn(`Rate limit exceeded for ${email}, remaining time: ${minutes}m`);
-        showError(
-          `Too many login attempts. Please try again in ${minutes} minute${minutes !== 1 ? 's' : ''}.`
-        );
-        return;
-      }
+      userLoginData.checkRateLimit(messageHandler);
 
       // Disable submit button
       submitBtn.disabled = true;
       submitBtn.innerHTML = '<span class="mr-2">&gt;</span> AUTHENTICATING...';
 
-      try {
-        logger.info(`Login attempt for email: ${email}`);
-
-        // Call the real API
-        const response = await authService.login(
-          { email, password },
-          remember
-        );
-
-        logger.debug('Login response received', { 
-          success: response.success, 
-          hasToken: !!localStorage.getItem('token'),
-          isAuthenticated: authService.isAuthenticated()
-        });
-
-        if (response.success) {
-          // Clear rate limit on success
-          loginLimiter.reset(email);
-          logger.info(`Login successful for ${email}`);
-          showSuccess('Login successful! Redirecting...');
-          
-          // Redirect after short delay
-          setTimeout(() => {
-            const params = new URLSearchParams(window.location.search);
-            const next = params.get('next') || '/dashboard';
-            logger.debug(`Redirecting to: ${next}`);
-            window.location.replace(next);
-          }, 500);
-        } else {
-          logger.error('Login failed', { error: response.error });
-          showError(response.error || 'Login failed. Please check your credentials.');
-          submitBtn.disabled = false;
-          submitBtn.innerHTML = '<span class="mr-2">&gt;</span> LOGIN';
-        }
-      } catch (err: any) {
-        logger.error('Login network error', { error: err?.message || err });
-        showError('Network error: ' + (err?.message || 'Unable to connect to server'));
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = '<span class="mr-2">&gt;</span> LOGIN';
-      }
-    });
+      //login attempt
+      await userLoginData.tryLogin(messageHandler,submitBtn);
+      });
   </script>
 </Layout>

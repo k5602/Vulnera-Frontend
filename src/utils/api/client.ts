@@ -99,7 +99,7 @@ class ApiClient {
             // Try to extract error message from response
             let errorMessage = 'API Error';
             if (data && typeof data === 'object') {
-              errorMessage = (data as any).error || (data as any).message || (data as any).detail || JSON.stringify(data);
+              errorMessage = "Unexpected error";
             } else if (typeof data === 'string') {
               errorMessage = data;
             }
@@ -125,7 +125,6 @@ class ApiClient {
           } catch (validationError) {
             // If validation fails, just use the raw data
             // This handles cases where backend returns data directly (e.g., token response)
-            console.debug('[API] Response validation failed, using raw data:', validationError);
             responseData = data;
           }
 
@@ -150,16 +149,8 @@ class ApiClient {
       } catch (error) {
         // Handle network errors (CORS, connection refused, etc.)
         if (error instanceof TypeError && error.message === 'Failed to fetch') {
-          const errorMsg = `Cannot connect to API server at ${this.baseUrl || 'configured URL'}. This is likely a CORS issue. Please ensure:\n1. Backend is running and accessible\n2. CORS is configured to allow origin: ${typeof window !== 'undefined' ? window.location.origin : 'frontend origin'}\n3. Backend allows credentials if using cookies`;
-          
-          console.error('[Network Error]', {
-            message: errorMsg,
-            url,
-            baseUrl: this.baseUrl,
-            endpoint,
-            frontendOrigin: typeof window !== 'undefined' ? window.location.origin : 'unknown',
-          });
-          
+          const errorMsg = `Cannot connect to API server.`;
+                    
           return {
             success: false,
             error: errorMsg,
@@ -199,22 +190,14 @@ class ApiClient {
         errorMessage = _error.message;
         // Check for network errors
         if (_error.message === 'Failed to fetch') {
-          errorMessage = `Cannot connect to API server at ${this.baseUrl || 'configured URL'}. Check CORS configuration and network connectivity.`;
+          errorMessage = `Cannot connect to API server. Check network connectivity.`;
           status = 0;
         }
       } else if (typeof _error === 'object') {
-        errorMessage = _error.message || _error.error || JSON.stringify(_error);
+        errorMessage = "Unexpected error occurred";
         status = _error.status || status;
       }
     }
-
-    // Always log errors with full context 
-    console.error('[API Error]', {
-      message: errorMessage,
-      status,
-      baseUrl: this.baseUrl,
-      error: _error,
-    });
 
     return {
       success: false,
