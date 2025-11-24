@@ -623,31 +623,21 @@
   // Auth-based visibility
   import { authService } from "../utils/api/index";
 
+
   function updateSidebarVisibility() {
-    const authElements = sidebar?.querySelectorAll(".auth-only");
-    const guestElements = sidebar?.querySelectorAll(".guest-only");
+    const authElements = sidebar?.querySelectorAll('.auth-only');
+    const guestElements = sidebar?.querySelectorAll('.guest-only');
+    const homeElement = document.getElementById('home-page');
     const isLoggedIn = authService.isAuthenticated();
-    const homeElement = document.getElementById("home-page");
 
-    if (isLoggedIn) {
-      authElements?.forEach((el) =>
-        (el as HTMLElement).style.removeProperty("display")
-      );
-      guestElements?.forEach(
-        (el) => ((el as HTMLElement).style.display = "none")
-      );
-
-      if (homeElement) {
-        homeElement.style.display = "none";
+      if (isLoggedIn) {
+        authElements?.forEach(el => (el as HTMLElement).style.removeProperty("display"));
+        guestElements?.forEach(el => (el as HTMLElement).style.display = 'none');
+        if (homeElement) homeElement.style.display = "none";
+      } else {
+        authElements?.forEach(el => (el as HTMLElement).style.display = 'none');
+        guestElements?.forEach(el => (el as HTMLElement).style.removeProperty("display"));
       }
-    } else {
-      authElements?.forEach(
-        (el) => ((el as HTMLElement).style.display = "none")
-      );
-      guestElements?.forEach((el) =>
-        (el as HTMLElement).style.removeProperty("display")
-      );
-    }
   }
 
   // Logout functionality

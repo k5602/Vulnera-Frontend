@@ -5,6 +5,8 @@ import MatrixRain from "../components/MatrixRain.astro";
 
 export const prerender = false;
 
+export const prerender = false;
+
 export interface Props {
     title?: string;
     description?: string;
@@ -315,40 +317,43 @@ const {
                     const a = tgt.closest("a");
                     if (!a) return;
 
-                    // ✅ ADD: Skip if click is inside a form (prevents form submission interference)
-                    const closestForm = tgt.closest("form");
-                    if (closestForm) return;
+            // Intercept internal navigations
+            document.addEventListener('click', (e) => {
+                const tgt = e.target;
+                if (!(tgt instanceof Element)) return;
+                const a = tgt.closest('a');
+                if (!a) return;
 
-                    // ✅ ADD: Skip buttons entirely
-                    if (tgt.tagName === "BUTTON" || tgt.closest("button"))
-                        return;
+                // ✅ ADD: Skip if click is inside a form (prevents form submission interference)
+                const closestForm = tgt.closest('form');
+                if (closestForm) return;
 
-                    // Skip if modified click or target is new tab
-                    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey)
-                        return;
-                    if (a.getAttribute("target") === "_blank") return;
-                    if (a.hasAttribute("download")) return;
+                // ✅ ADD: Skip buttons entirely
+                if (tgt.tagName === 'BUTTON' || tgt.closest('button')) return;
 
-                    const href = a.getAttribute("href");
-                    if (!href) return;
-                    // Skip hash links and external links
-                    if (href.startsWith("#")) return;
-                    const isExternal = /^https?:\/\//i.test(href);
-                    if (isExternal) return;
+                // Skip if modified click or target is new tab
+                if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+                if (a.getAttribute('target') === '_blank') return;
+                if (a.hasAttribute('download')) return;
 
-                    // Same-origin navigation
-                    e.preventDefault();
-                    void playLeaveAndNavigate(a.href);
-                });
-            })();
-        </script>
+                const href = a.getAttribute('href');
+                if (!href) return;
+                // Skip hash links and external links
+                if (href.startsWith('#')) return;
+                const isExternal = /^https?:\/\//i.test(href);
+                if (isExternal) return;
 
-        <script>
-    
-            import { tokenRefreshManager } from "../utils/api/token-refresh";
-            if (typeof window !== "undefined") {
-                tokenRefreshManager.startAutoRefresh();
-            }
-        </script>
-    </body>
+                // Same-origin navigation
+                e.preventDefault();
+                void playLeaveAndNavigate(a.href);
+            });
+        })();
+    </script>
+    <script>
+        import { tokenRefreshManager } from '../utils/api/token-refresh';
+        if (typeof window !== 'undefined') {
+            tokenRefreshManager.startAutoRefresh();
+        }
+    </script>
+</body>
 </html>

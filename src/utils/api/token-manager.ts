@@ -37,7 +37,7 @@ class TokenManager {
       setCookie(this.TOKEN_KEY, token, {
         days: rememberMe ? 7 : undefined, // undefined = session cookie
         path: '/',
-        secure: false,
+        secure: process.env.NODE_ENV === 'production',
         sameSite: 'Lax'
       });
     } catch (e) {
@@ -64,7 +64,7 @@ class TokenManager {
       setCookie(this.USER_KEY, JSON.stringify(user), {
         days: rememberMe ? 7 : undefined,
         path: '/',
-        secure: true,
+        secure: process.env.NODE_ENV === 'production',
         sameSite: 'Lax'
       });
     } catch (e) {
@@ -133,7 +133,7 @@ class TokenManager {
       setCookie(this.API_KEY, apiKey, {
         days: options.days ?? 30,
         path: '/',
-        secure: true,
+        secure: process.env.NODE_ENV === 'production',
         sameSite: 'Lax'
       });
     } catch (e) {
