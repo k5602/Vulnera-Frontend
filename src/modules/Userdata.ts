@@ -105,3 +105,65 @@ export class UserLogin {
     }
 }
 
+export class UserSignup {
+    firstName: string;
+    lastName: string;
+    email: string;
+    password: string;
+    confirm: string;
+    termsAccepted: boolean;
+
+    validateInputs() {
+          if (!this.email || !this.password || !this.firstName || !this.lastName || !this.termsAccepted) {
+        alert('Please complete all fields and accept the terms.');
+        return;
+      }
+    }
+
+    validateEmail() {
+      if (!this.email.includes('@')) {
+        alert('Please enter a valid email address');
+        return;
+      }
+    }
+
+    passwordsMatch() {
+      if (this.password !== this.confirm) {
+        alert('Passwords do not match.');
+        return;
+      }
+    }
+
+    async signUp() {
+        try {            
+            const response = await authService.register({
+            email: this.email,
+            password: this.password,
+            roles: ['user']
+            });
+
+            if (response.success) {
+                const params = new URLSearchParams(location.search);
+                const next = params.get('next');
+                const target = next && /^\/[a-zA-Z0-9_\-/]*$/.test(next) ? next : '/dashboard';
+                alert('Signup successful. Redirecting to dashboard...');
+                window.location.replace(target);
+            } else {
+                alert(response.error || response.message || 'Registration failed. Please try again.');
+            }
+        } catch (error) {
+            logger.error('Registration error', error);
+            alert('An error occurred during registration. Please try again.');
+        }
+    }
+
+
+    constructor(firstName: string, lastName: string, email: string, password: string, confirm: string, termsAccepted: boolean) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+        this.password = password;
+        this.confirm = confirm;
+        this.termsAccepted = termsAccepted;
+    }
+}

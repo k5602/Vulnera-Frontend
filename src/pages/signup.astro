@@ -86,14 +86,6 @@ import Footer from "../components/Footer.astro";
                 placeholder="********" />
             </div>
           </div>
-          <div>
-            <div class="flex items-center justify-between mb-1">
-              <label for="date" class="block text-xs sm:text-sm text-cyber-300">DATE_OF_BIRTH</label>
-            </div>
-            <input id="date" name="date" type="date" required
-              class="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg bg-black/60 border border-cyber-400/30 focus:border-cyber-400 focus:ring-2 focus:ring-cyber-400 text-white placeholder-gray-500 text-sm sm:text-base"
-              placeholder="YYYY-MM-DD" />
-          </div>
 
           <div class="flex items-start gap-2 text-xs sm:text-sm text-matrix-300">
             <input id="terms" name="terms" type="checkbox" class="mt-0.5 sm:mt-1 accent-cyber-400" required />
@@ -119,7 +111,7 @@ import Footer from "../components/Footer.astro";
   <Footer />
 
   <script>
-    import { logger } from '../utils/logger';
+    import { UserSignup } from '../modules/Userdata';
     
     // Preserve ?next across auth pages
     try {
@@ -154,43 +146,19 @@ import Footer from "../components/Footer.astro";
       const lastName = document.getElementById('lastName') as HTMLInputElement;
       const terms = document.getElementById('terms') as HTMLInputElement;
 
-      if (!email?.value || !password?.value || !confirm?.value || !firstName?.value || !lastName?.value || !terms?.checked) {
-        alert('Please complete all fields and accept the terms.');
-        return;
-      }
-      
-      if (!email.value.includes('@')) {
-        alert('Please enter a valid email address');
-        return;
-      }
-      
-      if (password?.value !== confirm?.value) {
-        alert('Passwords do not match.');
-        return;
-      }
-      
-      try {
-        const { authService } = await import('../utils/api/auth-service');
-        
-        const response = await authService.register({
-          email: email.value,
-          password: password.value,
-          roles: ['user']
-        });
+      const userSignUpDate = new UserSignup(
+        firstName?.value,
+        lastName?.value,
+        email?.value,
+        password?.value,
+        confirm?.value,
+        terms?.checked
+      );
 
-        if (response.success) {
-          const params = new URLSearchParams(location.search);
-          const next = params.get('next');
-          const target = next && /^\/[a-zA-Z0-9_\-/]*$/.test(next) ? next : '/dashboard';
-          alert('Signup successful. Redirecting to dashboard...');
-          window.location.replace(target);
-        } else {
-          alert(response.error || response.message || 'Registration failed. Please try again.');
-        }
-      } catch (error) {
-        logger.error('Registration error', error);
-        alert('An error occurred during registration. Please try again.');
-      }
+    userSignUpDate.validateInputs();
+    userSignUpDate.validateEmail();
+    userSignUpDate.passwordsMatch();
+    await userSignUpDate.signUp();
     });
 
     // Page entrance animation
