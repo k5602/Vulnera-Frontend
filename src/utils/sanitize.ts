@@ -28,7 +28,8 @@ export function safeSeverity(sev: unknown): string {
 }
 
 export function sanitizeMessage(msg: unknown): string {
-  return escapeHtml(msg);
+return escapeHtml(String(msg ?? ""));
+
 }
 
 export function safeString(value: any, max = 512): string {

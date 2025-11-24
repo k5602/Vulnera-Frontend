@@ -1,0 +1,143 @@
+---
+// Matrix Rain Background Effect - Cybersecurity Theme
+// Canvas-based falling character animation with accessibility support
+---
+
+<canvas id="matrix-rain-canvas" class="matrix-rain-canvas" aria-hidden="true"
+></canvas>
+
+<style>
+    .matrix-rain-canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 50;
+        opacity: 0.15;
+        pointer-events: none;
+    }
+</style>
+
+<script>
+    // Matrix Rain Effect with Cybersecurity Characters
+    (function () {
+        const canvas = document.getElementById(
+            "matrix-rain-canvas",
+        ) as HTMLCanvasElement;
+        if (!canvas) return;
+
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+
+        // Check for reduced motion preference
+        const prefersReduced = window.matchMedia(
+            "(prefers-reduced-motion: reduce)",
+        ).matches;
+        if (prefersReduced) {
+            canvas.style.display = "none";
+            return;
+        }
+
+        // Character sets for matrix effect
+        const chars =
+            "01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲンABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        const charArray = chars.split("");
+
+        let fontSize = 14;
+        let columns: number;
+        let drops: number[] = [];
+
+        function initCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            fontSize = 14;
+            columns = Math.floor(canvas.width / fontSize);
+
+            // Initialize drop positions
+            drops = [];
+            for (let i = 0; i < columns; i++) {
+                drops[i] = Math.floor(
+                    (Math.random() * -canvas.height) / fontSize,
+                );
+            }
+        }
+
+        function draw() {
+            if (!ctx) return; // Type guard for null safety
+
+            // Semi-transparent black to create fade effect
+            ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Matrix green color with glow
+            ctx.fillStyle = "#22c55e";
+            ctx.font = `${fontSize}px JetBrains Mono, monospace`;
+
+            // Draw characters
+            for (let i = 0; i < drops.length; i++) {
+                // Random character
+                const char =
+                    charArray[Math.floor(Math.random() * charArray.length)];
+                const x = i * fontSize;
+                const y = drops[i] * fontSize;
+
+                // Add slight glow effect for leading characters
+                if (drops[i] * fontSize > 20) {
+                    const gradient = ctx.createRadialGradient(
+                        x,
+                        y,
+                        0,
+                        x,
+                        y,
+                        fontSize * 2,
+                    );
+                    gradient.addColorStop(0, "#4ade80");
+                    gradient.addColorStop(0.5, "#22c55e");
+                    gradient.addColorStop(1, "transparent");
+                    ctx.fillStyle = gradient;
+                } else {
+                    ctx.fillStyle = "#4ade80";
+                }
+
+                ctx.fillText(char, x, y);
+
+                // Reset drop to top randomly
+                if (y > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+
+                // Increment Y coordinate
+                drops[i]++;
+            }
+        }
+
+        // Animation loop
+        let animationId: number;
+        function animate() {
+            draw();
+            animationId = requestAnimationFrame(animate);
+        }
+
+        // Initialize and start
+        initCanvas();
+        animate();
+
+        // Handle window resize
+        let resizeTimeout: number;
+        window.addEventListener("resize", () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = window.setTimeout(() => {
+                initCanvas();
+            }, 250);
+        });
+
+        // Cleanup on page unload
+        window.addEventListener("beforeunload", () => {
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+        });
+    })();
+</script>

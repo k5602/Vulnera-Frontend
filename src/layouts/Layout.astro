@@ -1,212 +1,321 @@
 ---
-import '../styles/global.css';
-import Sidebar from '../components/Sidebar.astro';
+import "../styles/global.css";
+import Sidebar from "../components/Sidebar.astro";
+import MatrixRain from "../components/MatrixRain.astro";
+
+export const prerender = false;
 
 export const prerender = false;
 
 export interface Props {
-  title?: string;
-  description?: string;
+    title?: string;
+    description?: string;
 }
 
-const { 
-  title = "Vulnera — High‑Performance Vulnerability Analysis API",
-  description = "Vulnera is a fast, scalable vulnerability analysis API in Rust. Multi‑ecosystem support, aggregated OSV/NVD/GHSA advisories, async concurrency, OpenAPI docs, and smart caching."
+const {
+    title = "Vulnera — High‑Performance Vulnerability Analysis API",
+    description = "Vulnera is a fast, scalable vulnerability analysis API in Rust. Multi‑ecosystem support, aggregated OSV/NVD/GHSA advisories, async concurrency, OpenAPI docs, and smart caching.",
 } = Astro.props;
 ---
 
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" class="no-js">
-<head>
+    <head>
         <script>
             // Flip class to 'js' ASAP to apply JS-gated CSS before first paint
-            (function(){
+            (function () {
                 var de = document.documentElement;
-                de.className = de.className.replace('no-js','js');
+                de.className = de.className.replace("no-js", "js");
             })();
         </script>
-            <!-- Critical inline CSS to prevent content flash before loader initializes -->
+        <!-- Critical inline CSS to prevent content flash before loader initializes -->
+        <style>
+            /* Hide content by default to avoid any flash before JS runs */
+            .vt-content {
+                opacity: 0;
+                visibility: hidden;
+            }
+            .matrix-rain-canvas {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                z-index: 0;
+                opacity: 0.15;
+                pointer-events: none;
+            }
+            /* Ensure overlay covers viewport immediately (before external CSS loads) and is visible */
+            #vt-overlay {
+                position: fixed;
+                inset: 0;
+                z-index: 60;
+                display: grid;
+                place-items: center;
+                opacity: 1;
+            }
+            /* Prevent scroll/interaction until content becomes visible */
+            body.vt-preload {
+                overflow: hidden;
+            }
+        </style>
+        <noscript>
             <style>
-                /* Hide content by default to avoid any flash before JS runs */
-                .vt-content { opacity: 0; visibility: hidden; }
-                /* Ensure overlay covers viewport immediately (before external CSS loads) and is visible */
-                #vt-overlay { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; opacity: 1; }
-                /* Prevent scroll/interaction until content becomes visible */
-                body.vt-preload { overflow: hidden; }
+                /* If JS is disabled, show content normally */
+                .vt-content {
+                    opacity: 1 !important;
+                }
             </style>
-            <noscript>
-                <style>
-                    /* If JS is disabled, show content normally */
-                    .vt-content { opacity: 1 !important; }
-                </style>
-            </noscript>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="view-transition" content="same-origin">
-    <title>{title}</title>
-    <meta name="description" content={description}>
-    <meta name="theme-color" content="#091d11ff">
-    <meta name="generator" content={Astro.generator} />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-</head>
-<body class="font-mono bg-black text-white overflow-x-hidden vt-preload">
-    <!-- Cyber Grid Background -->
-    <div class="fixed inset-0 cyber-grid opacity-20 pointer-events-none"></div>
-    
-    <!-- Scanning Line Effect -->
-    <div class="fixed top-0 left-0 w-1 h-full bg-gradient-to-b from-transparent via-cyber-400 to-transparent opacity-60 animate-scan pointer-events-none"></div>
-    
-    <!-- Skip to content link for accessibility -->
-    <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 bg-cyber-500 text-black px-4 py-2 rounded-md shadow terminal-border">Skip to content</a>
-    
-    <!-- View-Transition overlay (matrix terminal style) -->
-    <div id="vt-overlay" class="vt-overlay is-active" aria-hidden="true">
-        <div class="vt-backdrop"></div>
-        <div class="vt-terminal terminal-border">
-            <div class="vt-header">
-                <span class="vt-prompt">root@vulnera:~$</span>
-                <span id="vt-cmd">NAVIGATE</span><span class="vt-caret">_</span>
-            </div>
-            <div id="vt-log" class="vt-log" aria-live="polite" aria-atomic="false"></div>
+        </noscript>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="view-transition" content="same-origin" />
+        <title>{title}</title>
+        <meta name="description" content={description} />
+        <meta name="theme-color" content="#091d11ff" />
+        <meta name="generator" content={Astro.generator} />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap"
+            rel="stylesheet"
+        />
+    </head>
+    <body class="font-mono bg-black text-white overflow-x-hidden vt-preload">
+       
+
+        <!-- Matrix Rain Background (Canvas Animation) -->
+        <MatrixRain />
+
+        <!-- Cyber Grid Background -->
+        <div
+            class="fixed inset-0 cyber-grid opacity-20 pointer-events-none"
+            style="z-index: -1;"
+        >
         </div>
-    </div>
-    
-    <div id="vt-content" class="vt-content" style="opacity:0" aria-hidden="true">
-        <slot />
-    </div>
-    
-    <Sidebar />
 
-    <script>
-        // Progressive-enhanced matrix navigation transitions with typewriter log
-        (function (): void {
-            // Mark JS-enabled for CSS gates
-            const docEl = document.documentElement;
-            docEl.classList.remove('no-js');
-            docEl.classList.add('js');
+        <!-- Scanning Line Effect -->
+        <div
+            class="fixed top-0 left-0 w-1 h-full bg-gradient-to-b from-transparent via-cyber-400 to-transparent opacity-60 animate-scan pointer-events-none"
+        >
+        </div>
 
-            const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-            const overlayEl = document.getElementById('vt-overlay');
-            if (!(overlayEl instanceof HTMLDivElement)) return;
-            const overlay = overlayEl;
+        
 
-            const logEl = overlay.querySelector('#vt-log');
-            const cmdEl = overlay.querySelector('#vt-cmd');
-            const contentEl = document.getElementById('vt-content');
+        <!-- Skip to content link for accessibility -->
+        <a
+            href="#main"
+            class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 bg-cyber-500 text-black px-4 py-2 rounded-md shadow terminal-border"
+            >Skip to content</a
+        >
 
-            // If reduced motion, reveal content immediately and skip fancy effects
-            if (prefersReduced) {
-                if (contentEl instanceof HTMLDivElement) {
-                    contentEl.classList.add('is-visible');
-                    contentEl.style.opacity = '1';
-                    contentEl.style.visibility = 'visible';
-                    contentEl.removeAttribute('aria-hidden');
+      
+        <!-- View-Transition overlay (matrix terminal style) -->
+        <div id="vt-overlay" class="vt-overlay is-active" aria-hidden="true">
+            <div class="vt-backdrop"></div>
+            <div class="vt-terminal terminal-border">
+                <div class="vt-header">
+                    <span class="vt-prompt">root@vulnera:~$</span>
+                    <span id="vt-cmd">NAVIGATE</span><span class="vt-caret"
+                        >_</span
+                    >
+                </div>
+                <div
+                    id="vt-log"
+                    class="vt-log"
+                    aria-live="polite"
+                    aria-atomic="false"
+                >
+                </div>
+            </div>
+        </div>
+
+        <div
+            id="vt-content"
+            class="vt-content"
+            style="opacity:0"
+            aria-hidden="true"
+        >
+            <slot />
+        </div>
+
+
+        {
+            !["/", "/login", "/signup", "/about"].includes(Astro.url.pathname) && (
+                <Sidebar />
+            )
+        }
+
+        <!-- ========================================
+         SCRIPTS
+         ======================================== -->
+
+        <script>
+            // ========================================
+            // PAGE TRANSITION SYSTEM
+            // Progressive-enhanced matrix navigation transitions with typewriter log
+            // ========================================
+            (function (): void {
+                // Mark JS-enabled for CSS gates
+                const docEl = document.documentElement;
+                docEl.classList.remove("no-js");
+                docEl.classList.add("js");
+
+                const prefersReduced = window.matchMedia(
+                    "(prefers-reduced-motion: reduce)",
+                ).matches;
+                const overlayEl = document.getElementById("vt-overlay");
+                if (!(overlayEl instanceof HTMLDivElement)) return;
+                const overlay = overlayEl;
+
+                const logEl = overlay.querySelector("#vt-log");
+                const cmdEl = overlay.querySelector("#vt-cmd");
+                const contentEl = document.getElementById("vt-content");
+
+                // If reduced motion, reveal content immediately and skip fancy effects
+                if (prefersReduced) {
+                    if (contentEl instanceof HTMLDivElement) {
+                        contentEl.classList.add("is-visible");
+                        contentEl.style.opacity = "1";
+                        contentEl.style.visibility = "visible";
+                        contentEl.removeAttribute("aria-hidden");
+                    }
+                    document.body.classList.remove("vt-preload");
                 }
-                document.body.classList.remove('vt-preload');
-            }
 
-            // Failsafe: ensure we never keep content hidden for too long
-            setTimeout(() => {
-                if (contentEl instanceof HTMLDivElement && !contentEl.classList.contains('is-visible')) {
-                    contentEl.classList.add('is-visible');
-                    contentEl.style.opacity = '1';
-                    contentEl.style.visibility = 'visible';
-                    contentEl.removeAttribute('aria-hidden');
-                    overlay.classList.remove('is-active');
-                    document.body.classList.remove('vt-preload');
+                // Failsafe: ensure we never keep content hidden for too long
+                setTimeout(() => {
+                    if (
+                        contentEl instanceof HTMLDivElement &&
+                        !contentEl.classList.contains("is-visible")
+                    ) {
+                        contentEl.classList.add("is-visible");
+                        contentEl.style.opacity = "1";
+                        contentEl.style.visibility = "visible";
+                        contentEl.removeAttribute("aria-hidden");
+                        overlay.classList.remove("is-active");
+                        document.body.classList.remove("vt-preload");
+                    }
+                }, 4000);
+
+                function clearLog(): void {
+                    if (logEl) logEl.innerHTML = "";
                 }
-            }, 4000);
 
-            function clearLog(): void { if (logEl) logEl.innerHTML = ''; }
-
-            /**
-             * Type text with small per-char delay, resolve when done.
-             * @param {HTMLElement} el
-             * @param {string} text
-             * @param {number} speed
-             */
-            function typeText(el: HTMLElement, text: string, speed: number): Promise<void> {
-                return new Promise((resolve) => {
-                    let i = 0;
-                    const step = () => {
-                        i++;
-                        el.textContent = text.slice(0, i);
-                        if (i < text.length) {
-                            setTimeout(step, speed);
-                        } else {
-                            resolve();
-                        }
-                    };
-                    step();
-                });
-            }
-
-            async function playEnter(): Promise<void> {
-                if (prefersReduced) return;
-                overlay.classList.remove('is-leaving');
-                overlay.classList.add('is-active');
-                // View transition: overlay active, content hidden
-                clearLog();
-                // Brief boot-like header update
-                if (cmdEl instanceof HTMLSpanElement) {
-                    cmdEl.textContent = '';
+                /**
+                 * Type text with small per-char delay, resolve when done.
+                 * @param {HTMLElement} el
+                 * @param {string} text
+                 * @param {number} speed
+                 */
+                function typeText(
+                    el: HTMLElement,
+                    text: string,
+                    speed: number,
+                ): Promise<void> {
+                    return new Promise((resolve) => {
+                        let i = 0;
+                        const step = () => {
+                            i++;
+                            el.textContent = text.slice(0, i);
+                            if (i < text.length) {
+                                setTimeout(step, speed);
+                            } else {
+                                resolve();
+                            }
+                        };
+                        step();
+                    });
                 }
-                // Full-screen typed intro; keep content hidden until finished
-                if (cmdEl instanceof HTMLSpanElement) {
-                    await typeText(cmdEl, 'BOOT VULNERA', 14);
-                }
-                const intro = [
-                    '[OK] Loading modules…',
-                    '[OK] Initializing renderer…',
-                    '[..] Preparing interface…',
-                    '[OK] Ready'
-                ];
-                for (const l of intro) {
-                    if (!(logEl instanceof HTMLDivElement)) break;
-                    const div = document.createElement('div');
-                    div.className = 'vt-line';
-                    logEl.appendChild(div);
-                    await typeText(div, l, 12);
-                }
-                // Reveal content and hide overlay after a short delay
-                if (contentEl instanceof HTMLDivElement) {
-                    contentEl.classList.add('is-visible');
-                    contentEl.style.opacity = '1';
-                    contentEl.style.visibility = 'visible';
-                    contentEl.removeAttribute('aria-hidden');
-                }
-                await new Promise(r => setTimeout(r, 200));
-                overlay.classList.remove('is-active');
-                document.body.classList.remove('vt-preload');
-            }
 
-            /**
-             * Show a terminal log before navigating (~1.6-1.9s typical)
-             * @param {string} url
-             */
-            async function playLeaveAndNavigate(url: string): Promise<void> {
-                if (prefersReduced) { window.location.href = url; return; }
-
-                // Fast leave: show overlay quickly, then navigate. The long typing happens on destination.
-                overlay.classList.remove('is-leaving');
-                overlay.classList.add('is-active');
-                clearLog();
-                if (cmdEl instanceof HTMLSpanElement) {
-                    const target = new URL(url, window.location.href);
-                    cmdEl.textContent = 'NAVIGATE ' + (target.pathname || '/');
+                async function playEnter(): Promise<void> {
+                    if (prefersReduced) return;
+                    overlay.classList.remove("is-leaving");
+                    overlay.classList.add("is-active");
+                    // View transition: overlay active, content hidden
+                    clearLog();
+                    // Brief boot-like header update
+                    if (cmdEl instanceof HTMLSpanElement) {
+                        cmdEl.textContent = "";
+                    }
+                    // Full-screen typed intro; keep content hidden until finished
+                    if (cmdEl instanceof HTMLSpanElement) {
+                        await typeText(cmdEl, "BOOT VULNERA", 14);
+                    }
+                    const intro = [
+                        "[OK] Loading modules…",
+                        "[OK] Initializing renderer…",
+                        "[..] Preparing interface…",
+                        "[OK] Ready",
+                    ];
+                    for (const l of intro) {
+                        if (!(logEl instanceof HTMLDivElement)) break;
+                        const div = document.createElement("div");
+                        div.className = "vt-line";
+                        logEl.appendChild(div);
+                        await typeText(div, l, 12);
+                    }
+                    // Reveal content and hide overlay after a short delay
+                    if (contentEl instanceof HTMLDivElement) {
+                        contentEl.classList.add("is-visible");
+                        contentEl.style.opacity = "1";
+                        contentEl.style.visibility = "visible";
+                        contentEl.removeAttribute("aria-hidden");
+                    }
+                    await new Promise((r) => setTimeout(r, 200));
+                    overlay.classList.remove("is-active");
+                    document.body.classList.remove("vt-preload");
                 }
-                setTimeout(() => { window.location.href = url; }, 120);
-            }
 
-            // Run enter effect on page load
-            if (document.readyState === 'complete' || document.readyState === 'interactive') {
-                void playEnter();
-            } else {
-                document.addEventListener('DOMContentLoaded', () => { void playEnter(); }, { once: true });
-            }
+                /**
+                 * Show a terminal log before navigating (~1.6-1.9s typical)
+                 * @param {string} url
+                 */
+                async function playLeaveAndNavigate(
+                    url: string,
+                ): Promise<void> {
+                    if (prefersReduced) {
+                        window.location.href = url;
+                        return;
+                    }
+
+                    // Fast leave: show overlay quickly, then navigate. The long typing happens on destination.
+                    overlay.classList.remove("is-leaving");
+                    overlay.classList.add("is-active");
+                    clearLog();
+                    if (cmdEl instanceof HTMLSpanElement) {
+                        const target = new URL(url, window.location.href);
+                        cmdEl.textContent =
+                            "NAVIGATE " + (target.pathname || "/");
+                    }
+                    setTimeout(() => {
+                        window.location.href = url;
+                    }, 120);
+                }
+
+                // Run enter effect on page load
+                if (
+                    document.readyState === "complete" ||
+                    document.readyState === "interactive"
+                ) {
+                    void playEnter();
+                } else {
+                    document.addEventListener(
+                        "DOMContentLoaded",
+                        () => {
+                            void playEnter();
+                        },
+                        { once: true },
+                    );
+                }
+
+                // Intercept internal navigations
+                document.addEventListener("click", (e) => {
+                    const tgt = e.target;
+                    if (!(tgt instanceof Element)) return;
+                    const a = tgt.closest("a");
+                    if (!a) return;
 
             // Intercept internal navigations
             document.addEventListener('click', (e) => {

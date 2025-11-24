@@ -7,16 +7,13 @@ WORKDIR /app
 # Copy package files
 COPY package.json package-lock.json ./
 
-# Install dependencies
-RUN npm ci --only=production=false
+# Install all dependencies (including dev dependencies needed for build)
+RUN npm ci
 
 # Copy source files
 COPY . .
 
-# Copy server script
-COPY server.js ./
-
-# Build the static site
+# Build the site (generates server code in dist/server/)
 RUN npm run build
 
 # Production stage
@@ -28,9 +25,14 @@ WORKDIR /app
 # Install curl for healthcheck
 RUN apk add --no-cache curl
 
-# Copy built files and server script from builder stage
+# Copy package files
+COPY --from=builder /app/package.json /app/package-lock.json ./
+
+# Install only production dependencies (needed for SSR server runtime)
+RUN npm ci --only=production
+
+# Copy built files from builder stage (includes dist/server/ with Astro's generated server)
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/server.js ./server.js
 
 # Expose port (default 8080, configurable via PORT env var)
 EXPOSE 8080
@@ -42,6 +44,6 @@ ENV PORT=8080
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:${PORT}/ || exit 1
 
-# Start the custom Node.js server
-CMD ["node", "server.js"]
+# Start Astro's generated server
+CMD ["node", "./dist/server/entry.mjs"]
 

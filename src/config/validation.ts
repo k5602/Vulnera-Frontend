@@ -25,17 +25,23 @@ export function validateEnvironment(): EnvConfig {
 
     logger.error('Invalid environment configuration', { errorMessage });
 
+    // Production must fail loudly
     if (import.meta.env.PROD) {
       throw new Error('Invalid environment configuration');
     }
+
+    // Development fallback:
+    return {
+      PUBLIC_API_BASE: 'http://localhost:8000',
+    };
   }
 
   if (import.meta.env.DEV) {
     logger.info('Environment validated successfully');
   }
 
-  return result.data || {};
+  // Always returns a fully typed object
+  return result.data;
 }
 
 export const config = validateEnvironment();
-
