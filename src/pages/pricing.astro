@@ -1,0 +1,207 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Navigation from "../components/Navigation.astro";
+import Footer from "../components/Footer.astro";
+import "../styles/global.css";
+
+const plans = [
+    {
+        name: "بطولي",
+        price: "FREE",
+        description: "Essential tools for security researchers and hobbyists",
+        features: [
+            "Lorem ipsum dolor sit amet",
+            "Consectetur adipiscing elit",
+            "Sed do eiusmod tempor",
+            "Incididunt ut labore et dolore",
+        ],
+        cta: "COMING_SOON",
+        highlight: false,
+        color: "cyber",
+    },
+    {
+        name: "الاوف اح",
+        price: "$0.00",
+        period: "/mo",
+        description: "Collaborative security for growing development teams",
+        features: [
+            "Lorem ipsum dolor sit amet",
+            "Consectetur adipiscing elit",
+            "Sed do eiusmod tempor",
+            "Incididunt ut labore et dolore",
+            "Magna aliqua ut enim",
+            "Ad minim veniam quis",
+        ],
+        cta: "COMING_SOON",
+        highlight: true,
+        color: "matrix",
+    },
+    {
+        name: "اشتراك فشيخ",
+        price: "CUSTOM",
+        description:
+            "Bank-grade security and compliance for large organizations",
+        features: [
+            "Lorem ipsum dolor sit amet",
+            "Consectetur adipiscing elit",
+            "Sed do eiusmod tempor",
+            "Incididunt ut labore et dolore",
+            "Magna aliqua ut enim",
+            "Ad minim veniam quis",
+        ],
+        cta: "COMING_SOON",
+        highlight: false,
+        color: "purple", // Using purple for enterprise distinction
+    },
+    {
+        name: "اشتراك فتاك",
+        price: "$0.00",
+        period: "/req",
+        description: "High-performance API access for automated workflows",
+        features: [
+            "Lorem ipsum dolor sit amet",
+            "Consectetur adipiscing elit",
+            "Sed do eiusmod tempor",
+            "Incididunt ut labore et dolore",
+            "Magna aliqua ut enim",
+            "Ad minim veniam quis",
+        ],
+        cta: "COMING_SOON",
+        highlight: false,
+        color: "yellow", // Using yellow for API distinction
+    },
+];
+---
+
+<Layout title="Pricing | Vulnera">
+    <Navigation />
+
+    <section
+        class="relative min-h-screen pt-24 pb-12 sm:pt-32 sm:pb-16 lg:pt-40 lg:pb-24 bg-black overflow-hidden"
+    >
+        <!-- Background Effects -->
+        <div class="absolute inset-0 z-0">
+            <div
+                class="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(0,229,209,0.1),transparent_70%)]"
+            >
+            </div>
+            <div class="absolute inset-0 cyber-grid opacity-10"></div>
+        </div>
+
+        <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6">
+            <!-- Header -->
+            <div class="text-center max-w-3xl mx-auto mb-16 sm:mb-20">
+                <h1
+                    class="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6 font-mono tracking-wider animate-fade-in"
+                >
+                    <span class="text-cyber-400">&gt;</span> SYSTEM_ACCESS_<span
+                        class="text-matrix-400">PLANS</span
+                    >
+                </h1>
+                <p class="text-lg sm:text-xl text-gray-400 font-mono">
+                    Select your clearance level. Upgrade your security
+                    infrastructure.
+                </p>
+            </div>
+
+            <!-- Pricing Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                {
+                    plans.map((plan) => (
+                        <div
+                            class={`relative group rounded-lg border ${plan.highlight ? "border-matrix-500 shadow-[0_0_30px_rgba(34,197,94,0.2)]" : "border-gray-800 hover:border-cyber-500/50"} bg-gray-900/50 backdrop-blur-sm p-8 transition-all duration-300 hover:-translate-y-2`}
+                        >
+                            {plan.highlight && (
+                                <div class="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-matrix-500 text-black text-xs font-bold px-3 py-1 rounded-full font-mono">
+                                    RECOMMENDED
+                                </div>
+                            )}
+
+                            <div class="mb-6">
+                                <h3
+                                    class={`text-xl font-bold font-mono mb-2 ${
+                                        plan.color === "cyber"
+                                            ? "text-cyber-400"
+                                            : plan.color === "matrix"
+                                              ? "text-matrix-400"
+                                              : plan.color === "purple"
+                                                ? "text-purple-400"
+                                                : "text-yellow-400"
+                                    }`}
+                                >
+                                    {plan.name}
+                                </h3>
+                                <div class="flex items-baseline gap-1">
+                                    <span class="text-3xl sm:text-4xl font-bold text-white font-mono">
+                                        {plan.price}
+                                    </span>
+                                    {plan.period && (
+                                        <span class="text-gray-500 font-mono text-sm">
+                                            {plan.period}
+                                        </span>
+                                    )}
+                                </div>
+                                <p class="text-gray-400 text-sm mt-4 font-mono min-h-[40px]">
+                                    {plan.description}
+                                </p>
+                            </div>
+
+                            <ul class="space-y-4 mb-8">
+                                {plan.features.map((feature) => (
+                                    <li class="flex items-start gap-3 text-sm text-gray-300 font-mono">
+                                        <svg
+                                            class={`w-5 h-5 shrink-0 ${
+                                                plan.color === "cyber"
+                                                    ? "text-cyber-500"
+                                                    : plan.color === "matrix"
+                                                      ? "text-matrix-500"
+                                                      : plan.color === "purple"
+                                                        ? "text-purple-500"
+                                                        : "text-yellow-500"
+                                            }`}
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke="currentColor"
+                                        >
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                stroke-width="2"
+                                                d="M5 13l4 4L19 7"
+                                            />
+                                        </svg>
+                                        {feature}
+                                    </li>
+                                ))}
+                            </ul>
+
+                            <a
+                                href="#"
+                                class={`block w-full text-center py-3 px-4 rounded font-bold font-mono text-sm transition-all duration-300 ${
+                                    plan.highlight
+                                        ? "bg-matrix-600 hover:bg-matrix-500 text-black shadow-lg shadow-matrix-500/20"
+                                        : "bg-gray-800 hover:bg-gray-700 text-white border border-gray-700 hover:border-gray-600"
+                                }`}
+                            >
+                                [{plan.cta}]
+                            </a>
+                        </div>
+                    ))
+                }
+            </div>
+
+            <!-- FAQ / Additional Info (Optional, keeping it simple for now) -->
+            <div class="mt-20 text-center border-t border-gray-800 pt-12">
+                <p class="text-gray-500 font-mono text-sm">
+                    Need a custom contract? <a
+                        href="#"
+                        class="text-cyber-400 hover:text-cyber-300 underline decoration-dotted"
+                        >Contact Sales</a
+                    > for more information.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <Footer />
+</Layout>

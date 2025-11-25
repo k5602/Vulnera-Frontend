@@ -22,16 +22,15 @@ import { config } from './validation';
  * Get API base URL from environment or use safe same-origin fallback
  * 
  * Fallback chain (in order of preference):
- * 1. PUBLIC_API_BASE with PUBLIC_FORCE_API_BASE=true (forced direct URL)
- * 2. Same-origin in browser during local dev (unless forced)
- * 3. PUBLIC_API_BASE from config (if provided)
- * 4. Same-origin in browser (if available)
- * 5. Empty string (relative requests for SSR/build-time)
+ * 1. Empty string (same-origin) in development - uses Vite proxy
+ * 2. PUBLIC_API_BASE with PUBLIC_FORCE_API_BASE=true (forced direct URL in production)
+ * 3. PUBLIC_API_BASE from config (production builds)
+ * 4. Empty string (relative requests for SSR/build-time)
  */
 const getApiBase = (): string => {
     const env =
         typeof import.meta !== "undefined" && import.meta.env ? import.meta.env : ({} as any);
-    
+
     // Get PUBLIC_API_BASE from environment (embedded at build time)
     const publicBase = env.PUBLIC_API_BASE || config.PUBLIC_API_BASE;
     const forceDirect = (env.PUBLIC_FORCE_API_BASE as string | undefined)?.toLowerCase() === "true";
@@ -43,40 +42,30 @@ const getApiBase = (): string => {
             importMetaEnv: env.PUBLIC_API_BASE,
             configValue: config.PUBLIC_API_BASE,
             windowOrigin: window.location.origin,
+            isDev: env?.DEV,
         });
     }
 
-    // Priority 1: If PUBLIC_API_BASE is explicitly set, use it (especially in production)
-    if (publicBase && publicBase !== 'http://localhost:8000') {
-        // If forceDirect is true, always use it
-        if (forceDirect) {
-            return publicBase.replace(/\/$/, "");
-        }
-        
-        // In production (non-dev), always use PUBLIC_API_BASE if it's not the default
-        if (typeof window !== "undefined") {
-            const isLocalhost = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(window.location.hostname);
-            // If not localhost, use the configured API base
-            if (!isLocalhost) {
-                return publicBase.replace(/\/$/, "");
-            }
-            // Even on localhost, if PUBLIC_API_BASE is set and not default, use it
-            if (publicBase && publicBase !== 'http://localhost:8000') {
-                return publicBase.replace(/\/$/, "");
-            }
-        } else {
-            // SSR/build-time: if PUBLIC_API_BASE is set, use it
-            return publicBase.replace(/\/$/, "");
-        }
-    }
-
-    // Priority 2: In the browser during local dev, prefer same-origin
+    // In development mode, use empty string (same-origin) to use the Vite proxy
+    // This avoids CORS issues during local development
     if (typeof window !== "undefined") {
         const isLocalhost = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(window.location.hostname);
         const isDev = !!env?.DEV || isLocalhost;
+
         if (isDev && !forceDirect) {
-            return window.location.origin.replace(/\/$/, "");
+            // Use same-origin (proxy will forward to backend)
+            return "";
         }
+    }
+
+    // In production or when forced, use the configured PUBLIC_API_BASE
+    if (forceDirect && publicBase) {
+        return publicBase.replace(/\/$/, "");
+    }
+
+    // SSR/build-time or production: use PUBLIC_API_BASE if available
+    if (publicBase && publicBase !== 'http://localhost:8000') {
+        return publicBase.replace(/\/$/, "");
     }
 
     // Fallback: empty string means relative requests

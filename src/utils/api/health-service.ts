@@ -55,7 +55,7 @@ class HealthService {
     // Try primary health endpoint
     const primary = await apiClient.get<HealthCheckResponse>(API_ENDPOINTS.HEALTH.CHECK);
     // If not found, try alternate versioned path without changing envs
-    if (!primary.success && primary.status === 404) {
+    if (!primary.ok && primary.status === 404) {
       const alt = await apiClient.get<HealthCheckResponse>('/api/v1/health/');
       return alt;
     }
@@ -77,7 +77,7 @@ class HealthService {
     for (let i = 0; i < maxRetries; i++) {
       try {
         const response = await this.checkHealth();
-        if (response.success && response.data?.status === 'healthy') {
+        if (response.ok && response.data?.status === 'healthy') {
           return true;
         }
       } catch (error) {
@@ -102,7 +102,7 @@ class HealthService {
     const intervalId = setInterval(async () => {
       try {
         const response = await this.checkHealth();
-        if (response.success && response.data) {
+        if (response.ok && response.data) {
           if (lastStatus?.status !== response.data.status) {
             lastStatus = response.data;
             onStatusChange?.(response.data);

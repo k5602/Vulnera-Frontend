@@ -1,3 +1,4 @@
+
 ---
 import "../styles/global.css";
 import Sidebar from "../components/Sidebar.astro";
@@ -340,16 +341,8 @@ const {
         </script>
         <script>
             import { tokenRefreshManager } from "../utils/api/token-refresh";
-
-            // Only start auto-refresh on authenticated pages
             if (typeof window !== "undefined") {
-                const publicPaths = ["/", "/login", "/signup", "/pricing"];
-                const currentPath = window.location.pathname;
-
-                // Don't start refresh on public pages
-                if (!publicPaths.includes(currentPath)) {
-                    tokenRefreshManager.startAutoRefresh();
-                }
+                tokenRefreshManager.startAutoRefresh();
             }
         </script>
     </body>

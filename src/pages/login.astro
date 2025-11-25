@@ -107,11 +107,10 @@ export const prerender = false;
   <Footer />
 
   <script>
-    import { authService } from '../utils/api/index';
-    import { logger } from '../utils/logger';
-    import { UserLogin, message } from '../modules/Userdata';
+    import { apiClient } from '../utils/api/client';
+    import { clearAuth, isAuthenticated } from '../utils/api/auth-store';
 
-    if (authService.isAuthenticated()) {
+    if (isAuthenticated()) {
       const params = new URLSearchParams(window.location.search);
       const next = params.get('next') || '/dashboard';
       window.location.replace(next);
@@ -119,47 +118,65 @@ export const prerender = false;
 
     const form = document.getElementById('login-form') as HTMLFormElement;
     const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
+
     const errorDiv = document.getElementById('error-message') as HTMLDivElement;
     const successDiv = document.getElementById('success-message') as HTMLDivElement;
-    const clearBtn = document.getElementById('clear-session-btn') as HTMLButtonElement;
 
-    const messageHandler = new message(errorDiv, successDiv);
+    function showError(msg: string) {
+      errorDiv.textContent = msg;
+      errorDiv.classList.remove('hidden');
+      successDiv.classList.add('hidden');
+    }
 
-    // Clear session button
-    if (clearBtn) {
-      clearBtn.addEventListener('click', () => {
-        localStorage.clear();
-        sessionStorage.clear();
-        logger.info('Session cleared by user');
-        messageHandler.showSuccess('Session cleared. You can now log in again.');
-      });
+    function showSuccess(msg: string) {
+      successDiv.textContent = msg;
+      successDiv.classList.remove('hidden');
+      errorDiv.classList.add('hidden');
     }
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      messageHandler.hideMessages();      
-      const emailEl = document.getElementById('email') as HTMLInputElement;
-      const passwordEl = document.getElementById('password') as HTMLInputElement;
-      const rememberEl = document.getElementById('remember') as HTMLInputElement;
 
-      const userLoginData = new UserLogin(
-        emailEl.value.trim(),
-        passwordEl.value,
-        rememberEl.checked
-      );
+      const email = (document.getElementById('email') as HTMLInputElement).value.trim();
+      const password = (document.getElementById('password') as HTMLInputElement).value;
 
-      // Validate inputs
-      userLoginData.validateInputs(messageHandler);
+      if (!email || !password) {
+        showError("Email and password are required.");
+        return;
+      }
 
-      // Check rate limiting
-      userLoginData.checkRateLimit(messageHandler);
-
-      // Disable submit button
       submitBtn.disabled = true;
-      submitBtn.innerHTML = '<span class="mr-2">&gt;</span> AUTHENTICATING...';
+      submitBtn.textContent = "> AUTHENTICATING...";
 
-      //login attempt
-      await userLoginData.tryLogin(messageHandler,submitBtn);
+      const res = await apiClient.post("/api/v1/auth/login", {
+        email,
+        password
       });
-  </script>
+
+      if (!res.ok) {
+        showError("Invalid email or password.");
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = "<span class='mr-2'>&gt;</span> LOGIN";
+        return;
+      }
+
+      showSuccess("Login successful! Redirecting...");
+
+      setTimeout(() => {
+        const params = new URLSearchParams(window.location.search);
+        const next = params.get('next') || '/dashboard';
+        window.location.replace(next);
+      }, 700);
+    });
+
+    // Clear session button
+    const clearBtn = document.getElementById('clear-session-btn');
+    if (clearBtn) {
+      clearBtn.addEventListener('click', () => {
+        clearAuth();
+        showSuccess("Session cleared.");
+      });
+    }
+</script>
+
 </Layout>

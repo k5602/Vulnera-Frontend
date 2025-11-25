@@ -1,51 +1,57 @@
-import { authService } from './auth-service';
-import { tokenManager } from './token-manager';
+/**
+ * Token Refresh Manager
+ * Automatically refreshes authentication tokens at regular intervals
+ */
+import { refreshAuth } from "./auth-store";
+import { logger } from "../logger";
 
-const REFRESH_THRESHOLD = 5 * 60 * 1000; // Refresh 5 min before expiry
+class TokenRefreshManager {
+    private intervalId: number | null = null;
+    private readonly REFRESH_INTERVAL = 14 * 60 * 1000; // 14 minutes
 
-export class TokenRefreshManager {
-  private refreshTimer: number | null = null;
+    /**
+     * Start automatic token refresh
+     */
+    startAutoRefresh(): void {
+        if (this.intervalId !== null) {
+            logger.warn("Token refresh manager already running");
+            return;
+        }
 
-  startAutoRefresh(): void {
-    if (typeof window === 'undefined') return;
+        logger.info("Starting automatic token refresh manager");
 
-    // Check every minute if refresh needed
-    this.refreshTimer = window.setInterval(() => {
-      this.checkAndRefresh();
-    }, 60 * 1000);
+        // Initial refresh
+        refreshAuth().catch(err => {
+            logger.error("Initial token refresh failed", err);
+        });
 
-    // Also check on visibility change
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') {
-        this.checkAndRefresh();
-      }
-    });
-  }
-
-  private async checkAndRefresh(): Promise<void> {
-    const user = tokenManager.getUser();
-    if (!user?.expiresAt) return;
-
-    const timeUntilExpiry = user.expiresAt - Date.now();
-
-    if (timeUntilExpiry < REFRESH_THRESHOLD) {
-      try {
-        await authService.refreshToken();
-      } catch (error) {
-        // Refresh failed, user needs to login again
-        authService.clearAuth();
-        window.location.href = '/login';
-      }
+        // Set up periodic refresh
+        this.intervalId = window.setInterval(async () => {
+            try {
+                logger.debug("Executing scheduled token refresh");
+                const success = await refreshAuth();
+                if (success) {
+                    logger.debug("Scheduled token refresh successful");
+                } else {
+                    logger.warn("Scheduled token refresh failed (invalid session)");
+                    this.stopAutoRefresh(); // Stop if session is invalid
+                }
+            } catch (error) {
+                logger.error("Error during scheduled token refresh", error);
+            }
+        }, this.REFRESH_INTERVAL);
     }
-  }
 
-  stopAutoRefresh(): void {
-    if (this.refreshTimer) {
-      clearInterval(this.refreshTimer);
-      this.refreshTimer = null;
+    /**
+     * Stop automatic token refresh
+     */
+    stopAutoRefresh(): void {
+        if (this.intervalId !== null) {
+            logger.info("Stopping automatic token refresh manager");
+            window.clearInterval(this.intervalId);
+            this.intervalId = null;
+        }
     }
-  }
 }
 
 export const tokenRefreshManager = new TokenRefreshManager();
-

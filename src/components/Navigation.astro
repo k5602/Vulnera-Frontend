@@ -49,9 +49,18 @@ import Logo from "./Logo.astro";
 
         <!-- Public Navigation Links -->
         {
-            (["/", "/login", "/signup"].includes(Astro.url.pathname) ||
+            (["/", "/login", "/signup", "/pricing"].includes(
+                Astro.url.pathname,
+            ) ||
                 Astro.url.pathname.startsWith("/docs")) && (
                 <div class="flex items-center gap-6">
+                    <a
+                        href="/pricing"
+                        class="text-matrix-300 hover:text-cyber-400 font-mono text-sm tracking-wider transition-colors duration-300 relative group"
+                    >
+                        <span class="relative z-10">PRICING</span>
+                        <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-cyber-400 transition-all duration-300 group-hover:w-full" />
+                    </a>
                     <a
                         href="/docs"
                         class="text-matrix-300 hover:text-cyber-400 font-mono text-sm tracking-wider transition-colors duration-300 relative group"
