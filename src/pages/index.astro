@@ -45,12 +45,16 @@ const stats = [
     { value: "<800ms", label: "RESPONSE_TIME", valueColor: "text-red-400" }
 ];
 
-// Stats data
+// ecosys data
 const ecosystems = [
-    { value: "Python", label: "requirements.txt", valueColor: "text-yellow-300" },
-    { value: "Ruby", label: "Gemfile.lock", valueColor: "text-red-400" },
-    { value: "JavaScript", label: "package.json", valueColor: "text-yellow-500" },
-    { value: "Rust", label: "Cargo.lock", valueColor: "text-orange-400" }
+    { value: "PyPi", label: "requirements.txt / Pipfile / pyproject.toml", valueColor: "text-yellow-300" },
+    { value: "Ruby", label: "Gemfile.lock / Gemfile", valueColor: "text-red-400" },
+    { value: "npm", label: "package.json / package-lock.json / yarn.lock", valueColor: "text-yellow-500" },
+    { value: "Rust", label: "Cargo.lock / Cargo.toml", valueColor: "text-orange-400" },
+    { value: "Maven/Gradle", label: "pom.xml / build.gradle", valueColor: "text-matrix-400" },
+    { value: ".NET", label: "packages.config / *.csproj *.props / *.targets", valueColor: "text-green-400" },
+    { value: "Go", label: "go.mod / go.sum", valueColor: "text-cyber-400" },
+    { value: "Packagist", label: "composer.json / composer.lock", valueColor: "text-purple-400" },
 ];
 ---
 
