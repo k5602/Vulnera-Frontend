@@ -3,6 +3,7 @@
  * Central export point for all API services
  */
 
-export { apiClient, type ApiResponse } from './client';
-export { healthService } from './health-service';
-export { scanService } from './scan-service';
+export { apiClient, type ApiResponse } from "./client";
+export { authService } from "./auth-service";
+export { healthService } from "./health-service";
+export { scanService } from "./scan-service";
