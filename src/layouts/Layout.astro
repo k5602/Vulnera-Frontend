@@ -2,6 +2,7 @@
 import "../styles/global.css";
 import Sidebar from "../components/Sidebar.astro";
 import MatrixRain from "../components/MatrixRain.astro";
+import VulneraBot from "../components/VulneraBot";
 
 export const prerender = false;
 
@@ -93,7 +94,7 @@ const {
 
         <!-- Scanning Line Effect -->
         <div
-            class="fixed top-0 left-0 w-1 h-full bg-gradient-to-b from-transparent via-cyber-400 to-transparent opacity-60 animate-scan pointer-events-none"
+            class="fixed top-0 left-0 w-1 h-full bg-linear-to-b from-transparent via-cyber-400 to-transparent opacity-60 animate-scan pointer-events-none"
         >
         </div>
 
@@ -124,20 +125,32 @@ const {
             </div>
         </div>
 
-        <div
-            id="vt-content"
-            class="vt-content"
-            style="opacity:0"
-            aria-hidden="true"
-        >
-            <slot />
-        </div>
-
         {
             !["/", "/login", "/signup", "/pricing"].includes(
                 Astro.url.pathname,
             ) && <Sidebar />
         }
+
+        <VulneraBot client:load />
+
+        <div
+            id="vt-content"
+            class:list={[
+                "vt-content",
+                {
+                    "main-content-wrapper": ![
+                        "/",
+                        "/login",
+                        "/signup",
+                        "/pricing",
+                    ].includes(Astro.url.pathname),
+                },
+            ]}
+            style="opacity:0"
+            aria-hidden="true"
+        >
+            <slot />
+        </div>
 
         <!-- ========================================
          SCRIPTS
@@ -343,8 +356,8 @@ const {
 
             // Only start auto-refresh on authenticated pages
             if (typeof window !== "undefined") {
-                const publicPaths = ["/", "/login", "/signup", "/pricing"];
-                const currentPath = window.location.pathname;
+                const publicPaths = ["/", "/login", "/signup", "/pricing", "/vulnera-ai"];
+                const currentPath = window.location.pathname.replace(/\/$/, "") || "/";
 
                 // Don't start refresh on public pages
                 if (!publicPaths.includes(currentPath)) {

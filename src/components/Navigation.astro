@@ -9,12 +9,14 @@ import Logo from "./Logo.astro";
 >
     <div class="max-w-7xl mx-auto flex justify-between items-center">
         <div class="flex items-center gap-4">
-            <!-- Burger Menu Toggle Button (Hidden on landing page and screens >= 1536px) -->
+            <!-- Burger Menu Toggle Button (Hidden on landing page and screens >= 768px) -->
             {
-                Astro.url.pathname !== "/" && (
+                !["/", "/login", "/signup", "/pricing"].includes(
+                    Astro.url.pathname,
+                ) && (
                     <button
                         id="menu-toggle"
-                        class="2xl:hidden text-cyber-400 hover:text-cyber-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyber-400 rounded p-2"
+                        class="2xl:hidden text-cyber-400 hover:text-cyber-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyber-400 rounded p-2 transition-colors"
                         aria-label="Toggle menu"
                         aria-expanded="false"
                     >

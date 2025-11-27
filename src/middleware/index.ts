@@ -6,6 +6,7 @@ const PUBLIC_PAGES = [
   '/signup',
   '/docs',
   '/pricing',
+  '/llm',
 ];
 
 export const onRequest = defineMiddleware((context, next) => {

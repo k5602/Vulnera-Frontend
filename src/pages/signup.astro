@@ -215,7 +215,7 @@ import Footer from "../components/Footer.astro";
     <Footer />
     <script>
         import { apiClient } from "../utils/api/client";
-        import { isAuthenticated } from "../utils/api/auth-store";
+        import { isAuthenticated, refreshAuth } from "../utils/api/auth-store";
 
         if (isAuthenticated()) {
             window.location.replace("/dashboard");
@@ -241,7 +241,7 @@ import Footer from "../components/Footer.astro";
             errorDiv.classList.add("hidden");
         }
 
-        form.addEventListener("submit", async (e: Event) => {
+    form.addEventListener("submit", async (e: Event) => {
             e.preventDefault();
 
             const firstName = (
@@ -288,15 +288,23 @@ import Footer from "../components/Footer.astro";
             if (!res.ok) {
                 showError(res.data?.message || "Registration failed.");
                 submitBtn.disabled = false;
-                submitBtn.textContent = "SIGN UP";
+                submitBtn.innerHTML = "<span class='mr-2'>&gt;</span> INIT_SIGNUP";
                 return;
             }
 
             showSuccess("Account created! Redirecting...");
 
+            // Refresh auth state to get CSRF token and user data (if backend creates session)
+            try {
+                // refreshAuth may be a no-op if backend doesn't auto-login on register
+                await refreshAuth();
+            } catch (e) {
+                // ignore refresh errors here; we still redirect
+            }
+
             setTimeout(() => {
                 window.location.replace("/dashboard");
             }, 800);
         });
-    </script>
+        </script>
 </Layout>
