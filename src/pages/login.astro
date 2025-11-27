@@ -134,86 +134,117 @@ export const prerender = false;
   </section>
 
   <Footer />
-
   <script>
     import { apiClient } from "../utils/api/client";
     import {
       clearAuth,
       isAuthenticated,
-      refreshAuth,
+      setCsrfToken,
+      setCurrentUser,
     } from "../utils/api/auth-store";
 
+    // Redirect if already logged in
     if (isAuthenticated()) {
       const params = new URLSearchParams(window.location.search);
       const next = params.get("next") || "/dashboard";
       window.location.replace(next);
     }
 
-    const form = document.getElementById("login-form") as HTMLFormElement;
+    // ----------------------------
+    // Safe element getters (TS safe)
+    // ----------------------------
+    const form = document.getElementById(
+      "login-form",
+    ) as HTMLFormElement | null;
     const submitBtn = document.getElementById(
       "submit-btn",
-    ) as HTMLButtonElement;
+    ) as HTMLButtonElement | null;
 
-    const errorDiv = document.getElementById("error-message") as HTMLDivElement;
+    const errorDiv = document.getElementById(
+      "error-message",
+    ) as HTMLDivElement | null;
     const successDiv = document.getElementById(
       "success-message",
-    ) as HTMLDivElement;
+    ) as HTMLDivElement | null;
 
-    function showError(msg: string) {
+    function showError(msg: string): void {
+      if (!errorDiv || !successDiv) return;
       errorDiv.textContent = msg;
       errorDiv.classList.remove("hidden");
       successDiv.classList.add("hidden");
     }
 
-    function showSuccess(msg: string) {
+    function showSuccess(msg: string): void {
+      if (!successDiv || !errorDiv) return;
       successDiv.textContent = msg;
       successDiv.classList.remove("hidden");
       errorDiv.classList.add("hidden");
     }
 
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
+    // -------------------------------------
+    // Make sure form exists before attaching
+    // -------------------------------------
+    if (form && submitBtn) {
+      form.addEventListener("submit", async (e: Event) => {
+        e.preventDefault();
 
-      const email = (
-        document.getElementById("email") as HTMLInputElement
-      ).value.trim();
-      const password = (document.getElementById("password") as HTMLInputElement)
-        .value;
+        const emailEl = document.getElementById(
+          "email",
+        ) as HTMLInputElement | null;
+        const passwordEl = document.getElementById(
+          "password",
+        ) as HTMLInputElement | null;
 
-      if (!email || !password) {
-        showError("Email and password are required.");
-        return;
-      }
+        if (!emailEl || !passwordEl) {
+          showError("Missing form fields.");
+          return;
+        }
 
-      submitBtn.disabled = true;
-      submitBtn.textContent = "> AUTHENTICATING...";
+        const email = emailEl.value.trim();
+        const password = passwordEl.value;
 
-      const res = await apiClient.post("/api/v1/auth/login", {
-        email,
-        password,
-      });
+        submitBtn.disabled = true;
+        submitBtn.textContent = "> AUTHENTICATING...";
 
-      if (!res.ok) {
-        showError("Invalid email or password.");
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = "<span class='mr-2'>&gt;</span> LOGIN";
-        return;
-      }
+        const res = await apiClient.post("/api/v1/auth/login", {
+          email,
+          password,
+        });
 
-      showSuccess("Login successful! Redirecting...");
+        if (!res.ok) {
+          showError("Invalid email or password.");
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = "<span class='mr-2'>&gt;</span> LOGIN";
+          return;
+        }
 
-      // Refresh auth state to get CSRF token and user data
-      await refreshAuth();
+        // Save authentication details
+        if (res.data) {
+          if (res.data.csrf_token) setCsrfToken(res.data.csrf_token);
 
-      setTimeout(() => {
-        const params = new URLSearchParams(window.location.search);
-        const next = params.get("next") || "/dashboard";
+          setCurrentUser({
+            id: res.data.user_id,
+            email: res.data.email,
+            roles: res.data.roles,
+          });
+
+          // Update last refresh timestamp to prevent immediate refresh on dashboard load
+          localStorage.setItem("last_token_refresh", Date.now().toString());
+        }
+
+        showSuccess("Login successful! Redirecting...");
+
+        const next =
+          new URLSearchParams(window.location.search).get("next") ||
+          "/dashboard";
         window.location.replace(next);
-      }, 700);
-    });
+      });
+    }
 
     // Clear session button
-    const clearBtn = document.getElementById("clear-session-btn");
+    const clearBtn = document.getElementById(
+      "clear-session-btn",
+    ) as HTMLButtonElement | null;
     if (clearBtn) {
       clearBtn.addEventListener("click", () => {
         clearAuth();

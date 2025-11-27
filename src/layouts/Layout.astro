@@ -125,27 +125,13 @@ const {
             </div>
         </div>
 
-        {
-            !["/", "/login", "/signup", "/pricing"].includes(
-                Astro.url.pathname,
-            ) && <Sidebar />
-        }
+        <Sidebar />
 
         <VulneraBot client:load />
 
         <div
             id="vt-content"
-            class:list={[
-                "vt-content",
-                {
-                    "main-content-wrapper": ![
-                        "/",
-                        "/login",
-                        "/signup",
-                        "/pricing",
-                    ].includes(Astro.url.pathname),
-                },
-            ]}
+            class="vt-content"
             style="opacity:0"
             aria-hidden="true"
         >
@@ -356,8 +342,15 @@ const {
 
             // Only start auto-refresh on authenticated pages
             if (typeof window !== "undefined") {
-                const publicPaths = ["/", "/login", "/signup", "/pricing", "/vulnera-ai"];
-                const currentPath = window.location.pathname.replace(/\/$/, "") || "/";
+                const publicPaths = [
+                    "/",
+                    "/login",
+                    "/signup",
+                    "/pricing",
+                    "/vulnera-ai",
+                ];
+                const currentPath =
+                    window.location.pathname.replace(/\/$/, "") || "/";
 
                 // Don't start refresh on public pages
                 if (!publicPaths.includes(currentPath)) {

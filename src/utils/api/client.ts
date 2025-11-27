@@ -29,9 +29,9 @@ function normalizeHeaders(init?: HeadersInit): Record<string, string> {
 
     return { ...init };
 }
-
-export interface ApiResponse<T = any> {
-    ok: boolean;
+interface ApiResponse<T = any> {
+    success?: boolean;
+    ok?: boolean;
     status: number;
     data?: T;
     error?: any;
@@ -68,14 +68,18 @@ export async function apiFetch<T = any>(
     opts: RequestInit = {},
 ): Promise<ApiResponse<T>> {
     const method = (opts.method || "GET").toUpperCase();
-    const isMutating = ["POST", "PUT", "PATCH", "DELETE"].includes(method);
+    // Do NOT use CSRF for login and register
+    const skipCsrf = url.includes("/auth/login") || url.includes("/auth/register");
+
+    const isMutating = ["POST", "PUT", "PATCH", "DELETE"].includes(method) && !skipCsrf;
+
 
     const headers = {
         ...normalizeHeaders(opts.headers),
         Accept: "application/json",
     } as Record<string, string>;
 
-    if (isMutating) {
+    if (isMutating && !skipCsrf) {
         let csrfToken = getCsrfToken();
 
         // If we don't have a CSRF token for a mutating request, try to get one via refresh
@@ -128,7 +132,7 @@ export async function apiFetch<T = any>(
         extractAndStoreAuthData(res, data);
 
         // Handle 401 Unauthorized (Token Expired)
-        if (res.status === 401) {
+        if (res.status === 401 && !skipCsrf) {
             logger.debug("Received 401, attempting token refresh");
 
             // Use the centralized refresh logic (mutex protected)
@@ -184,6 +188,18 @@ export async function apiFetch<T = any>(
             data = retryData;
         }
 
+        // Handle 403 Forbidden (Permission/Role lost - user should logout)
+        if (res.status === 403 && !skipCsrf) {
+            logger.warn(`Access forbidden to ${method} ${url} - user permissions changed`);
+            clearAuth();
+
+            if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
+                window.location.replace("/login?reason=forbidden");
+            }
+
+            return { ok: false, status: 403, error: "Access forbidden - please re-authenticate" };
+        }
+
         if (!res.ok) {
             logger.warn(`API Request failed: ${method} ${url}`, {
                 status: res.status,
@@ -212,8 +228,10 @@ export const apiClient = {
     post: <T = any>(url: string, body?: any) =>
         apiFetch<T>(url, {
             method: "POST",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(body || {}),
         }),
+
     put: <T = any>(url: string, body?: any) =>
         apiFetch<T>(url, {
             method: "PUT",

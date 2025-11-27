@@ -11,10 +11,7 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
   title="Scan — Vulnera"
   description="Upload manifests or import repositories for scanning."
 >
-  <script>
-    import { setupAuthGuard } from "../utils/auth-guard";
-    setupAuthGuard({ requireAuth: true });
-  </script>
+  <!-- Server-side middleware handles auth -->
 
   <Navigation />
 
@@ -254,7 +251,8 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
               </h3>
             </div>
             <p class="text-xs text-gray-300">
-              Add token in Settings to import private repos. If repo is public ignore this notice.
+              Add token in Settings to import private repos. If repo is public
+              ignore this notice.
             </p>
             <a
               href="/settings#api-keys"
@@ -336,7 +334,7 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
       document.getElementById("btn-reset-files")! as HTMLButtonElement,
       document.getElementById("repo-url")! as HTMLInputElement,
       document.querySelectorAll(".detail-level-btn"),
-      document.querySelectorAll(".analysis-depth-btn")
+      document.querySelectorAll(".analysis-depth-btn"),
     );
 
     // GitHub Token Management
@@ -369,12 +367,13 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
       // Handle analysis depth selection
       scanHandler.addActiveBTNAnalysisClass();
 
-
       scanHandler.renderFiles();
 
       // Drag and drop handlers
       scanHandler.dragAndDropSetup();
-      scanHandler.input?.addEventListener("change", () => scanHandler.handleFiles(scanHandler.input?.files));
+      scanHandler.input?.addEventListener("change", () =>
+        scanHandler.handleFiles(scanHandler.input?.files),
+      );
 
       // RESET_FILES handler
       scanHandler.btnReset?.addEventListener("click", () => {
@@ -384,9 +383,13 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
       });
 
       // START_SCAN handler - Using new /api/v1/dependencies/analyze endpoint
-      scanHandler.btnScan?.addEventListener("click", () => scanHandler.startScan());
+      scanHandler.btnScan?.addEventListener("click", () =>
+        scanHandler.startScan(),
+      );
       // IMPORT_REPO handler - Using new /api/v1/analyze/job endpoint
-      scanHandler.btnImport?.addEventListener("click", () => scanHandler.importRepository());
+      scanHandler.btnImport?.addEventListener("click", () =>
+        scanHandler.importRepository(),
+      );
     }
 
     // Initialize when DOM is ready

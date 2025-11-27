@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { isAuthenticated as isAuthenticatedStore } from '../utils/api/auth-store';
 
 interface Message {
     id: string;
@@ -23,6 +24,25 @@ export default function VulneraBot() {
     const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+    useEffect(() => {
+        // Check for authentication using the centralized store
+        const checkAuth = () => {
+            setIsAuthenticated(isAuthenticatedStore());
+        };
+
+        checkAuth();
+
+        // Listen for storage events to handle login/logout across tabs
+        // This is sufficient - storage events fire whenever auth state changes
+        window.addEventListener('storage', checkAuth);
+
+        return () => {
+            window.removeEventListener('storage', checkAuth);
+        };
+    }, []);
+
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
@@ -30,6 +50,8 @@ export default function VulneraBot() {
     useEffect(() => {
         scrollToBottom();
     }, [messages, isOpen]);
+
+    if (!isAuthenticated) return null;
 
     const handleSendMessage = async (e?: React.FormEvent) => {
         e?.preventDefault();

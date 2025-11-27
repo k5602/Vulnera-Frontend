@@ -1,10 +1,11 @@
 /**
- * Auth Guard Utility
- * Protects pages by checking authentication status and redirecting if needed
+ * Auth Guard Utility — FINAL SAFE VERSION
+ * No auto refresh
+ * No rate-limit hits
+ * Simple, stable, predictable
  */
 
 import { isAuthenticated, getCurrentUser } from './api/auth-store';
-import { refreshAuth } from './api/auth-store';
 
 export interface AuthGuardOptions {
   requireAuth?: boolean;
@@ -12,10 +13,6 @@ export interface AuthGuardOptions {
   redirectTo?: string;
 }
 
-/**
- * Setup auth guard for a page
- * Checks authentication status and redirects if not authenticated
- */
 export async function setupAuthGuard(options: AuthGuardOptions = {}): Promise<void> {
   const {
     requireAuth = true,
@@ -23,83 +20,43 @@ export async function setupAuthGuard(options: AuthGuardOptions = {}): Promise<vo
     redirectTo = '/login'
   } = options;
 
-  // Only run in browser
   if (typeof window === 'undefined') return;
 
-  try {
-    // Try to refresh auth state to get latest data
-    await refreshAuth().catch(() => {
-      // Ignore errors, just continue with current state
-    });
+  // ⚠️ IMPORTANT: Do NOT refresh here (apiClient handles everything)
+  const isAuth = isAuthenticated();
 
-    const user = getCurrentUser();
-    const isAuth = isAuthenticated();
+  // Not logged in?
+  if (requireAuth && !isAuth) {
+    const next = encodeURIComponent(window.location.pathname);
+    window.location.replace(`${redirectTo}?next=${next}`);
+    return;
+  }
 
-    // Check if authentication is required but not present
-    if (requireAuth && !isAuth) {
-      const currentPath = window.location.pathname;
-      window.location.replace(`${redirectTo}?next=${encodeURIComponent(currentPath)}`);
+  // Role check
+  const user = getCurrentUser();
+  if (requireRole.length > 0 && user) {
+    const allowed = requireRole.some(r => user.roles?.includes(r));
+    if (!allowed) {
+      window.location.replace('/unauthorized');
       return;
-    }
-
-    // Check if user has required role
-    if (requireRole.length > 0 && user) {
-      const userRoles = user.roles || [];
-      const hasRequiredRole = requireRole.some(role => userRoles.includes(role));
-
-      if (!hasRequiredRole) {
-        console.warn(`User does not have required role. Required: ${requireRole.join(', ')}, Have: ${userRoles.join(', ')}`);
-        window.location.replace('/unauthorized');
-        return;
-      }
-    }
-  } catch (error) {
-    console.error('Auth guard error:', error);
-    // On error, redirect to login if auth is required
-    if (requireAuth) {
-      window.location.replace(redirectTo);
     }
   }
 }
 
-/**
- * Check if current user is authenticated
- */
-export function checkAuth(): boolean {
-  return isAuthenticated();
-}
+export const checkAuth = () => isAuthenticated();
+export const getAuthUser = () => getCurrentUser();
 
-/**
- * Get current authenticated user
- */
-export function getAuthUser() {
-  return getCurrentUser();
-}
+export const hasRole = (role: string): boolean => {
+  return getCurrentUser()?.roles?.includes(role) ?? false;
+};
 
-/**
- * Check if user has a specific role
- */
-export function hasRole(role: string): boolean {
+export const hasAnyRole = (roles: string[]): boolean => {
   const user = getCurrentUser();
-  if (!user) return false;
-  return (user.roles || []).includes(role);
-}
+  return user ? roles.some(r => user.roles?.includes(r)) : false;
+};
 
-/**
- * Check if user has any of the given roles
- */
-export function hasAnyRole(roles: string[]): boolean {
-  const user = getCurrentUser();
-  if (!user) return false;
-  const userRoles = user.roles || [];
-  return roles.some(role => userRoles.includes(role));
-}
-
-/**
- * Logout user and redirect to login
- */
-export function logout(): void {
-  const { clearAuth } = require('./api/auth-store');
-  clearAuth();
+export async function logout(): Promise<void> {
+  const { authService } = require('./api/auth-service');
+  await authService.logout();
   window.location.replace('/login');
 }
