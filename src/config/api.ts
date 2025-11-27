@@ -101,6 +101,7 @@ export const API_ENDPOINTS = {
         LOGIN: "/api/v1/auth/login",
         REGISTER: "/api/v1/auth/register",
         REFRESH: "/api/v1/auth/refresh",
+        LOGOUT: "/api/v1/auth/logout",
         LIST_API_KEYS: "/api/v1/auth/api-keys",
         CREATE_API_KEY: "/api/v1/auth/api-keys",
         REVOKE_API_KEY: "/api/v1/auth/api-keys/:key_id",

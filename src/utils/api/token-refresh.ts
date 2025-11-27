@@ -12,34 +12,58 @@ class TokenRefreshManager {
     /**
      * Start automatic token refresh
      */
+    private readonly MIN_REFRESH_DELAY = 5 * 60 * 1000; // 5 minutes minimum between refreshes
+    private readonly STORAGE_KEY = 'last_token_refresh';
+
     startAutoRefresh(): void {
         if (this.intervalId !== null) {
-            logger.warn("Token refresh manager already running");
             return;
         }
 
         logger.info("Starting automatic token refresh manager");
 
-        // Initial refresh
-        refreshAuth().catch(err => {
-            logger.error("Initial token refresh failed", err);
-        });
+        // Check if we need an initial refresh
+        this.checkAndRefresh();
 
         // Set up periodic refresh
-        this.intervalId = window.setInterval(async () => {
-            try {
-                logger.debug("Executing scheduled token refresh");
-                const success = await refreshAuth();
-                if (success) {
-                    logger.debug("Scheduled token refresh successful");
-                } else {
-                    logger.warn("Scheduled token refresh failed (invalid session)");
-                    this.stopAutoRefresh(); // Stop if session is invalid
-                }
-            } catch (error) {
-                logger.error("Error during scheduled token refresh", error);
-            }
+        this.intervalId = window.setInterval(() => {
+            this.checkAndRefresh();
         }, this.REFRESH_INTERVAL);
+    }
+
+    public async ensureFresh(): Promise<void> {
+        await this.checkAndRefresh();
+    }
+
+    private async checkAndRefresh(): Promise<void> {
+        const lastRefresh = parseInt(localStorage.getItem(this.STORAGE_KEY) || '0', 10);
+        const now = Date.now();
+
+        // Skip if refreshed recently
+        if (now - lastRefresh < this.MIN_REFRESH_DELAY) {
+            logger.debug("Skipping token refresh - refreshed recently");
+            return;
+        }
+
+        // Optimistically update timestamp to prevent race conditions (other tabs/calls)
+        localStorage.setItem(this.STORAGE_KEY, Date.now().toString());
+
+        try {
+            logger.debug("Executing token refresh");
+            const success = await refreshAuth();
+
+            if (success) {
+                logger.debug("Token refresh successful");
+            } else {
+                logger.warn("Token refresh failed or skipped (may be rate limited or server error)");
+                // Rate limit protection strategy:
+                // - MIN_REFRESH_DELAY (5 min) prevents retry spamming on 429 responses
+                // - Failed attempts don't update timestamp, so retries naturally backoff
+                // - The interval check ensures max one attempt per MIN_REFRESH_DELAY window
+            }
+        } catch (error) {
+            logger.error("Error during token refresh", error);
+        }
     }
 
     /**

@@ -123,13 +123,29 @@ export async function refreshAuth(): Promise<boolean> {
         try {
             const fullUrl = `${API_CONFIG.BASE_URL}/api/v1/auth/refresh`;
 
+            const headers: Record<string, string> = {
+                Accept: "application/json"
+            };
+
+            // Attach CSRF token if available
+            const csrfToken = getCsrfToken();
+            if (csrfToken) {
+                headers["X-CSRF-Token"] = csrfToken;
+            }
+
             const res = await fetch(fullUrl, {
                 method: "POST",
                 credentials: "include",
-                headers: { Accept: "application/json" },
+                headers,
             });
 
             if (!res.ok) {
+                // Don't clear auth on 429 (Rate Limit) or 5xx (Server Error)
+                if (res.status === 429 || res.status >= 500) {
+                    console.warn(`Token refresh failed with status ${res.status}, keeping current session`);
+                    return false;
+                }
+
                 clearAuth();
                 return false;
             }
@@ -142,7 +158,7 @@ export async function refreshAuth(): Promise<boolean> {
             return true;
         } catch (error) {
             console.error("Token refresh failed:", error);
-            clearAuth();
+            // Don't clear auth on network errors (offline, etc)
             return false;
         } finally {
             // Reset the promise so subsequent calls can trigger a new refresh

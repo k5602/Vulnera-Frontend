@@ -9,31 +9,28 @@ import Logo from "./Logo.astro";
 >
     <div class="max-w-7xl mx-auto flex justify-between items-center">
         <div class="flex items-center gap-4">
-            <!-- Burger Menu Toggle Button (Hidden on landing page and screens >= 1536px) -->
-            {
-                Astro.url.pathname !== "/" && (
-                    <button
-                        id="menu-toggle"
-                        class="2xl:hidden text-cyber-400 hover:text-cyber-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyber-400 rounded p-2"
-                        aria-label="Toggle menu"
-                        aria-expanded="false"
-                    >
-                        <svg
-                            class="w-6 h-6"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            viewBox="0 0 24 24"
-                        >
-                            <line x1="3" y1="12" x2="21" y2="12" />
-                            <line x1="3" y1="6" x2="21" y2="6" />
-                            <line x1="3" y1="18" x2="21" y2="18" />
-                        </svg>
-                    </button>
-                )
-            }
+            <!-- Burger Menu Toggle Button (Visible on mobile lg:hidden) -->
+            <button
+                id="menu-toggle"
+                class="lg:hidden text-cyber-400 hover:text-cyber-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyber-400 rounded p-2 transition-colors"
+                aria-label="Toggle menu"
+                aria-expanded="false"
+            >
+                <svg
+                    class="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    viewBox="0 0 24 24"
+                >
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+            </button>
+
             <a
                 href="/"
                 class="flex items-center gap-2 group focus:outline-none"
@@ -47,73 +44,131 @@ import Logo from "./Logo.astro";
             </a>
         </div>
 
-        <!-- Public Navigation Links -->
-        {
-            (["/", "/login", "/signup", "/pricing"].includes(
-                Astro.url.pathname,
-            ) ||
-                Astro.url.pathname.startsWith("/docs")) && (
-                <div class="flex items-center gap-6">
-                    <a
-                        href="/pricing"
-                        class="text-matrix-300 hover:text-cyber-400 font-mono text-sm tracking-wider transition-colors duration-300 relative group"
-                    >
-                        <span class="relative z-10">PRICING</span>
-                        <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-cyber-400 transition-all duration-300 group-hover:w-full" />
-                    </a>
-                    <a
-                        href="/docs"
-                        class="text-matrix-300 hover:text-cyber-400 font-mono text-sm tracking-wider transition-colors duration-300 relative group"
-                    >
-                        <span class="relative z-10">DOCS</span>
-                        <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-cyber-400 transition-all duration-300 group-hover:w-full" />
-                    </a>
-                    <a
-                        href="/login"
-                        class="text-matrix-300 hover:text-cyber-400 font-mono text-sm tracking-wider transition-colors duration-300 relative group"
-                    >
-                        <span class="relative z-10">LOGIN</span>
-                        <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-cyber-400 transition-all duration-300 group-hover:w-full" />
-                    </a>
-                </div>
-            )
-        }
+        <!-- Navigation Links (Hidden on mobile, visible on desktop lg:flex) -->
+        <div class="hidden lg:flex items-center gap-6">
+            <!-- Guest Only Links -->
+            <a
+                href="/pricing"
+                class="nav-guest-only text-matrix-300 hover:text-cyber-400 font-mono text-sm tracking-wider transition-colors duration-300 relative group"
+            >
+                <span class="relative z-10">PRICING</span>
+                <span
+                    class="absolute bottom-0 left-0 w-0 h-0.5 bg-cyber-400 transition-all duration-300 group-hover:w-full"
+                ></span>
+            </a>
+
+            <!-- Shared Links -->
+            <a
+                href="/docs"
+                class="text-matrix-300 hover:text-cyber-400 font-mono text-sm tracking-wider transition-colors duration-300 relative group"
+            >
+                <span class="relative z-10">DOCS</span>
+                <span
+                    class="absolute bottom-0 left-0 w-0 h-0.5 bg-cyber-400 transition-all duration-300 group-hover:w-full"
+                ></span>
+            </a>
+
+            <a
+                href="/login"
+                class="nav-guest-only text-matrix-300 hover:text-cyber-400 font-mono text-sm tracking-wider transition-colors duration-300 relative group"
+            >
+                <span class="relative z-10">LOGIN</span>
+                <span
+                    class="absolute bottom-0 left-0 w-0 h-0.5 bg-cyber-400 transition-all duration-300 group-hover:w-full"
+                ></span>
+            </a>
+
+            <!-- Auth Only Links -->
+            <a
+                href="/dashboard"
+                class="nav-auth-only hidden text-matrix-300 hover:text-cyber-400 font-mono text-sm tracking-wider transition-colors duration-300 relative group"
+            >
+                <span class="relative z-10">DASHBOARD</span>
+                <span
+                    class="absolute bottom-0 left-0 w-0 h-0.5 bg-cyber-400 transition-all duration-300 group-hover:w-full"
+                ></span>
+            </a>
+            <a
+                href="/scan"
+                class="nav-auth-only hidden text-matrix-300 hover:text-cyber-400 font-mono text-sm tracking-wider transition-colors duration-300 relative group"
+            >
+                <span class="relative z-10">SCAN</span>
+                <span
+                    class="absolute bottom-0 left-0 w-0 h-0.5 bg-cyber-400 transition-all duration-300 group-hover:w-full"
+                ></span>
+            </a>
+            <a
+                href="/settings"
+                class="nav-auth-only hidden text-matrix-300 hover:text-cyber-400 font-mono text-sm tracking-wider transition-colors duration-300 relative group"
+            >
+                <span class="relative z-10">SETTINGS</span>
+                <span
+                    class="absolute bottom-0 left-0 w-0 h-0.5 bg-cyber-400 transition-all duration-300 group-hover:w-full"
+                ></span>
+            </a>
+            <button
+                id="nav-logout-btn"
+                class="nav-auth-only hidden text-red-400 hover:text-red-300 font-mono text-sm tracking-wider transition-colors duration-300 relative group"
+            >
+                <span class="relative z-10">LOGOUT</span>
+                <span
+                    class="absolute bottom-0 left-0 w-0 h-0.5 bg-red-400 transition-all duration-300 group-hover:w-full"
+                ></span>
+            </button>
+        </div>
     </div>
 </nav>
 
 <script>
+    import { authService } from "../utils/api/index";
+
     // Mobile sidebar toggle
     const toggleBtn = document.getElementById("menu-toggle");
-    const sidebar = document.getElementById("sidebar");
 
+    // Dispatch event for Sidebar component to handle
     function toggleMobileSidebar() {
-        if (window.innerWidth < 1536) {
-            sidebar?.classList.toggle("mobile-open");
-            const isOpen = sidebar?.classList.contains("mobile-open");
-            toggleBtn?.setAttribute("aria-expanded", isOpen ? "true" : "false");
-        }
+        window.dispatchEvent(new CustomEvent("toggle-mobile-sidebar"));
+        const isOpen = document
+            .getElementById("sidebar")
+            ?.classList.contains("mobile-open");
+        toggleBtn?.setAttribute("aria-expanded", isOpen ? "true" : "false");
     }
 
     if (toggleBtn) {
         toggleBtn.addEventListener("click", toggleMobileSidebar);
     }
 
-    // Close sidebar when clicking outside on mobile
-    document.addEventListener("click", (e) => {
-        if (
-            window.innerWidth < 1536 &&
-            sidebar?.classList.contains("mobile-open") &&
-            !sidebar.contains(e.target as Node) &&
-            !toggleBtn?.contains(e.target as Node)
-        ) {
-            sidebar?.classList.remove("mobile-open");
-            toggleBtn?.setAttribute("aria-expanded", "false");
+    // Update navigation visibility based on auth state
+    function updateNavVisibility() {
+        const authElements = document.querySelectorAll(".nav-auth-only");
+        const guestElements = document.querySelectorAll(".nav-guest-only");
+        const isLoggedIn = authService.isAuthenticated();
+
+        if (isLoggedIn) {
+            authElements.forEach((el) => el.classList.remove("hidden"));
+            guestElements.forEach((el) => el.classList.add("hidden"));
+        } else {
+            authElements.forEach((el) => el.classList.add("hidden"));
+            guestElements.forEach((el) => el.classList.remove("hidden"));
         }
-    });
+    }
+
+    // Logout handler
+    async function handleLogout() {
+        await authService.logout();
+        window.location.href = "/login";
+    }
+
+    const logoutBtn = document.getElementById("nav-logout-btn");
+    if (logoutBtn) {
+        logoutBtn.addEventListener("click", handleLogout);
+    }
+
+    // Initialize
+    updateNavVisibility();
 
     // Listen for storage changes (multi-tab sync)
     window.addEventListener("storage", () => {
-        // Reload to update auth state
-        location.reload();
+        updateNavVisibility();
     });
 </script>

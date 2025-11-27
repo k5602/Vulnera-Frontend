@@ -6,7 +6,6 @@ const PUBLIC_PAGES = [
   '/signup',
   '/orgsignup',
   '/docs',
-  '/pricing',
 ];
 
 export const onRequest = defineMiddleware((context, next) => {
@@ -19,16 +18,18 @@ export const onRequest = defineMiddleware((context, next) => {
 
   if (!isPublicPage) {
     // Protected route - verify authentication
-    const token = context.cookies.get('auth_token');
+    // Check for access_token (JWT) or other session cookies
+    const cookieHeader = context.request.headers.get('cookie') || '';
 
-    if (!token?.value) {
-      // No token found - redirect to login
+    // Simple check if access_token exists in cookies
+    const hasToken = cookieHeader.includes('access_token=');
+
+    if (!hasToken) {
+      console.log('[Middleware] No access_token found, redirecting to login');
       return context.redirect(
         `/login?next=${encodeURIComponent(pathname)}`
       );
     }
-
-    // TODO: Add server-side token validation against backend
   }
 
   return next();
