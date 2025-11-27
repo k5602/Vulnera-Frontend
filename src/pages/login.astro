@@ -232,11 +232,40 @@ export const prerender = false;
           localStorage.setItem("last_token_refresh", Date.now().toString());
         }
 
+        const organizations = await apiClient.get("api/v1/organizations");
+        let isInOrg = false;
+
+        if (organizations.ok) {
+          const orgList = organizations.data.organizations;
+
+          for (let i in orgList) {
+            const ownerId = orgList[i].owner_id;
+            if (ownerId == res.data.user_id) {
+              isInOrg = true;
+              break;
+            }
+            
+          }
+          // Store organizations in localStorage
+          // localStorage.setItem(
+          //   "user_organizations",
+          //   JSON.stringify(organizations.data || []),
+          // );
+        }
+
         showSuccess("Login successful! Redirecting...");
 
-        const next =
-          new URLSearchParams(window.location.search).get("next") ||
-          "/dashboard";
+        let next;
+
+        if (isInOrg) {
+          next =
+            new URLSearchParams(window.location.search).get("next") ||
+            "/orgdashboard";          
+        } else {
+          next =
+            new URLSearchParams(window.location.search).get("next") ||
+            "/dashboard";
+        }
         window.location.replace(next);
       });
     }

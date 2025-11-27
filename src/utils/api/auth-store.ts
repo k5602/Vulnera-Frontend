@@ -48,6 +48,7 @@ export function getCsrfToken(): string {
     if (!csrfTokenStore && !initialized) {
         initializeFromStorage();
     }
+    console.log("Retrieved CSRF Token:", csrfTokenStore);
     return csrfTokenStore;
 }
 

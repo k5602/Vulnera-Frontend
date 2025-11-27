@@ -57,7 +57,7 @@ import Footer from "../components/Footer.astro";
           <nav
             class="md:w-56 lg:w-64 border-r border-matrix-500/30 bg-black/40"
           >
-            <ul class="py-4">
+            <ul id="nav-list" class="py-4">
               <li>
                 <button
                   class="settings-tab w-full text-left px-6 py-3 font-mono text-sm transition-all duration-200 hover:bg-cyber-400/10 hover:border-l-4 hover:border-cyber-400"
@@ -66,6 +66,17 @@ import Footer from "../components/Footer.astro";
                   <span class="flex items-center gap-2">
                     <span>🔑</span>
                     <span>API Keys</span>
+                  </span>
+                </button>
+              </li>
+              <li>
+                <button
+                  class="settings-tab w-full text-left px-6 py-3 font-mono text-sm transition-all duration-200 hover:bg-cyber-400/10 hover:border-l-4 hover:border-cyber-400"
+                  data-tab="create-org"
+                >
+                  <span class="flex items-center gap-2">
+                    <span>🏢</span>
+                    <span>Create Organization</span>
                   </span>
                 </button>
               </li>
@@ -226,6 +237,120 @@ import Footer from "../components/Footer.astro";
                 </div>
               </div>
             </div>
+
+            <!-- Create Organization Tab -->
+            <div id="create-org">
+              <div id="create-org-tab" class="tab-content hidden">
+                <h2 class="text-2xl font-bold text-cyber-400 mb-6 font-mono">
+                  Create Organization
+                </h2>
+                <div class="space-y-6">
+                  <div
+                    class="bg-cyber-900/10 border border-cyber-500/30 rounded-lg p-4"
+                  >
+                    <h3 class="text-lg font-bold text-cyber-300 mb-4 font-mono">
+                      Organization Setup
+                    </h3>
+                    <p class="text-sm text-gray-400 mb-4">
+                      Create an organization to manage multiple users and
+                      projects.
+                    </p>
+                    <button
+                      id="create-organization"
+                      class="w-full bg-cyber-500/20 hover:bg-cyber-500/30 text-cyber-400 font-bold py-2 px-4 rounded transition-all duration-300 font-mono text-sm"
+                    >
+                      🏢 Create Organization
+                    </button>
+                  </div>
+              </div>
+            </div>
+
+            <!-- Organization Settings Tab -->
+            <div id="org-settings">
+              <div id="org-settings-tab" class="tab-content hidden">
+                <h2 class="text-2xl font-bold text-orange-400 mb-6 font-mono">
+                  Organization Settings
+                </h2>
+                <div class="space-y-6">
+                  <div
+                    class="bg-orange-900/10 border border-orange-500/30 rounded-lg p-4"
+                  >
+                    <h3 class="text-lg font-bold text-orange-500 mb-1 font-mono">
+                      Organization Data
+                    </h3>
+                    <p class="text-sm text-orange-300 mb-4">
+                      Manage your organization's settings and preferences.
+                    </p>
+                    <p>
+                      <strong class="text-orange-500 mb-1">Organization Name:</strong>
+                      <input type="text"
+                      class="w-full mb-1 px-4 py-3 rounded-lg bg-black/60 border border-orange-400/30 focus:border-orange-400 focus:ring-2 focus:ring-orange-400 text-white placeholder-gray-500"
+                      id="org-name-display"
+                      value="Loading...">
+                    </p>
+                    <button
+                      id="change-name"
+                      class="w-full bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 font-bold py-2 px-4 rounded transition-all duration-300 font-mono text-sm"
+                    >
+                      🏢 Change Organization Name
+                    </button>
+                  </div>
+                  <!-- Divider -->
+                  <div class="border-t border-matrix-500/30 my-6"></div>
+                  <p class="text-lg text-cyber-400 mb-4">Invite Member</p>
+                      <input type="text"
+                      class="w-full px-4 py-3 rounded-lg bg-black/60 border border-cyber-400/30 focus:border-cyber-400 focus:ring-2 focus:ring-cyber-400 text-white placeholder-gray-500"
+                      id="invite-member-input"
+                      placeholder="Enter Member ID">
+                    <button
+                      id="invite-member"
+                      class="w-full bg-cyber-500/20 hover:bg-cyber-500/30 text-cyber-400 font-bold py-2 px-4 rounded transition-all duration-300 font-mono text-sm"
+                    >
+                      📧 Invite Member
+                    </button>
+                  <p class="text-lg text-cyber-400 mb-4">Transfer Organization Ownership</p>
+                      <input type="text"
+                      class="w-full px-4 py-3 rounded-lg bg-black/60 border border-cyber-400/30 focus:border-cyber-400 focus:ring-2 focus:ring-cyber-400 text-white placeholder-gray-500"
+                      id="transfer-ownership-input"
+                      placeholder="Enter New Owner ID">
+
+                    <button
+                      id="transfer-ownership"
+                      class="w-full bg-cyber-500/20 hover:bg-cyber-500/30 text-cyber-400 font-bold py-2 px-4 rounded transition-all duration-300 font-mono text-sm"
+                    >
+                      🔄 Transfer Ownership
+                    </button>
+                    <!-- Divider -->
+                  <div class="border-t border-matrix-500/30 my-6"></div>
+                  <p class="text-lg text-red-400 mb-4">Remove Member</p>
+                      <input type="text"
+                      class="w-full px-4 py-3 rounded-lg bg-black/60 border border-red-400/30 focus:border-red-400 focus:ring-2 focus:ring-red-400 text-white placeholder-gray-500"
+                      id="remove-member-input"
+                      placeholder="Enter Member ID">
+                    <button
+                      id="remove-member"
+                      class="w-full bg-red-500/20 hover:bg-red-500/30 text-red-400 font-bold py-2 px-4 rounded transition-all duration-300 font-mono text-sm"
+                    >
+                      ❌ Remove Member
+                    </button>
+                  <p class="text-lg text-red-400 mb-1">Leave Organization</p>
+                  <p class="text-sm text-red-200 mb-4">if you are the owner of the organization the organization will be permanently deleted after your exit. To prevent that transfer ownership before leaving</p>
+                    <button
+                      id="leave-organization"
+                      class="w-full bg-red-500/20 hover:bg-red-500/30 text-red-400 font-bold py-2 px-4 rounded transition-all duration-300 font-mono text-sm"
+                    >
+                      🚪 Leave Organization
+                    </button>
+                  <p class="text-lg text-red-400 mb-4">Delete Organization</p>
+                    <button
+                      id="delete-organization"
+                      class="w-full bg-red-500/20 hover:bg-red-500/30 text-red-400 font-bold py-2 px-4 rounded transition-all duration-300 font-mono text-sm"
+                    >
+                      🗑️ Delete Organization
+                    </button>
+              </div>
+            </div>
+            
             <!-- Debug Tools Tab -->
             <div id="debug-tab" class="tab-content hidden">
               <h2 class="text-2xl font-bold text-cyan-400 mb-6 font-mono">
@@ -466,10 +591,76 @@ import Footer from "../components/Footer.astro";
         "../utils/cookies"
       );
       const { logger } = await import("../utils/logger");
+      const { Settings } = await import("../modules/settings");
+
+      const { organization } = await import("../modules/orgData");
+
+      if (organization.isOrganization) {
+        const navList = document.getElementById("nav-list");
+        const orgSettingTab = document.createElement("li");
+        orgSettingTab.innerHTML = `
+                <button
+                  class="settings-tab w-full text-left px-6 py-3 font-mono text-sm transition-all duration-200 hover:bg-cyber-400/10 hover:border-l-4 hover:border-cyber-400"
+                  data-tab="org-settings"
+                >
+                  <span class="flex items-center gap-2">
+                    <span>⚙️</span>
+                    <span>Organization Settings</span>
+                  </span>
+                </button>
+              `;
+        navList?.replaceChild(orgSettingTab, navList.children[1]);
+      }
+      const settingsHandler = new Settings();
 
       // Tab switching functionality
       const tabButtons = document.querySelectorAll(".settings-tab");
       const tabContents = document.querySelectorAll(".tab-content");
+      const createOrgBtn = document.getElementById('create-organization') as HTMLAnchorElement;
+      const changeName = document.getElementById('change-name') as HTMLAnchorElement;
+      const changeNameValue = document.getElementById('org-name-display') as HTMLInputElement;
+      const inviteMember = document.getElementById('invite-member') as HTMLAnchorElement;
+      const inviteMemberInput = document.getElementById('invite-member-input') as HTMLInputElement;
+      const transferOwnership = document.getElementById('transfer-ownership') as HTMLAnchorElement;
+      const transferOwnershipInput = document.getElementById('transfer-ownership-input') as HTMLInputElement;
+      const removeMember = document.getElementById('remove-member') as HTMLAnchorElement;
+      const removeMemberInput = document.getElementById('remove-member-input') as HTMLInputElement;
+      const leaveOrganization = document.getElementById('leave-organization') as HTMLAnchorElement;
+      const deleteOrganization = document.getElementById('delete-organization') as HTMLAnchorElement;
+
+      changeNameValue.value = settingsHandler.orgData.orgName;
+
+      createOrgBtn.addEventListener('click', () => {
+        // window.location.href = '/orgsignup';
+        organization.trueIsOrganization();
+        console.log(organization.isOrganization);
+        window.location.reload();
+      });
+
+      changeName.addEventListener('click', () => {
+        settingsHandler.changeOrgName(changeNameValue.value);
+      });
+
+      inviteMember.addEventListener('click', () => {
+        settingsHandler.inviteMember(inviteMemberInput.value);
+      });
+
+      transferOwnership.addEventListener('click', () => {
+        settingsHandler.transferOwnership(transferOwnershipInput.value);
+      });
+
+      removeMember.addEventListener('click', () => {
+        settingsHandler.removeMember(removeMemberInput.value);
+      });
+
+      leaveOrganization.addEventListener('click', () => {
+        settingsHandler.leaveOrganization();
+      });
+
+      deleteOrganization.addEventListener('click', () => {
+        settingsHandler.deleteOrganization();
+      });
+
 
       function switchTab(tabName: string) {
         // Hide all tabs
@@ -525,6 +716,8 @@ import Footer from "../components/Footer.astro";
         hash &&
         [
           "api-keys",
+          "create-org",
+          "org-settings",
           "debug",
         ].includes(hash)
       ) {

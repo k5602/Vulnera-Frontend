@@ -7,9 +7,9 @@ export const prerender = false;
 
 <Layout title="Dashboard — Vulnera" description="Overview of reports, projects, and recent activity.">
   <script>
-    // import { setupAuthGuard } from '../utils/auth-guard';
+    import { setupAuthGuard } from '../utils/auth-guard';
     import { organization } from '../modules/orgData.js';
-    // setupAuthGuard({ requireAuth: true });
+    setupAuthGuard({ requireAuth: true });
     const subtitleEl = document.getElementById('dash-subtitle') as HTMLElement;
     subtitleEl.innerHTML = `ORGANIZATION_NAME: ${organization.orgName || 'N/A' } ||
                             DESCRIPTION: ${organization.orgDescription || 'N/A'} ||
@@ -150,10 +150,10 @@ export const prerender = false;
   <Footer />
 
   <script>
-    import { DashboardHandler } from '../modules/dashboard';
+    import { OrgDashboardHandler } from '../modules/dashboard';
     // Public dashboard: no auth guard
 
-    const dashboardHandler = new DashboardHandler(
+    const dashboardHandler = new OrgDashboardHandler(
       document.getElementById('criticalFindings')!,
       document.getElementById('highFindings')!,
       document.getElementById('mediumFindings')!,

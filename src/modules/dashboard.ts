@@ -1,5 +1,6 @@
+import { apiClient } from '../utils/index.js';
 import { organization } from './orgData.js';
-export class DashboardHandler {
+export class OrgDashboardHandler {
     criticalElement: HTMLElement;
     highElement: HTMLElement;
     medElement: HTMLElement;
@@ -12,11 +13,11 @@ export class DashboardHandler {
     ecoSelect: HTMLSelectElement;
 
 
-    renderOverview(o: any) {
-      if (this.criticalElement) this.criticalElement.textContent = String(o.reportsTotal ?? 0);
-      if (this.highElement) this.highElement.textContent = String(o.projectsAnalyzed ?? 0);
-      if (this.medElement) this.medElement.textContent =  String(o.vulnerableProjects ?? 0);
-      if (this.lowElement) this.lowElement.textContent = String(o.lastScanAt ?? 0);
+    renderOverview(data: any) {
+      if (this.criticalElement) this.criticalElement.textContent = String(data.critical_findings ?? 0);
+      if (this.highElement) this.highElement.textContent = String(data.high_findings ?? 0);
+      if (this.medElement) this.medElement.textContent =  String(data.medium_findings ?? 0);
+      if (this.lowElement) this.lowElement.textContent = String(data.low_findings ?? 0);
     }
 
     renderMonthActivity(list: any[]) {
@@ -121,39 +122,63 @@ export class DashboardHandler {
     }
 
     async loadReportsAndProjects() {
-      console.log("Loading reports and projects...");
       // loading scan history is to be implemented
       let scanHistory: any[] = [];
+      
+      let totalScan = 0;
+      let totalVuln = 0;
+      let apiCallsMth = 0;
+      let criticalFindings = 0;
+      let highFindings = 0;
+      let mediumFindings = 0;
+      let lowFindings = 0;
+      
+      try{
+        const res = await apiClient.get(`/api/v1/organizations/${organization.orgId}/stats`);
 
+        if (res.ok) {
+          const data = res.data;
+          totalScan = data.total_scans;
+          totalVuln = data.total_findings;
+          apiCallsMth = data.api_calls_this_month;
+          criticalFindings = data.critical_findings;
+          highFindings = data.high_findings;
+          mediumFindings = data.medium_findings;
+          lowFindings = data.low_findings;
+        }
+      } catch (e) {
+        console.error("Failed to load organization stats:", e);
+      }
       // Calculate overview stats
-      const reportsTotal = scanHistory.length;
-      const projectsAnalyzed = new Set(scanHistory.map(s => s.project || 'File Upload')).size;
-      const vulnerableProjects = scanHistory.filter(s => (s.vulnerabilities || 0) > 0).length;
-      const lastScan = scanHistory[0];
-      const lastScanAt = lastScan ? new Date(lastScan.timestamp).toLocaleString() : '--';
-
-      const overview = { 
-        reportsTotal, 
-        projectsAnalyzed, 
-        vulnerableProjects, 
-        lastScanAt 
+      
+      const overviewMonth = { 
+        totalScan, 
+        totalVuln, 
+        apiCallsMth
       };
 
+      const overviewStatus = {
+        criticalFindings,
+        highFindings,
+        mediumFindings,
+        lowFindings
+      }
+
       // Transform scan history to reports format
-      const reports = scanHistory.map(scan => {
-        const severity = scan.critical > 0 ? 'critical' 
-                      : scan.high > 0 ? 'high'
-                      : scan.medium > 0 ? 'medium'
-                      : scan.low > 0 ? 'low'
-                      : 'none';
-        return {
-          id: scan.id,
-          project: scan.project || `Files (${scan.filesCount || 0})`,
-          severity: severity,
-          issues: scan.vulnerabilities || 0,
-          createdAt: scan.timestamp
-        };
-      });
+      // const reports = scanHistory.map(scan => {
+      //   const severity = scan.critical > 0 ? 'critical' 
+      //                 : scan.high > 0 ? 'high'
+      //                 : scan.medium > 0 ? 'medium'
+      //                 : scan.low > 0 ? 'low'
+      //                 : 'none';
+      //   return {
+      //     id: scan.id,
+      //     project: scan.project || `Files (${scan.filesCount || 0})`,
+      //     severity: severity,
+      //     issues: scan.vulnerabilities || 0,
+      //     createdAt: scan.timestamp
+      //   };
+      // });
 
       // Group by project for projects view
       const projectsMap: any = {};
@@ -195,11 +220,11 @@ export class DashboardHandler {
   // Apply filters (client-side) to reports/projects
       const filteredProjects = projects.filter((p:any) => (this.ecoSelect.value === 'all' ? true : p.ecosystem === this.ecoSelect.value));
 
-      this.renderOverview(overview);
+      this.renderOverview(overviewStatus);
       this.renderMonthActivity([
-        `Total Scans: ${overview.reportsTotal}`,
-        `Total Vulnerabilities: ${overview.projectsAnalyzed}`,
-        `API calls this month: ${overview.vulnerableProjects}`,
+        `Total Scans: ${overviewMonth.totalScan}`,
+        `Total Vulnerabilities: ${overviewMonth.totalVuln}`,
+        `API calls this month: ${overviewMonth.apiCallsMth}`,
       ]);
       this.renderProjects(filteredProjects);
       this.renderChartData(trend);

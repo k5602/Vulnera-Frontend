@@ -262,7 +262,7 @@ const ecosystems = [
                                 d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
                         </svg>
                     </a>
-                    <a href="/orgsignup" target="_self" rel="noopener" class="group inline-flex items-center justify-center bg-gradient-to-r from-cyber-600 to-matrix-600 hover:from-cyber-500 hover:to-matrix-500 text-black px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-bold text-sm sm:text-base lg:text-lg font-mono transition-all duration-300 transform hover:scale-105 terminal-border animate-glow focus:outline-none focus-visible:ring-2 focus-visible:ring-cyber-400" data-astro-prefetch>
+                    <a id="create-organization" href="/signup" target="_self" rel="noopener" class="group inline-flex items-center justify-center bg-gradient-to-r from-cyber-600 to-matrix-600 hover:from-cyber-500 hover:to-matrix-500 text-black px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-bold text-sm sm:text-base lg:text-lg font-mono transition-all duration-300 transform hover:scale-105 terminal-border animate-glow focus:outline-none focus-visible:ring-2 focus-visible:ring-cyber-400" data-astro-prefetch>
                         <span class="mr-2">&gt;</span>CREATE_ORGANIZATION
                         <svg class="w-4 h-4 sm:w-5 sm:h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
@@ -625,6 +625,10 @@ const ecosystems = [
 
     <Footer />
     <script>
-        // Redirect logic removed to allow authenticated users to see the landing page
+        import { trueIsOrganization } from "../modules/orgData";
+        const createOrgBtn = document.getElementById('create-organization') as HTMLAnchorElement;
+        createOrgBtn.addEventListener('click', () => {
+            trueIsOrganization();
+        });
     </script>
 </Layout>
