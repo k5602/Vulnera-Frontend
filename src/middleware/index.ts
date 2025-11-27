@@ -5,6 +5,7 @@ const PUBLIC_PAGES = [
   '/login',
   '/signup',
   '/orgsignup',
+  '/orgdashboard',
   '/docs',
   '/pricing',
 ];

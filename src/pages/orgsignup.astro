@@ -243,7 +243,8 @@ import Footer from "../components/Footer.astro";
             };
 
             orgDataHandler.validateInputs();
-            await orgDataHandler.sendSignupRequest();
+            // await orgDataHandler.sendSignupRequest();
+            window.location.replace("/orgdashboard");
         });
     </script>
 </Layout>

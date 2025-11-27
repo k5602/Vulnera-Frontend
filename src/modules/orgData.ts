@@ -1,6 +1,47 @@
 import {message} from './message';
 import { apiClient } from '../utils';
 
+export class OrgData {
+    orgId: string;
+    orgName: string;
+    orgDescription: string;
+    createdAt: string;
+    updatedAt: string;
+    ownerId: string;
+    membersCount: number;
+    tier: string;
+
+    constructor(data: {
+        id: string;
+        name: string;
+        description: string;
+        created_at: string;
+        updated_at: string;
+        owner_id: string;
+        members_count: number;
+        tier: string;
+    }) {
+        this.orgId = data.id;
+        this.orgName = data.name;
+        this.orgDescription = data.description;
+        this.createdAt = data.created_at;
+        this.updatedAt = data.updated_at;
+        this.ownerId = data.owner_id;
+        this.membersCount = data.members_count;
+        this.tier = data.tier;
+    }
+}
+
+let organization: OrgData = new OrgData({
+    id: "",
+    name: "",
+    description: "",
+    created_at: "",
+    updated_at: "",
+    owner_id: "",
+    members_count: 0,
+    tier: "",
+});
 
 export class OrgSignupData {
     formData: {
@@ -79,12 +120,12 @@ export class OrgSignupData {
             email: this.formData.adminEmail,
             password: this.formData.password,
             roles: ["user"]
+        },
+        {
+            "X-API-Key": "my-secure-dehlish-key-6969"
         });
 
-        const orgRes = await apiClient.post("/api/v1/organizations", {
-            description: this.formData.orgDescription,
-            name: this.formData.orgName,
-        });
+        console.log(adminRes);
 
         if (!adminRes.ok) {
             messageHandler.showError(adminRes.data?.message || "Admin Registration failed.");
@@ -92,12 +133,27 @@ export class OrgSignupData {
             this.submitBtn.textContent = "CREATE_ORG";
             return;
         }
+
+        const csrfToken = adminRes.data.csrf_token;
+
+        const orgRes = await apiClient.post("/api/v1/organizations",{
+            description: this.formData.orgDescription,
+            name: this.formData.orgName,
+        },
+        {
+            "X-CSRF-Token": csrfToken,
+        });
+
+        console.log(orgRes);
+
         if (!orgRes.ok) {
             messageHandler.showError(orgRes.data?.message || "Organization creation failed.");
             this.submitBtn.disabled = false;
             this.submitBtn.textContent = "CREATE_ORG";
             return;
         }
+
+        organization = new OrgData(orgRes.data);
 
         messageHandler.showSuccess("Organization created! Redirecting...");
         setTimeout(() => {
@@ -131,3 +187,5 @@ export class OrgSignupData {
         this.toggleConfirmPassword = toggleConfirmPassword;
     }
 }
+
+export { organization };

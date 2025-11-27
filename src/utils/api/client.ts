@@ -77,6 +77,7 @@ export async function apiFetch<T = any>(
 
     if (isMutating) {
         let csrfToken = getCsrfToken();
+        console.log("CSRF Token:", csrfToken);
 
         // If we don't have a CSRF token for a mutating request, try to get one via refresh
         if (!csrfToken) {
@@ -85,7 +86,7 @@ export async function apiFetch<T = any>(
             csrfToken = getCsrfToken();
         }
 
-        if (csrfToken) {
+        if (csrfToken && !headers["X-CSRF-Token"]) {
             headers["X-CSRF-Token"] = csrfToken;
         } else {
             logger.warn("Proceeding with mutating request without CSRF token");
@@ -93,6 +94,10 @@ export async function apiFetch<T = any>(
 
         headers["Content-Type"] = "application/json";
     }
+
+    const customHeaders = normalizeHeaders(opts.headers);
+    Object.assign(headers, customHeaders);
+
 
     // Prevent GET requests from having a body
     if (method === "GET" && opts.body) {
@@ -103,6 +108,11 @@ export async function apiFetch<T = any>(
     const fullUrl = `${API_CONFIG.BASE_URL}${url}`;
 
     try {
+        console.log("API Request",{
+            ...opts,
+            headers,
+            credentials: "include",
+        });
         // First request attempt
         let res = await fetch(fullUrl, {
             ...opts,
@@ -209,9 +219,10 @@ export async function apiFetch<T = any>(
 
 export const apiClient = {
     get: <T = any>(url: string) => apiFetch<T>(url),
-    post: <T = any>(url: string, body?: any) =>
+    post: <T = any>(url: string, body?: any, header?: any) =>
         apiFetch<T>(url, {
             method: "POST",
+            headers: header,
             body: JSON.stringify(body || {}),
         }),
     put: <T = any>(url: string, body?: any) =>
