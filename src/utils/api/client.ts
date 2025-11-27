@@ -29,7 +29,7 @@ function normalizeHeaders(init?: HeadersInit): Record<string, string> {
 
     return { ...init };
 }
-interface ApiResponse<T = any> {
+export interface ApiResponse<T = any> {
     success?: boolean;
     ok?: boolean;
     status: number;

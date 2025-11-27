@@ -81,7 +81,9 @@ export default function VulneraBot() {
             });
 
             if (!response.ok) {
-                throw new Error('Network response was not ok');
+                const errorData = await response.json().catch(() => ({}));
+                console.error("LLM Query failed:", response.status, errorData);
+                throw new Error(errorData.details || errorData.error || errorData.message || 'Network response was not ok');
             }
 
             const data = await response.json();
