@@ -2,7 +2,7 @@
 import { API_CONFIG } from "../../config/api";
 
 export interface CurrentUser {
-    id: number;
+    id: number | string;
     email: string;
     name?: string;
     roles?: string[];
@@ -152,8 +152,20 @@ export async function refreshAuth(): Promise<boolean> {
 
             const data = await res.json().catch(() => null);
 
-            if (data?.csrf) setCsrfToken(data.csrf);
-            if (data?.user) setCurrentUser(data.user);
+            if (data?.csrf || data?.csrf_token) setCsrfToken(data.csrf || data.csrf_token);
+
+            // Handle both nested 'user' object and flat structure
+            if (data?.user) {
+                setCurrentUser(data.user);
+            } else if (data?.user_id || data?.email) {
+                // Map flat structure to CurrentUser
+                setCurrentUser({
+                    id: data.user_id || data.id,
+                    email: data.email,
+                    name: data.name || data.first_name, // fallback
+                    roles: data.roles || []
+                });
+            }
 
             return true;
         } catch (error) {

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { isAuthenticated as isAuthenticatedStore } from '../utils/api/auth-store';
+import { apiClient } from '../utils/api/client';
 
 interface Message {
     id: string;
@@ -8,6 +9,11 @@ interface Message {
     sender: 'user' | 'bot';
     references?: string[];
     timestamp: Date;
+}
+
+interface LLMResponse {
+    answer: string;
+    references?: string[];
 }
 
 export default function VulneraBot() {
@@ -68,40 +74,41 @@ export default function VulneraBot() {
         setInputValue('');
         setIsLoading(true);
 
+
+
         try {
-            const response = await fetch('/api/v1/llm/query', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    context: "User is asking via the web chat interface.",
-                    query: userMessage.text
-                }),
+            // Use apiClient to handle CSRF tokens automatically
+            const response = await apiClient.post<LLMResponse>('/api/v1/llm/query', {
+                context: "User is asking via the web chat interface.",
+                query: userMessage.text
             });
 
             if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                console.error("LLM Query failed:", response.status, errorData);
-                throw new Error(errorData.details || errorData.error || errorData.message || 'Network response was not ok');
+                console.error("LLM Query failed:", response.status, response.error);
+                const errorMsg = response.error?.message ||
+                    response.error?.details ||
+                    response.error?.error ||
+                    response.error?.detail ||
+                    (typeof response.error === 'string' ? response.error : 'Network response was not ok');
+                throw new Error(errorMsg);
             }
 
-            const data = await response.json();
+            const data = (response.data || {}) as Partial<LLMResponse>;
 
             const botMessage: Message = {
                 id: (Date.now() + 1).toString(),
-                text: data.answer || "I apologize, but I could not process your request.",
+                text: data.answer || "I apologize, but I received an invalid response from the server.",
                 sender: 'bot',
-                references: data.references,
+                references: data.references || [],
                 timestamp: new Date()
             };
 
             setMessages(prev => [...prev, botMessage]);
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error querying LLM:', error);
             const errorMessage: Message = {
                 id: (Date.now() + 1).toString(),
-                text: "System Error: Unable to connect to the server. Please try again later.",
+                text: `System Error: ${error.message || "Unable to connect to the server."}`,
                 sender: 'bot',
                 timestamp: new Date()
             };

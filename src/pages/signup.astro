@@ -331,7 +331,7 @@ import Footer from "../components/Footer.astro";
 
             // Refresh auth state to get CSRF token and user data (if backend creates session)
             try {
-                // refreshAuth may be a no-op if backend doesn't auto-login on register
+                // refreshAuth may be a no-op if backend doesn't auto-login on registerf
                 const success = await refreshAuth();
                 if (success) {
                     localStorage.setItem(

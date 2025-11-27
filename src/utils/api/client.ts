@@ -11,6 +11,7 @@ import {
 } from "../api/auth-store";
 import { API_CONFIG } from "../../config/api";
 import { logger } from "../logger";
+import { getCookie } from "../cookies";
 
 function normalizeHeaders(init?: HeadersInit): Record<string, string> {
     const normalized: Record<string, string> = {};
@@ -51,11 +52,20 @@ function extractAndStoreAuthData(res: Response, data: any): void {
 
         // Extract auth data from response body
         if (data) {
-            if (data.csrf) {
-                setCsrfToken(data.csrf);
+            if (data.csrf || data.csrf_token) {
+                setCsrfToken(data.csrf || data.csrf_token);
             }
+
             if (data.user) {
                 setCurrentUser(data.user);
+            } else if (data.user_id || data.email) {
+                // Map flat structure to CurrentUser
+                setCurrentUser({
+                    id: data.user_id || data.id,
+                    email: data.email,
+                    name: data.name || data.first_name, // fallback
+                    roles: data.roles || []
+                });
             }
         }
     } catch (error) {
@@ -78,6 +88,12 @@ export async function apiFetch<T = any>(
         ...normalizeHeaders(opts.headers),
         Accept: "application/json",
     } as Record<string, string>;
+
+    // Add Authorization header if auth token exists
+    const authToken = getCookie("auth_token");
+    if (authToken) {
+        headers["Authorization"] = `Bearer ${authToken}`;
+    }
 
     if (isMutating && !skipCsrf) {
         let csrfToken = getCsrfToken();

@@ -256,7 +256,7 @@ export default function ScanReport({ data }: { data: ScanReportData }) {
           </div>
           <div className="bg-black/60 rounded-lg p-3 border border-red-600/40">
             <div className="text-red-400">CRITICAL/HIGH</div>
-            <div className="text-red-300 text-xl">{data.summary.critical + data.summary.high}</div>
+            <div className="text-red-300 text-xl">{(data.summary.critical || 0) + (data.summary.high || 0)}</div>
           </div>
         </div>
         <div className="mt-3 text-xs text-gray-400 font-mono">Duration: {fmtDuration}</div>

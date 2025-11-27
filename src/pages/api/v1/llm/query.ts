@@ -27,7 +27,7 @@ export const POST: APIRoute = async ({ request }) => {
         if (llmUrl.includes(currentUrl.host) && llmUrl.endsWith(currentUrl.pathname)) {
             return new Response(JSON.stringify({
                 error: "Misconfiguration: API loop detected",
-                details: "PUBLIC_API_BASE points to this same server. Please set it to the backend URL (e.g., http://localhost:8000)."
+                details: "PUBLIC_API_BASE points to this same server. Please set it to the backend URL."
             }), {
                 status: 500,
                 headers: { "Content-Type": "application/json" }
