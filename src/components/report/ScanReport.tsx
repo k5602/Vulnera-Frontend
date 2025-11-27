@@ -1,5 +1,6 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { usePagination } from '../../hooks/usePagination';
+import { enrichService, type EnrichedFinding } from '../../utils/api/enrich-service';
 
 export type Vulnerability = {
   id: string;
@@ -11,6 +12,11 @@ export type Vulnerability = {
   cvss?: number;
   affectedFiles?: string[];
   recommendation?: string;
+  // Enriched fields
+  explanation?: string;
+  remediation_suggestion?: string;
+  risk_summary?: string;
+  enrichment_successful?: boolean;
 };
 
 export type FileAnalysis = {
@@ -25,6 +31,7 @@ export type ScanReportData = {
   finishedAt: string;
   durationMs: number;
   project?: string;
+  jobId?: string; // Added for enrichment
   detailLevel?: 'minimal' | 'standard' | 'full';
   summary: {
     files: number;
@@ -55,6 +62,32 @@ function SeverityBadge({ level }: { level: Vulnerability['severity'] }) {
 export default function ScanReport({ data }: { data: ScanReportData }) {
   const fmtDuration = useMemo(() => `${Math.max(1, Math.round(data.durationMs / 1000))}s`, [data.durationMs]);
   const detailLevel = data.detailLevel || 'standard';
+
+  const [isEnriching, setIsEnriching] = useState(false);
+  const [enrichedData, setEnrichedData] = useState<Record<string, EnrichedFinding>>({});
+
+  const handleEnrich = async () => {
+    if (!data.jobId) {
+      console.error("No Job ID available for enrichment");
+      return;
+    }
+
+    setIsEnriching(true);
+    try {
+      const response = await enrichService.enrichJob(data.jobId);
+      if (response.ok && response.data) {
+        const newEnrichedData: Record<string, EnrichedFinding> = {};
+        response.data.findings.forEach(f => {
+          newEnrichedData[f.id] = f;
+        });
+        setEnrichedData(newEnrichedData);
+      }
+    } catch (error) {
+      console.error("Enrichment failed:", error);
+    } finally {
+      setIsEnriching(false);
+    }
+  };
 
   // Filter vulnerabilities based on detail level
   const filteredVulnerabilities = useMemo(() => {
@@ -99,7 +132,7 @@ export default function ScanReport({ data }: { data: ScanReportData }) {
   }
 
   function toVulnsCSV(vulns: Vulnerability[]) {
-    const header = ['id','severity','package','version','title','cve','cvss','affectedFiles','recommendation'];
+    const header = ['id', 'severity', 'package', 'version', 'title', 'cve', 'cvss', 'affectedFiles', 'recommendation'];
     const rows = vulns.map(v => [
       v.id,
       v.severity,
@@ -115,7 +148,7 @@ export default function ScanReport({ data }: { data: ScanReportData }) {
   }
 
   function toFilesCSV(files: FileAnalysis[]) {
-    const header = ['file','ecosystem','dependencies','vulnerable'];
+    const header = ['file', 'ecosystem', 'dependencies', 'vulnerable'];
     const rows = files.map(f => [f.file, f.ecosystem, String(f.dependencies), String(f.vulnerable)]);
     return [header, ...rows].map(r => r.map(escapeCSV).join(',')).join('\n');
   }
@@ -146,11 +179,10 @@ export default function ScanReport({ data }: { data: ScanReportData }) {
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-3">
             <h2 className="text-cyber-400 font-mono text-lg">SCAN_REPORT</h2>
-            <span className={`px-2 py-0.5 rounded text-xs font-mono border ${
-              detailLevel === 'minimal' ? 'bg-gray-500/10 text-gray-300 border-gray-500/30' :
+            <span className={`px-2 py-0.5 rounded text-xs font-mono border ${detailLevel === 'minimal' ? 'bg-gray-500/10 text-gray-300 border-gray-500/30' :
               detailLevel === 'full' ? 'bg-purple-500/10 text-purple-300 border-purple-500/30' :
-              'bg-cyan-500/10 text-cyan-300 border-cyan-500/30'
-            }`}>
+                'bg-cyan-500/10 text-cyan-300 border-cyan-500/30'
+              }`}>
               {detailLevel.toUpperCase()}
             </span>
           </div>
@@ -175,6 +207,38 @@ export default function ScanReport({ data }: { data: ScanReportData }) {
               className="px-2 py-1 text-xs font-mono rounded-md border border-cyber-400/40 text-cyber-300 hover:bg-cyber-500/10"
               title="Print or Save as PDF"
             >PRINT_PDF</button>
+
+            {/* AI Enrichment Button */}
+            {data.jobId && (
+              <button
+                onClick={handleEnrich}
+                disabled={isEnriching || Object.keys(enrichedData).length > 0}
+                className={`px-2 py-1 text-xs font-mono rounded-md border transition-all duration-300 flex items-center gap-2 ${Object.keys(enrichedData).length > 0
+                  ? 'border-cyber-500/40 text-cyber-300 bg-cyber-500/10 cursor-default'
+                  : isEnriching
+                    ? 'border-cyber-500/40 text-cyber-400 animate-pulse cursor-wait'
+                    : 'border-cyber-400/40 text-cyber-300 hover:bg-cyber-500/10 hover:shadow-[0_0_10px_rgba(0,229,209,0.3)]'
+                  }`}
+                title="Enrich findings with AI insights"
+              >
+                {isEnriching ? (
+                  <>
+                    <span className="w-2 h-2 rounded-full bg-cyber-400 animate-ping" />
+                    ENRICHING...
+                  </>
+                ) : Object.keys(enrichedData).length > 0 ? (
+                  <>
+                    <span className="text-cyber-400">✨</span>
+                    AI_ENRICHED
+                  </>
+                ) : (
+                  <>
+                    <span>✨</span>
+                    ENRICH_WITH_AI
+                  </>
+                )}
+              </button>
+            )}
           </div>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm font-mono">
@@ -246,8 +310,8 @@ export default function ScanReport({ data }: { data: ScanReportData }) {
         </div>
         {displayedVulnerabilities.length === 0 && (
           <div className="text-matrix-300 text-sm">
-            {data.vulnerabilities.length === 0 
-              ? 'No vulnerabilities detected. ✅' 
+            {data.vulnerabilities.length === 0
+              ? 'No vulnerabilities detected. ✅'
               : 'No critical or high severity vulnerabilities. ✅'}
           </div>
         )}
@@ -262,7 +326,7 @@ export default function ScanReport({ data }: { data: ScanReportData }) {
                     <span className="text-gray-400">@ {v.version}</span>
                   </div>
                   <div className="text-red-300">{v.title}</div>
-                  
+
                   {/* Show CVE and CVSS for standard and full levels */}
                   {detailLevel !== 'minimal' && (
                     <div className="text-xs text-gray-400 font-mono">
@@ -270,7 +334,7 @@ export default function ScanReport({ data }: { data: ScanReportData }) {
                       {typeof v.cvss === 'number' && <span>CVSS: {v.cvss.toFixed(1)}</span>}
                     </div>
                   )}
-                  
+
                   {/* Show affected files only for full level */}
                   {detailLevel === 'full' && v.affectedFiles?.length ? (
                     <div className="text-xs text-gray-300">
@@ -279,12 +343,49 @@ export default function ScanReport({ data }: { data: ScanReportData }) {
                   ) : null}
                 </div>
               </div>
-              
+
               {/* Show recommendations for standard and full levels */}
               {detailLevel !== 'minimal' && v.recommendation && (
                 <div className="mt-2 bg-black/50 border border-red-500/20 rounded-md p-2 text-xs text-red-200">
                   <div className="text-red-400 mb-1">RECOMMENDATION</div>
                   {v.recommendation}
+                </div>
+              )}
+
+              {/* AI Enrichment Details */}
+              {(enrichedData[v.id] || v.explanation) && (
+                <div className="mt-3 border border-cyber-500/30 rounded-lg overflow-hidden">
+                  <div className="bg-cyber-950/50 px-3 py-1 border-b border-cyber-500/20 flex items-center gap-2">
+                    <span className="text-xs text-cyber-400 font-mono">✨ AI_INSIGHTS</span>
+                  </div>
+                  <div className="p-3 bg-black/40 space-y-2">
+                    {/* Use enriched data if available, otherwise fall back to static data if it exists */}
+                    {(() => {
+                      const enriched = enrichedData[v.id] || v;
+                      return (
+                        <>
+                          {enriched.risk_summary && (
+                            <div className="text-sm text-gray-200">
+                              <span className="text-cyber-500 font-mono text-xs uppercase tracking-wider block mb-1">Risk Summary</span>
+                              {enriched.risk_summary}
+                            </div>
+                          )}
+                          {enriched.explanation && (
+                            <div className="text-sm text-gray-300 mt-2">
+                              <span className="text-cyber-500 font-mono text-xs uppercase tracking-wider block mb-1">Explanation</span>
+                              {enriched.explanation}
+                            </div>
+                          )}
+                          {enriched.remediation_suggestion && (
+                            <div className="text-sm text-gray-300 mt-2 bg-cyber-900/20 p-2 rounded border border-cyber-500/10">
+                              <span className="text-cyber-500 font-mono text-xs uppercase tracking-wider block mb-1">Remediation</span>
+                              {enriched.remediation_suggestion}
+                            </div>
+                          )}
+                        </>
+                      );
+                    })()}
+                  </div>
                 </div>
               )}
             </li>
@@ -304,11 +405,10 @@ export default function ScanReport({ data }: { data: ScanReportData }) {
                 <button
                   key={page}
                   onClick={() => goToPage(page)}
-                  className={`px-2 py-1 text-xs font-mono rounded-md border ${
-                    currentPage === page
-                      ? 'border-cyber-400 bg-cyber-500/20 text-cyber-300'
-                      : 'border-cyber-400/40 text-cyber-300 hover:bg-cyber-500/10'
-                  }`}
+                  className={`px-2 py-1 text-xs font-mono rounded-md border ${currentPage === page
+                    ? 'border-cyber-400 bg-cyber-500/20 text-cyber-300'
+                    : 'border-cyber-400/40 text-cyber-300 hover:bg-cyber-500/10'
+                    }`}
                 >
                   {page}
                 </button>

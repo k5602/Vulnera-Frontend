@@ -3,6 +3,8 @@ import { logger } from "../utils/logger";
 import { detectEcosystem } from "../utils/scan-handler";
 import { apiClient } from "../utils/api/client";
 import { API_ENDPOINTS } from "../config/api";
+import { isAuthenticated } from "../utils/api/auth-store";
+
 
 
 export class ScanHandler {
@@ -201,31 +203,58 @@ export class ScanHandler {
             api: [] as any[],
           };
 
-              // Process dependency vulnerabilities
-            if (result.findings_by_type?.dependencies) {
-               Object.values(result.findings_by_type.dependencies).forEach((depen: any) => {
-                if (depen.cves && Array.isArray(depen.cves)) {
-                    depen.cves.forEach((vuln: any) => {
-                    const depvuln = {
-                    id: vuln.id,
-                    type: "dependency",
-                    severity: vuln.severity?.toUpperCase() || "UNKNOWN",
-                    package: depen.package_name || "unknown",
-                    version: depen.current_version || "unknown",
-                    title: vuln.description || "Vulnerable dependency",
-                    cve: vuln.id,
-                    affectedFiles: [this.pickedFiles.map(f => f.name).join(", ")],
-                    cvss: vuln.cvss_score,
-                    recommendation: depen.recommendations.latest_safe?
-                        `Upgrade to ${depen.recommendations.latest_safe}`
-                      : "No fix available",
-                  };
-                  allVulnerabilities.push(depvuln);
-                  allFindings.dependencies.push(depvuln);
-                    });
-                }
-                });
+          // Handle new response format with results array
+          const resultsArray = result.results || [];
+          
+          // Process each result (e.g., package.json, requirements.txt, etc.)
+          resultsArray.forEach((scanResult: any) => {
+            // Process dependency vulnerabilities from this result
+            if (scanResult.vulnerabilities && Array.isArray(scanResult.vulnerabilities)) {
+              scanResult.vulnerabilities.forEach((vuln: any) => {
+                const depvuln = {
+                  id: vuln.id || `dep-${Date.now()}-${Math.random()}`,
+                  type: "dependency",
+                  severity: vuln.severity?.toUpperCase() || "UNKNOWN",
+                  package: vuln.package_name || vuln.name || "unknown",
+                  version: vuln.current_version || vuln.version || "unknown",
+                  title: vuln.description || vuln.title || "Vulnerable dependency",
+                  cve: vuln.id || vuln.cve_id,
+                  affectedFiles: [scanResult.filename || "unknown"],
+                  cvss: vuln.cvss_score || null,
+                  recommendation: vuln.recommendation || (vuln.recommendations?.latest_safe ? 
+                    `Upgrade to ${vuln.recommendations.latest_safe}` : "No fix available"),
+                };
+                allVulnerabilities.push(depvuln);
+                allFindings.dependencies.push(depvuln);
+              });
+            }
+          });
+
+          // Also support legacy findings_by_type format for backward compatibility
+          if (result.findings_by_type?.dependencies) {
+             Object.values(result.findings_by_type.dependencies).forEach((depen: any) => {
+              if (depen.cves && Array.isArray(depen.cves)) {
+                  depen.cves.forEach((vuln: any) => {
+                  const depvuln = {
+                  id: vuln.id,
+                  type: "dependency",
+                  severity: vuln.severity?.toUpperCase() || "UNKNOWN",
+                  package: depen.package_name || "unknown",
+                  version: depen.current_version || "unknown",
+                  title: vuln.description || "Vulnerable dependency",
+                  cve: vuln.id,
+                  affectedFiles: [this.pickedFiles.map(f => f.name).join(", ")],
+                  cvss: vuln.cvss_score,
+                  recommendation: depen.recommendations.latest_safe?
+                      `Upgrade to ${depen.recommendations.latest_safe}`
+                    : "No fix available",
+                };
+                allVulnerabilities.push(depvuln);
+                allFindings.dependencies.push(depvuln);
+                  });
               }
+              });
+            }
 
               // Process SAST findings
               if (result.findings_by_type?.sast) {
@@ -298,42 +327,63 @@ export class ScanHandler {
             //   }
 
           // Build consolidated report with detail level
+          // Support both new and legacy response formats
+          const hasSummary = result.summary || result.metadata;
+          const summary = result.summary || {
+            total_findings: result.total_vulnerabilities || 0,
+            by_severity: {
+              critical: result.critical_count || 0,
+              high: result.high_count || 0,
+              medium: 0,
+              low: 0,
+              info: 0
+            },
+            by_type: {
+              sast: 0,
+              secrets: 0,
+              dependencies: allFindings.dependencies.length,
+              api: 0
+            },
+            modules_completed: result.metadata?.successful || result.successful || 0,
+            modules_failed: result.metadata?.failed || result.failed || 0
+          };
+
           const report = {
-            scanId: result.project_id,
-            startedAt: result.started_at,
-            finishedAt: result.completed_at,
-            detailLevel: this.selectedDetailLevel, // Add detail level to report
+            scanId: result.project_id || result.scan_id || `scan-${Date.now()}`,
+            startedAt: result.started_at || new Date().toISOString(),
+            finishedAt: result.completed_at || result.finished_at || new Date().toISOString(),
+            detailLevel: this.selectedDetailLevel,
             summary: {
-              totalFiles: this.pickedFiles.length,
-              totalVulnerabilities: result.summary.total_findings,
+              totalFiles: result.metadata?.total_files || this.pickedFiles.length,
+              totalVulnerabilities: summary.total_findings || allVulnerabilities.length,
               sortBySeverity: {
-                critical: result.summary.by_severity.critical,
-                high: result.summary.by_severity.high,
-                medium: result.summary.by_severity.medium,
-                low: result.summary.by_severity.low,
-                info: result.summary.by_severity.info
-                },
-              sortByType:{
-                sast: result.summary.by_type.sast,
-                secrets: result.summary.by_type.secrets,
-                dependencies: result.summary.by_type.dependencies,
-                api: result.summary.by_type.api
-                },
+                critical: summary.by_severity?.critical || 0,
+                high: summary.by_severity?.high || 0,
+                medium: summary.by_severity?.medium || 0,
+                low: summary.by_severity?.low || 0,
+                info: summary.by_severity?.info || 0
+              },
+              sortByType: {
+                sast: summary.by_type?.sast || 0,
+                secrets: summary.by_type?.secrets || 0,
+                dependencies: summary.by_type?.dependencies || allFindings.dependencies.length,
+                api: summary.by_type?.api || 0
+              },
               modules: {
-                Completed: result.summary.modules_completed,
-                Failed: result.summary.modules_failed
-                },
+                Completed: summary.modules_completed || 0,
+                Failed: summary.modules_failed || 0
+              },
             },
             files: this.pickedFiles.map((f) => ({file: f.name, ecosystem: detectEcosystem(f.name)})),
             vulnerabilities: allVulnerabilities,
             findings: allFindings,
-            modules: result.modules.map((mod: any) => ({
+            modules: result.modules ? result.modules.map((mod: any) => ({
                 module: mod.name,
                 status: mod.status,
                 filesScanned: mod.files_scanned,
                 duration: mod.duration_ms,
                 error: mod.error? mod.error : "No errors",
-            })),
+            })) : [],
           };
 
           logger.info("Scan completed successfully", {
@@ -372,251 +422,169 @@ export class ScanHandler {
           this.renderFiles();
     }
 
-    async startScan() {
-        if (!this.pickedFiles.length) {
-          alert("Select files to scan.");
-          return;
-        }
+  async startScan() {
+  if (!this.pickedFiles.length) {
+    alert("Select files to scan.");
+    return;
+  }
 
-        try {
-          this.btnScan.disabled = true;
-          this.btnScan.textContent = "> SCANNING...";
+  try {
+    this.btnScan.disabled = true;
+    this.btnScan.textContent = "> SCANNING...";
 
-          // Check authentication
-          const token = getCookie("auth_token");
-          const apiKey = getCookie("api_key");
-          if (!token && !apiKey) {
-            alert(
-              "⚠️ Authentication required\n\nPlease log in first or generate an API key in Settings."
-            );
-            return;
-          }
-
-          // Prepare batch request for all files
-          const filesPayload = [];
-
-          for (const file of this.pickedFiles) {
-            try {
-              const content = await file.text();
-
-              // Detect ecosystem from filename
-              const ecosystem = detectEcosystem(file.name);
-
-              filesPayload.push({
-                filename: file.name,
-                ecosystem: ecosystem,
-                file_content: content,
-              });
-            } catch (e) {
-              logger.error(`Error reading file ${file.name}`, e);
-            }
-          }
-
-          if (!filesPayload.length) {
-            alert("No valid files to analyze");
-            return;
-          }
-
-          // Build query parameters
-          const queryParams = new URLSearchParams({
-            detail_level: this.selectedDetailLevel,
-          });
-
-          // Add selected modules
-          this.ALL_MODULES.forEach((module) => {
-            queryParams.append("modules", module);
-          });
-
-          // Call new batch dependencies analyze endpoint using apiClient
-          const endpoint = `${API_ENDPOINTS.ANALYSIS.ANALYZE_DEPENDENCIES}?${queryParams.toString()}`;
-          const apiResponse = await apiClient.post(endpoint, {
-            files: filesPayload,
-          });
-
-          if (!apiResponse.success) {
-            if (apiResponse.status === 401) {
-              alert(
-                "⚠️ Authentication Error\n\nYour session has expired. Please log in again."
-              );
-              return;
-            }
-            if (apiResponse.status === 404) {
-              alert(
-                "⚠️ Endpoint Not Found\n\nThe backend API endpoint does not exist. Please check backend implementation."
-              );
-              return;
-            }
-            if (apiResponse.status === 429) {
-              alert(
-                "⚠️ Rate Limit Exceeded\n\nToo many requests. Please try again later."
-              );
-              return;
-            }
-            throw new Error(apiResponse.error || `HTTP ${apiResponse.status}`);
-          }
-
-          const result = apiResponse.data;
-
-          this.getReportData(result);
-
-          // Transform new API response to report format
-        } catch (e: any) {
-          logger.error("Scan error", e);
-          alert("Failed to start scan: " + (e.message || "Unknown error"));
-        } finally {
-          this.btnScan.disabled = false;
-          this.btnScan.textContent = "> START_SCAN";
-        }
+    // 🔥 check authentication الصحيح
+    if (!isAuthenticated()) {
+      alert("⚠️ Session expired. Please log in again.");
+      return;
     }
 
-    async importRepository() {
-        const url = this.repoUrl?.value?.trim?.() ?? "";
-        if (!url || !/^https?:\/\/github.com\//i.test(url)) {
-          alert("Please enter a valid GitHub repository URL.");
-          return;
-        }
+    // Prepare batch request for all files
+    const filesPayload = [];
 
-        // Get GitHub token from cookie
+    for (const file of this.pickedFiles) {
+      try {
+        const content = await file.text();
+        const ecosystem = detectEcosystem(file.name);
 
-        try {
-          this.btnImport.disabled = true;
-          this.btnImport.textContent = "> IMPORTING...";
-
-          // Check authentication (apiClient handles auth automatically)
-          const token = getCookie("auth_token");
-          const apiKey = getCookie("api_key");
-          if (!token && !apiKey) {
-            alert(
-              "⚠️ Authentication required\n\nPlease log in first or generate an API key in Settings."
-            );
-            return;
-          }
-
-          // Note: GitHub token (X-GitHub-Token header) would need to be added to apiClient if needed
-          // For now, apiClient handles standard auth (API key or Bearer token)
-          // Extract owner and repo from GitHub URL
-          const urlObj = new URL(url);
-          const pathParts = urlObj.pathname.split("/").filter((p) => p);
-          const owner = pathParts[0];
-          const repo = pathParts[1]?.replace(/\.git$/, "");
-
-          if (!owner || !repo) {
-            throw new Error(
-              "Invalid GitHub URL. Expected format: https://github.com/owner/repo"
-            );
-          }
-
-          // Ensure analysis_depth is a valid value
-        //   const validDepths = ["minimal", "standard", "full"];
-        //   const analysisDepth = validDepths.includes(selectedAnalysisDepth)
-        //     ? selectedAnalysisDepth
-        //     : "standard";
-
-          // Build request body according to OpenAPI spec
-          const requestBody = {
-            source_type: "git",
-            source_uri: `https://github.com/${owner}/${repo}.git`,
-            analysis_depth: "full",
-          };
-
-          // Call analyze/job endpoint
-          const apiResponse = await apiClient.post(
-            API_ENDPOINTS.ANALYSIS.ANALYZE,
-            requestBody
-          );
-
-          if (!apiResponse.success) {
-            if (apiResponse.status === 401) {
-              throw new Error(
-                "Authentication failed: Your session has expired or the token is invalid. Please log in again."
-              );
-            }
-            if (apiResponse.status === 404) {
-              throw new Error(
-                "Endpoint not found: The backend API endpoint /api/v1/analyze/job does not exist. Please check backend implementation."
-              );
-            }
-            if (apiResponse.status === 429) {
-              throw new Error("Rate limit exceeded. Please try again later.");
-            }
-            throw new Error(
-              apiResponse.error || `HTTP ${apiResponse.status}: Request failed`
-            );
-          }
-
-          const result = apiResponse.data;
-
-          // Check job status
-          if (result.status === "failed") {
-            throw new Error(
-              "Repository analysis failed. Please check the repository URL and try again."
-            );
-          }
-
-          // Transform job response to report format
-          this.getReportData(result);
-
-        } catch (e) {
-          logger.error("Repository import error", e);
-          let errorMsg = "Unknown error";
-
-          // Handle fetch abort/timeout
-          if (e instanceof Error && e.name === "AbortError") {
-            errorMsg =
-              "Request timeout: The repository analysis took too long. The backend may be busy or the repository may be very large. Please try again later.";
-          } else if (e instanceof Error) {
-            errorMsg = e.message;
-          } else if (typeof e === "string") {
-            errorMsg = e;
-          } else {
-            errorMsg = JSON.stringify(e);
-          }
-
-          // Add fallback message if error is empty
-          if (!errorMsg || errorMsg.trim() === "") {
-            errorMsg =
-              "Backend endpoint may not be implemented or server is unreachable";
-          }
-
-          // Enhanced error messages based on error type
-          let alertTitle = "❌ Failed to import repository";
-          let suggestions =
-            "Please check:\n• Repository URL is correct\n• Repository is public or you have access\n• Backend server is running and accessible";
-
-          if (
-            errorMsg.includes("Authentication failed") ||
-            errorMsg.includes("expired") ||
-            errorMsg.includes("401")
-          ) {
-            alertTitle = "⚠️ Authentication Error";
-            suggestions = "Please log in again to continue.";
-          } else if (
-            errorMsg.includes("404") ||
-            errorMsg.includes("not found") ||
-            errorMsg.includes("Endpoint not found")
-          ) {
-            alertTitle = "⚠️ Backend API Not Available";
-            suggestions =
-              "The backend endpoint does not exist.\n\nThis feature requires:\n• Backend API v1 with /api/v1/analyze/job endpoint\n• Proper backend deployment and configuration";
-          } else if (errorMsg.includes("JSON") || errorMsg.includes("parse")) {
-            alertTitle = "⚠️ Invalid Backend Response";
-            suggestions =
-              "The backend returned an unexpected response format.\n\nPossible causes:\n• Backend is not running\n• Backend returned HTML error page\n• API endpoint returns wrong content type";
-          } else if (
-            errorMsg.includes("NetworkError") ||
-            errorMsg.includes("Failed to fetch")
-          ) {
-            alertTitle = "⚠️ Network Error";
-            suggestions =
-              "Cannot connect to backend server.\n\nPlease check:\n• Backend server is running\n• CORS is properly configured\n• Check API configuration";
-          }
-
-          alert(`${alertTitle}\n\n${errorMsg}\n\n${suggestions}`);
-        } finally {
-          this.btnImport.disabled = false;
-          this.btnImport.textContent = "> IMPORT_REPO";
-        }
+        filesPayload.push({
+          filename: file.name,
+          ecosystem: ecosystem,
+          file_content: content,
+        });
+      } catch (e) {
+        logger.error(`Error reading file ${file.name}`, e);
       }
+    }
+
+    if (!filesPayload.length) {
+      alert("No valid files to analyze");
+      return;
+    }
+
+    const queryParams = new URLSearchParams({
+      detail_level: this.selectedDetailLevel,
+    });
+
+    this.ALL_MODULES.forEach((module) => {
+      queryParams.append("modules", module);
+    });
+
+    const endpoint = `${API_ENDPOINTS.ANALYSIS.ANALYZE_DEPENDENCIES}?${queryParams.toString()}`;
+
+    const apiResponse = await apiClient.post(endpoint, { files: filesPayload });
+
+    if (!apiResponse.success) {
+      if (apiResponse.status === 401) {
+        alert("⚠️ Session expired. Please log in again.");
+        return;
+      }
+      if (apiResponse.status === 404) {
+        alert("⚠️ Endpoint not found in backend.");
+        return;
+      }
+      if (apiResponse.status === 429) {
+        alert("⚠️ Rate limit exceeded. Try again later.");
+        return;
+      }
+      throw new Error(apiResponse.error || `HTTP ${apiResponse.status}`);
+    }
+
+    const result = apiResponse.data;
+
+    // Safely process scan result - if it has data, it's a successful scan
+    if (!result) {
+      throw new Error("Empty scan result received from server");
+    }
+
+    logger.info("Scan data received", {
+      hasResults: !!result.results,
+      totalVulnerabilities: result.total_vulnerabilities,
+      filesProcessed: result.metadata?.total_files || result.results?.length,
+    });
+
+    this.getReportData(result);
+
+  } catch (e: any) {
+    logger.error("Scan processing error", {
+      message: e.message,
+      code: e.code,
+      stack: e.stack,
+    });
+    alert("Failed to process scan: " + (e.message || "Unknown error"));
+  } finally {
+    this.btnScan.disabled = false;
+    this.btnScan.textContent = "> START_SCAN";
+  }
+}
+
+
+   async importRepository() {
+  const url = this.repoUrl?.value?.trim?.() ?? "";
+  if (!url || !/^https?:\/\/github.com\//i.test(url)) {
+    alert("Please enter a valid GitHub repository URL.");
+    return;
+  }
+
+  try {
+    this.btnImport.disabled = true;
+    this.btnImport.textContent = "> IMPORTING...";
+
+    if (!isAuthenticated()) {
+      alert("⚠️ Session expired. Please log in again.");
+      return;
+    }
+
+    const urlObj = new URL(url);
+    const parts = urlObj.pathname.split("/").filter((p) => p);
+    const owner = parts[0];
+    const repo = parts[1]?.replace(/\.git$/, "");
+
+    if (!owner || !repo) {
+      throw new Error("Invalid GitHub URL format.");
+    }
+
+    const requestBody = {
+      source_type: "git",
+      source_uri: `https://github.com/${owner}/${repo}.git`,
+      analysis_depth: this.selectedAnalysisDepth,
+    };
+
+    const apiResponse = await apiClient.post(
+      API_ENDPOINTS.ANALYSIS.ANALYZE,
+      requestBody
+    );
+
+    if (!apiResponse.success) {
+      if (apiResponse.status === 401) {
+        throw new Error("Session expired. Please log in again.");
+      }
+      if (apiResponse.status === 404) {
+        throw new Error(
+          "Backend /api/v1/analyze/job endpoint not implemented."
+        );
+      }
+      if (apiResponse.status === 429) {
+        throw new Error("Rate limit exceeded. Try again later.");
+      }
+      throw new Error(apiResponse.error || `HTTP ${apiResponse.status}`);
+    }
+
+    const result = apiResponse.data;
+
+    if (result.status === "failed") {
+      throw new Error("Repository analysis failed.");
+    }
+
+    this.getReportData(result);
+
+  } catch (e: any) {
+    logger.error("Repository import error", e);
+    alert("Failed: " + e.message);
+  } finally {
+    this.btnImport.disabled = false;
+    this.btnImport.textContent = "> IMPORT_REPO";
+  }
+}
 
 
     constructor(dropzone: HTMLElement, input: HTMLInputElement, list: HTMLElement, btnScan: HTMLButtonElement, btnImport: HTMLButtonElement, btnReset: HTMLButtonElement, repoUrl: HTMLInputElement, detailLevelBtns: NodeListOf<HTMLButtonElement>, analysisDepthBtns: NodeListOf<HTMLButtonElement>) {

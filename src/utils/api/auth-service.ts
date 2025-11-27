@@ -47,13 +47,21 @@ export class AuthService {
   /**
    * Logout user
    */
-  logout(): void {
-    clearAuth();
+  async logout(): Promise<void> {
     try {
-      localStorage.removeItem('github_token');
-      localStorage.removeItem('api_token');
-    } catch {
-      // Ignore errors
+      // Call backend logout endpoint
+      await apiClient.post(API_ENDPOINTS.AUTH.LOGOUT);
+    } catch (error) {
+      console.warn('Logout endpoint failed, proceeding with local cleanup', error);
+    } finally {
+      // Always clear local state
+      clearAuth();
+      try {
+        localStorage.removeItem('github_token');
+        localStorage.removeItem('api_token');
+      } catch {
+        // Ignore errors
+      }
     }
   }
 

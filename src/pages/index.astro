@@ -42,19 +42,47 @@ const stats = [
     { value: "8", label: "ECOSYSTEMS_SUPPORTED", valueColor: "text-cyber-400" },
     { value: "3", label: "INTEL_SOURCES", valueColor: "text-matrix-400" },
     { value: "99.9%", label: "UPTIME_SLA", valueColor: "text-yellow-400" },
-    { value: "<800ms", label: "RESPONSE_TIME", valueColor: "text-red-400" }
+    { value: "<800ms", label: "RESPONSE_TIME", valueColor: "text-red-400" },
 ];
 
 // ecosys data
 const ecosystems = [
-    { value: "PyPi", label: "requirements.txt / Pipfile / pyproject.toml", valueColor: "text-yellow-300" },
-    { value: "Ruby", label: "Gemfile.lock / Gemfile", valueColor: "text-red-400" },
-    { value: "npm", label: "package.json / package-lock.json / yarn.lock", valueColor: "text-yellow-500" },
-    { value: "Rust", label: "Cargo.lock / Cargo.toml", valueColor: "text-orange-400" },
-    { value: "Maven/Gradle", label: "pom.xml / build.gradle", valueColor: "text-matrix-400" },
-    { value: ".NET", label: "packages.config / *.csproj *.props / *.targets", valueColor: "text-green-400" },
+    {
+        value: "PyPi",
+        label: "requirements.txt / Pipfile / pyproject.toml",
+        valueColor: "text-yellow-300",
+    },
+    {
+        value: "Ruby",
+        label: "Gemfile.lock / Gemfile",
+        valueColor: "text-red-400",
+    },
+    {
+        value: "npm",
+        label: "package.json / package-lock.json / yarn.lock",
+        valueColor: "text-yellow-500",
+    },
+    {
+        value: "Rust",
+        label: "Cargo.lock / Cargo.toml",
+        valueColor: "text-orange-400",
+    },
+    {
+        value: "Maven/Gradle",
+        label: "pom.xml / build.gradle",
+        valueColor: "text-matrix-400",
+    },
+    {
+        value: ".NET",
+        label: "packages.config / *.csproj *.props / *.targets",
+        valueColor: "text-green-400",
+    },
     { value: "Go", label: "go.mod / go.sum", valueColor: "text-cyber-400" },
-    { value: "Packagist", label: "composer.json / composer.lock", valueColor: "text-purple-400" },
+    {
+        value: "Packagist",
+        label: "composer.json / composer.lock",
+        valueColor: "text-purple-400",
+    },
 ];
 ---
 
@@ -210,11 +238,28 @@ const ecosystems = [
                 </div>
 
                 <!-- CTA Buttons -->
-                <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center animate-slide-up px-4">
-                    <a href="/signup" target="_self" rel="noopener" class="group inline-flex items-center justify-center bg-gradient-to-r from-cyber-600 to-matrix-600 hover:from-cyber-500 hover:to-matrix-500 text-black px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-bold text-sm sm:text-base lg:text-lg font-mono transition-all duration-300 transform hover:scale-105 terminal-border animate-glow focus:outline-none focus-visible:ring-2 focus-visible:ring-cyber-400" data-astro-prefetch>
+                <div
+                    class="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center animate-slide-up px-4"
+                >
+                    <a
+                        href="/signup"
+                        target="_self"
+                        rel="noopener"
+                        class="group inline-flex items-center justify-center bg-gradient-to-r from-cyber-600 to-matrix-600 hover:from-cyber-500 hover:to-matrix-500 text-black px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-bold text-sm sm:text-base lg:text-lg font-mono transition-all duration-300 transform hover:scale-105 terminal-border animate-glow focus:outline-none focus-visible:ring-2 focus-visible:ring-cyber-400"
+                        data-astro-prefetch
+                    >
                         <span class="mr-2">&gt;</span>GET_STARTED
-                        <svg class="w-4 h-4 sm:w-5 sm:h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+                        <svg
+                            class="w-4 h-4 sm:w-5 sm:h-5 ml-2 group-hover:translate-x-1 transition-transform"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
                         </svg>
                     </a>
                     <a href="/orgsignup" target="_self" rel="noopener" class="group inline-flex items-center justify-center bg-gradient-to-r from-cyber-600 to-matrix-600 hover:from-cyber-500 hover:to-matrix-500 text-black px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-bold text-sm sm:text-base lg:text-lg font-mono transition-all duration-300 transform hover:scale-105 terminal-border animate-glow focus:outline-none focus-visible:ring-2 focus-visible:ring-cyber-400" data-astro-prefetch>
@@ -306,22 +351,244 @@ const ecosystems = [
         </div>
     </section>
 
+    <!-- Vulnera AI Section -->
+    <section
+        class="py-12 sm:py-16 lg:py-20 bg-black relative overflow-hidden border-t border-cyber-500/30"
+    >
+        <!-- Background Effects -->
+        <div class="absolute inset-0 pointer-events-none">
+            <div
+                class="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-cyber-900/10 to-transparent"
+            >
+            </div>
+            <div
+                class="absolute bottom-0 left-0 w-1/2 h-full bg-gradient-to-r from-matrix-900/10 to-transparent"
+            >
+            </div>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                <!-- Text Content -->
+                <div class="space-y-6">
+                    <div
+                        class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyber-950/50 border border-cyber-500/30 text-cyber-400 text-xs font-mono"
+                    >
+                        <span
+                            class="w-2 h-2 rounded-full bg-cyber-400 animate-pulse"
+                        ></span>
+                        VULNERA_AI_INTEGRATION
+                    </div>
+
+                    <h2
+                        class="text-3xl sm:text-4xl lg:text-5xl font-bold text-white font-mono tracking-tight"
+                    >
+                        <span class="text-cyber-400">&gt;</span> AI-POWERED
+                        <br />
+                        <span
+                            class="bg-gradient-to-r from-cyber-400 to-matrix-400 bg-clip-text text-transparent"
+                            >THREAT_ANALYSIS</span
+                        >
+                    </h2>
+
+                    <p class="text-gray-400 text-lg leading-relaxed">
+                        Leverage our advanced LLM integration to analyze complex
+                        vulnerability chains, generate remediation scripts, and
+                        explain security patches in plain English.
+                    </p>
+
+                    <ul class="space-y-4 font-mono text-sm sm:text-base">
+                        <li class="flex items-start gap-3 text-gray-300">
+                            <svg
+                                class="w-6 h-6 text-cyber-400 shrink-0"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                                ></path>
+                            </svg>
+                            <span
+                                >Automated patch generation & verification</span
+                            >
+                        </li>
+                        <li class="flex items-start gap-3 text-gray-300">
+                            <svg
+                                class="w-6 h-6 text-cyber-400 shrink-0"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                                ></path>
+                            </svg>
+                            <span>Context-aware vulnerability explanation</span>
+                        </li>
+                        <li class="flex items-start gap-3 text-gray-300">
+                            <svg
+                                class="w-6 h-6 text-cyber-400 shrink-0"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                                ></path>
+                            </svg>
+                            <span
+                                >Interactive security assistant (VulneraBot)</span
+                            >
+                        </li>
+                    </ul>
+
+                    <div class="pt-4">
+                        <a
+                            href="/signup"
+                            class="inline-flex items-center gap-2 text-cyber-400 hover:text-cyber-300 font-mono font-bold transition-colors group"
+                        >
+                            <span
+                                class="border-b border-cyber-400 group-hover:border-cyber-300"
+                                >TRY_AI_ANALYSIS</span
+                            >
+                            <svg
+                                class="w-4 h-4 transform group-hover:translate-x-1 transition-transform"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Visual/Terminal -->
+                <div class="relative">
+                    <div
+                        class="absolute -inset-1 bg-gradient-to-r from-cyber-500 to-matrix-500 rounded-lg blur opacity-20"
+                    >
+                    </div>
+                    <div
+                        class="relative bg-black border border-cyber-500/30 rounded-lg overflow-hidden shadow-2xl"
+                    >
+                        <!-- Terminal Header -->
+                        <div
+                            class="bg-gray-900/50 px-4 py-2 border-b border-cyber-500/20 flex items-center gap-2"
+                        >
+                            <div class="flex gap-1.5">
+                                <div class="w-3 h-3 rounded-full bg-red-500/50">
+                                </div>
+                                <div
+                                    class="w-3 h-3 rounded-full bg-yellow-500/50"
+                                >
+                                </div>
+                                <div
+                                    class="w-3 h-3 rounded-full bg-green-500/50"
+                                >
+                                </div>
+                            </div>
+                            <div class="ml-2 text-xs text-gray-500 font-mono">
+                                vulnera-ai — analysis
+                            </div>
+                        </div>
+
+                        <!-- Terminal Content -->
+                        <div class="p-6 font-mono text-sm space-y-4">
+                            <div class="flex gap-2">
+                                <span class="text-cyber-400">➜</span>
+                                <span class="text-white"
+                                    >analyze CVE-2024-3094 --context=full</span
+                                >
+                            </div>
+
+                            <div class="space-y-2 text-gray-400">
+                                <div class="flex gap-2">
+                                    <span class="text-matrix-400">[AI]</span>
+                                    <span
+                                        >Analyzing vulnerability context...</span
+                                    >
+                                </div>
+                                <div class="flex gap-2">
+                                    <span class="text-matrix-400">[AI]</span>
+                                    <span
+                                        >Identified backdoor in xz-utils
+                                        (liblzma).</span
+                                    >
+                                </div>
+                                <div class="pl-8 text-gray-500 text-xs">
+                                    Impact: Critical (CVSS 10.0)
+                                    <br />
+                                    Vector: Network / RCE
+                                </div>
+                                <div class="flex gap-2 mt-4">
+                                    <span class="text-matrix-400">[AI]</span>
+                                    <span class="text-white"
+                                        >Generated Remediation Plan:</span
+                                    >
+                                </div>
+                                <div
+                                    class="bg-gray-900/50 p-3 rounded border-l-2 border-cyber-500 text-cyber-300 text-xs"
+                                >
+                                    1. Downgrade xz-utils to version 5.4.6
+                                    <br />
+                                    2. Check system logs for unauthorized SSH access
+                                    <br />
+                                    3. Rotate SSH keys immediately
+                                </div>
+                            </div>
+
+                            <div class="animate-pulse flex gap-2">
+                                <span class="text-cyber-400">➜</span>
+                                <span class="w-2 h-4 bg-cyber-400"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Ecosystems Section -->
-    <section class="py-12 sm:py-16 lg:py-20 bg-gradient-to-r from-gray-950 to-black border-y border-cyber-500/30" aria-labelledby="stats-title">
+    <section
+        class="py-12 sm:py-16 lg:py-20 bg-gradient-to-r from-gray-950 to-black border-y border-cyber-500/30"
+        aria-labelledby="stats-title"
+    >
         <div class="max-w-7xl mx-auto px-4 sm:px-6">
             <div class="text-center mb-8 sm:mb-12">
-                <h2 id="stats-title" class="text-2xl sm:text-3xl font-semibold text-cyber-400 font-mono tracking-wider">
+                <h2
+                    id="stats-title"
+                    class="text-2xl sm:text-3xl font-semibold text-cyber-400 font-mono tracking-wider"
+                >
                     &gt; ECOSYSTEMS_SUPPORTED
                 </h2>
             </div>
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 text-center">
-                {ecosystems.map(ecosys => (
-                    <StatsCard 
-                        value={ecosys.value}
-                        label={ecosys.label}
-                        valueColor={ecosys.valueColor}
-                    />
-                ))}
+            <div
+                class="grid grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 text-center"
+            >
+                {
+                    ecosystems.map((ecosys) => (
+                        <StatsCard
+                            value={ecosys.value}
+                            label={ecosys.label}
+                            valueColor={ecosys.valueColor}
+                        />
+                    ))
+                }
             </div>
         </div>
     </section>
@@ -358,10 +625,6 @@ const ecosystems = [
 
     <Footer />
     <script>
-        import { authService } from '../utils/api/index';
-
-        if (authService.isAuthenticated()) {
-            window.location.replace('/dashboard');
-        }
+        // Redirect logic removed to allow authenticated users to see the landing page
     </script>
 </Layout>
