@@ -22,6 +22,33 @@ export class ScanHandler {
   pickedFiles: File[] = [];
   ALL_MODULES = ["dependencies", "sast", "secrets", "api"];
 
+  // Polling state
+  isPolling: boolean = false;
+  pollingTimeoutId: any = null;
+  importStartTime: number = 0;
+
+  startImportTimer() {
+    this.importStartTime = Date.now();
+  }
+
+  stopImportTimer() {
+    return Date.now() - this.importStartTime;
+  }
+
+  stopPolling() {
+    this.isPolling = false;
+    if (this.pollingTimeoutId) {
+      clearTimeout(this.pollingTimeoutId);
+      this.pollingTimeoutId = null;
+    }
+  }
+
+  cleanupImport() {
+    this.stopPolling();
+    this.btnImport.disabled = false;
+    this.btnImport.textContent = "> IMPORT_REPO";
+  }
+
   checkGithubToken() {
     const token = getCookie("github_token");
     const notice = document.getElementById("github-token-notice");
@@ -302,6 +329,8 @@ export class ScanHandler {
           severity: sastFind.severity?.toUpperCase() || "UNDECIDED",
           title: sastFind.rule_id || "SAST issue detected",
           description: sastFind.description,
+          package: sastFind.location.path.split('/').pop(), // Show filename as package
+          version: `Line ${sastFind.location.line}`, // Show line number as version
           affected_file_location: sastFind.location.path,
           start_line: sastFind.location.line,
           end_line: sastFind.location.end_line,
@@ -326,6 +355,8 @@ export class ScanHandler {
           severity: secret.severity?.toUpperCase() || "UNDECIDED",
           title: secret.rule_id || "Secret Vulnerability",
           description: secret.description,
+          package: secret.location.path.split('/').pop(), // Show filename as package
+          version: `Line ${secret.location.line}`, // Show line number as version
           affected_file_location: secret.location.path,
           start_line: secret.location.line,
           end_line: secret.location.end_line,
@@ -397,6 +428,7 @@ export class ScanHandler {
 
     const report = {
       scanId: result.project_id || result.scan_id || `scan-${Date.now()}`,
+      jobId: result.job_id || result.scan_id, // Ensure jobId is passed for enrichment
       startedAt: result.started_at || new Date().toISOString(),
       finishedAt: result.completed_at || result.finished_at || new Date().toISOString(),
       durationMs: result.metadata?.duration_ms || 0,
@@ -453,6 +485,28 @@ export class ScanHandler {
 
     this.pickedFiles = [];
     this.renderFiles();
+  }
+
+  getRepoReportData(result: any, repoInfo: { owner: string; repo: string }, durationMs: number, jobId: string) {
+    // Similar to getReportData but tailored for repo scans
+    // We can reuse getReportData logic for now, but wrap it to inject repo info
+
+    // Construct a synthetic file object for the repo
+    const repoFile = {
+      name: `${repoInfo.owner}/${repoInfo.repo}`,
+      size: 0,
+      type: "git-repo"
+    };
+
+    // Hack: Add to pickedFiles so getReportData processes it correctly
+    // In a real refactor, we should separate data processing from UI state
+    this.pickedFiles = [repoFile as any];
+
+    // Inject duration if missing
+    if (!result.metadata) result.metadata = {};
+    if (!result.metadata.duration_ms) result.metadata.duration_ms = durationMs;
+
+    this.getReportData(result);
   }
   async startScan() {
     if (!this.pickedFiles.length) {
@@ -643,7 +697,19 @@ export class ScanHandler {
         this.btnImport.textContent = "> PROCESSING...";
 
         // Start polling for results
-        await this.pollJobStatus(result.job_id);
+        this.btnImport.textContent = "> INITIALIZING...";
+        logger.info("Waiting 10s before polling job status...");
+
+        // Start timer
+        this.startImportTimer();
+
+        // Wait 10 seconds before first poll as requested
+        await new Promise(resolve => setTimeout(resolve, 10000));
+
+        this.btnImport.textContent = "> PROCESSING...";
+
+        // Pass repo info to polling function
+        await this.pollJobStatus(result.job_id, { owner, repo });
         return;
       }
 
@@ -660,53 +726,123 @@ export class ScanHandler {
     } catch (e: any) {
       logger.error("Repository import error", e);
       alert("Failed: " + e.message);
+      this.cleanupImport();
     } finally {
-      this.btnImport.disabled = false;
-      this.btnImport.textContent = "> IMPORT_REPO";
+      // Only reset if not polling (polling handles its own reset)
+      if (!this.isPolling) {
+        this.btnImport.disabled = false;
+        this.btnImport.textContent = "> IMPORT_REPO";
+      }
     }
   }
 
-  async pollJobStatus(jobId: string) {
+  async pollJobStatus(jobId: string, repoInfo?: { owner: string; repo: string }) {
     const POLL_INTERVAL = 2000; // 2 seconds
-    const MAX_ATTEMPTS = 60; // 2 minutes timeout
+    const MAX_ATTEMPTS = 150; // 5 minutes timeout (150 * 2s)
     let attempts = 0;
 
+    // Prevent multiple polling instances
+    if (this.isPolling) {
+      logger.warn("Polling already in progress, ignoring duplicate call");
+      return;
+    }
+
+    this.isPolling = true;
+
     const checkStatus = async () => {
+      // Check if polling was cancelled
+      if (!this.isPolling) {
+        logger.info("Polling cancelled");
+        return;
+      }
+
       try {
         attempts++;
+        logger.debug(`Polling attempt ${attempts}/${MAX_ATTEMPTS} for job ${jobId}`);
+
         if (attempts > MAX_ATTEMPTS) {
-          throw new Error("Scan timed out. Please check back later.");
+          throw new Error("Scan timed out after 5 minutes. Please check back later.");
         }
 
         const endpoint = API_ENDPOINTS.ANALYSIS.GET_JOB.replace(":job_id", jobId);
         const response = await apiClient.get(endpoint);
 
         if (!response.ok) {
-          throw new Error(`Failed to check job status: ${response.status}`);
+          // Don't retry on auth errors
+          if (response.status === 401) {
+            throw new Error("Session expired. Please log in again.");
+          }
+          if (response.status === 404) {
+            throw new Error(`Job ${jobId} not found. It may have been deleted.`);
+          }
+          throw new Error(`Failed to check job status: HTTP ${response.status}`);
         }
 
         const job = response.data;
-        logger.debug("Job status poll:", { id: jobId, status: job.status });
+        const status = job.status?.toLowerCase() || "unknown";
 
-        if (job.status === "completed" || job.status === "succeeded") {
-          // Job done! Process results
-          this.getReportData(job);
+        logger.debug("Job status poll:", {
+          id: jobId,
+          status: status,
+          attempt: attempts,
+          rawStatus: job.status
+        });
+
+        // Handle terminal states
+        if (status === "completed" || status === "succeeded") {
+          // Job done! Stop timer and process results
+          const durationMs = this.stopImportTimer();
+          this.stopPolling();
+
+          // Use repo-specific report generator for proper formatting
+          if (repoInfo) {
+            this.getRepoReportData(job, repoInfo, durationMs, jobId);
+          } else {
+            this.getReportData(job);
+          }
+
+          // Reset button
+          this.btnImport.disabled = false;
+          this.btnImport.textContent = "> IMPORT_REPO";
           return;
-        } else if (job.status === "failed" || job.status === "error") {
-          throw new Error(job.error || "Scan job failed");
-        } else {
-          // Still running, poll again
-          setTimeout(checkStatus, POLL_INTERVAL);
         }
+
+        if (status === "failed" || status === "error") {
+          throw new Error(job.error || job.message || "Scan job failed");
+        }
+
+        if (status === "cancelled") {
+          throw new Error("Scan job was cancelled");
+        }
+
+        // Handle in-progress states: queued, running, pending, processing
+        if (status === "queued" || status === "running" || status === "pending" || status === "processing") {
+          // Still in progress, schedule next poll
+          this.pollingTimeoutId = setTimeout(checkStatus, POLL_INTERVAL);
+          return;
+        }
+
+        // Unknown status - log warning and continue polling (but with a limit)
+        logger.warn(`Unknown job status: "${status}". Will continue polling.`);
+        if (attempts < MAX_ATTEMPTS) {
+          this.pollingTimeoutId = setTimeout(checkStatus, POLL_INTERVAL);
+        } else {
+          throw new Error(`Job stuck in unknown status: ${status}`);
+        }
+
       } catch (e: any) {
-        logger.error("Polling error", e);
-        this.btnImport.disabled = false;
-        this.btnImport.textContent = "> IMPORT_REPO";
+        logger.error("Polling error", {
+          error: e.message,
+          jobId,
+          attempts
+        });
+        this.cleanupImport();
         alert(e.message || "Error checking scan status");
       }
     };
 
     // Start polling
+    logger.info(`Starting to poll job ${jobId}`);
     checkStatus();
   }
 
