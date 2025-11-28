@@ -4,12 +4,15 @@ import Navigation from "../components/Navigation.astro";
 import Footer from "../components/Footer.astro";
 export const prerender = false;
 ---
-<script set:html={`
+
+<script
+  set:html={`
   import('/src/utils/auth-guard.js')
     .then(({ setupAuthGuard }) => {
       setupAuthGuard({ requireAuth: true });
     });
-`} />
+`}
+/>
 
 <Layout
   title="Dashboard — Vulnera"
@@ -50,7 +53,10 @@ export const prerender = false;
         >
           <span class="text-cyber-400">&gt;</span> DASHBOARD
         </h1>
-        <p class="text-matrix-300 mt-2 text-xs sm:text-sm md:text-base">
+        <p
+          id="dash-subtitle"
+          class="text-matrix-300 mt-2 text-xs sm:text-sm md:text-base"
+        >
           Live overview of your analysis activity
         </p>
       </header>
@@ -99,41 +105,41 @@ export const prerender = false;
       >
         <div class="terminal-border bg-black/60 rounded-lg p-4 sm:p-6">
           <div class="text-cyber-400 text-xs sm:text-sm mb-1">
-            REPORTS_TOTAL
+            CRITICAL_FINDINGS
           </div>
           <div
-            id="stat-reports"
-            class="text-2xl sm:text-3xl lg:text-4xl text-white font-mono"
+            id="stat-critical"
+            class="text-2xl sm:text-3xl lg:text-4xl text-red-400 font-mono"
           >
             --
           </div>
         </div>
         <div class="terminal-border bg-black/60 rounded-lg p-4 sm:p-6">
           <div class="text-cyber-400 text-xs sm:text-sm mb-1">
-            PROJECTS_ANALYZED
+            HIGH_FINDINGS
           </div>
           <div
-            id="stat-projects"
-            class="text-2xl sm:text-3xl lg:text-4xl text-white font-mono"
+            id="stat-high"
+            class="text-2xl sm:text-3xl lg:text-4xl text-orange-400 font-mono"
           >
             --
           </div>
         </div>
         <div class="terminal-border bg-black/60 rounded-lg p-4 sm:p-6">
           <div class="text-cyber-400 text-xs sm:text-sm mb-1">
-            VULNERABLE_PROJECTS
+            MEDIUM_FINDINGS
           </div>
           <div
-            id="stat-vuln"
+            id="stat-medium"
             class="text-2xl sm:text-3xl lg:text-4xl text-yellow-400 font-mono"
           >
             --
           </div>
         </div>
         <div class="terminal-border bg-black/60 rounded-lg p-4 sm:p-6">
-          <div class="text-cyber-400 text-xs sm:text-sm mb-1">LAST_SCAN_AT</div>
+          <div class="text-cyber-400 text-xs sm:text-sm mb-1">LOW_FINDINGS</div>
           <div
-            id="stat-last"
+            id="stat-low"
             class="text-sm sm:text-base text-matrix-300 font-mono break-anywhere"
           >
             --
@@ -233,80 +239,79 @@ export const prerender = false;
   <Footer />
 
   <script>
-    // import { DashboardHandler } from "../modules/dashboard";
-    // // Public dashboard: no auth guard
+    import { OrgDashboardHandler } from "../modules/userDashboard";
+    // Public dashboard: no auth guard
 
-    // const dashboardHandler = new DashboardHandler(
-    //   document.getElementById("stat-reports")!,
-    //   document.getElementById("stat-projects")!,
-    //   document.getElementById("stat-vuln")!,
-    //   document.getElementById("stat-last")!,
-    //   document.getElementById("recent-list")!,
-    //   document.getElementById("reports-tbody")!,
-    //   document.getElementById("projects-grid")!,
-    //   document.getElementById("trend-svg")!,
-    //   document.getElementById("filter-ecosystem")! as HTMLSelectElement,
-    //   // document.getElementById("filter-severity")! as HTMLSelectElement,
-    // );
+    const dashboardHandler = new OrgDashboardHandler(
+      document.getElementById("stat-critical")!,
+      document.getElementById("stat-high")!,
+      document.getElementById("stat-medium")!,
+      document.getElementById("stat-low")!,
+      document.getElementById("recent-list")!,
+      document.getElementById("reports-tbody")!,
+      document.getElementById("projects-grid")!,
+      document.getElementById("trend-svg")!,
+      document.getElementById("filter-ecosystem")! as HTMLSelectElement,
+    );
 
-    // dashboardHandler.loadReportsAndProjects();
+    dashboardHandler.loadReportsAndProjects();
 
-    // // Defer binding and initial load until idle to free up the main thread on first paint
-    // const scheduleIdle = (cb: any) => {
-    //   if (typeof window.requestIdleCallback === "function") {
-    //     window.requestIdleCallback(cb);
-    //   } else {
-    //     setTimeout(cb, 120);
-    //   }
-    // };
+    // Defer binding and initial load until idle to free up the main thread on first paint
+    const scheduleIdle = (cb: any) => {
+      if (typeof window.requestIdleCallback === "function") {
+        window.requestIdleCallback(cb);
+      } else {
+        setTimeout(cb, 120);
+      }
+    };
 
-    // scheduleIdle(() => {
-    //   document
-    //     .getElementById("btn-refresh")
-    //     ?.addEventListener("click", () =>
-    //       dashboardHandler.loadReportsAndProjects(),
-    //     );
-    //   document
-    //     .getElementById("filter-ecosystem")
-    //     ?.addEventListener("change", () =>
-    //       dashboardHandler.loadReportsAndProjects(),
-    //     );
-    //   document
-    //     .getElementById("filter-severity")
-    //     ?.addEventListener("change", () =>
-    //       dashboardHandler.loadReportsAndProjects(),
-    //     );
+    scheduleIdle(() => {
+      document
+        .getElementById("btn-refresh")
+        ?.addEventListener("click", () =>
+          dashboardHandler.loadReportsAndProjects(),
+        );
+      document
+        .getElementById("filter-ecosystem")
+        ?.addEventListener("change", () =>
+          dashboardHandler.loadReportsAndProjects(),
+        );
+      document
+        .getElementById("filter-severity")
+        ?.addEventListener("change", () =>
+          dashboardHandler.loadReportsAndProjects(),
+        );
 
-    //   // Export CSV
-    //   document.getElementById("btn-export")?.addEventListener("click", () => {
-    //     const header = ["id", "project", "severity", "issues", "createdAt"];
-    //     const rows = dashboardHandler.currentReportsFiltered.map((r) => [
-    //       r.id,
-    //       r.project,
-    //       r.severity,
-    //       String(r.issues),
-    //       r.createdAt,
-    //     ]);
-    //     const csv = [header, ...rows]
-    //       .map((cols) =>
-    //         cols
-    //           .map((v) => '"' + String(v).replace(/"/g, '""') + '"')
-    //           .join(","),
-    //       )
-    //       .join("\n");
-    //     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    //     const url = URL.createObjectURL(blob);
-    //     const a = document.createElement("a");
-    //     a.href = url;
-    //     a.download = `reports_${Date.now()}.csv`;
-    //     document.body.appendChild(a);
-    //     a.click();
-    //     a.remove();
-    //     URL.revokeObjectURL(url);
-    //   });
+      // Export CSV
+      document.getElementById("btn-export")?.addEventListener("click", () => {
+        const header = ["id", "project", "severity", "issues", "createdAt"];
+        const rows = dashboardHandler.currentReportsFiltered.map((r) => [
+          r.id,
+          r.project,
+          r.severity,
+          String(r.issues),
+          r.createdAt,
+        ]);
+        const csv = [header, ...rows]
+          .map((cols) =>
+            cols
+              .map((v) => '"' + String(v).replace(/"/g, '""') + '"')
+              .join(","),
+          )
+          .join("\n");
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `reports_${Date.now()}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      });
 
-    //   // Initial data load
-    //   dashboardHandler.loadReportsAndProjects();
-    // });
+      // Initial data load
+      dashboardHandler.loadReportsAndProjects();
+    });
   </script>
 </Layout>

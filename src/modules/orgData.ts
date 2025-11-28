@@ -150,14 +150,24 @@ export async function loadUserOrganization() {
     try {
         const res = await apiClient.get<OrganizationsResponse>("/api/v1/organizations");
         const data = res.data;
+        logger.debug('loadUserOrganization response', { ok: res.ok, status: res.status, data });
+
         if (res.ok && data?.organizations && data.organizations.length > 0) {
             const orgList = data.organizations;
             const currentUser = getCurrentUser();
+            logger.debug('Current user for org matching', { currentUser });
 
             let targetOrg = orgList[0];
             if (currentUser) {
                 const ownedOrg = orgList.find((o) => o.owner_id === currentUser.id);
-                if (ownedOrg) targetOrg = ownedOrg;
+                if (ownedOrg) {
+                    targetOrg = ownedOrg;
+                    logger.debug('Found owned organization', { orgId: targetOrg.id });
+                } else {
+                    logger.debug('No owned organization found, using first available', { orgId: targetOrg.id });
+                }
+            } else {
+                logger.warn('No current user found when loading organizations');
             }
 
             // Update the existing organization object's properties
@@ -171,7 +181,10 @@ export async function loadUserOrganization() {
 
             const newOrgData = new OrgData(orgData);
             Object.assign(organization, newOrgData);
+            logger.debug('Organization loaded successfully', { orgId: organization.orgId });
             return true;
+        } else {
+            logger.warn('No organizations found in API response');
         }
     } catch (e) {
         logger.error('Failed to load organization', { error: e instanceof Error ? e.message : String(e) });
