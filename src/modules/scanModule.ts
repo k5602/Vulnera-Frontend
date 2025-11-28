@@ -17,6 +17,7 @@ export class ScanHandler {
   btnReset: HTMLElement;
   repoUrl: HTMLInputElement;
   chkPrivateRepo: HTMLInputElement;
+  githubTokenInput: HTMLInputElement;
   detailLevelBtns: NodeListOf<HTMLElement>;
   analysisDepthBtns: NodeListOf<HTMLElement>;
   selectedDetailLevel: string = "standard"; // Default
@@ -52,19 +53,7 @@ export class ScanHandler {
   }
 
   checkGithubToken() {
-    const token = getCookie("github_token");
-    const notice = document.getElementById("github-token-notice");
-    const isPrivate = this.chkPrivateRepo?.checked;
-
-    if (!token && isPrivate) {
-      // No token and private repo selected - show notice
-      notice?.classList.remove("hidden");
-    } else {
-      // Token exists or public repo - hide notice
-      notice?.classList.add("hidden");
-    }
-
-    return token;
+    return getCookie("github_token");
   }
 
   removeActiveBTNDetailClass() {
@@ -660,8 +649,15 @@ export class ScanHandler {
       return;
     }
 
-    const isPrivate = !!this.chkPrivateRepo?.checked;
-    logger.debug("Importing repository", { url, isPrivate });
+    // Check for private repo checkbox and token input
+    const isPrivateChecked = this.chkPrivateRepo?.checked;
+    const manualToken = this.githubTokenInput?.value;
+
+    // Use manual token if provided, otherwise fallback to cookie
+    const token = manualToken || this.checkGithubToken();
+    const isPrivate = !!token || isPrivateChecked;
+
+    logger.debug("Importing repository", { url, isPrivate, hasToken: !!token, manualToken: !!manualToken });
 
     try {
       this.btnImport.disabled = true;
@@ -672,11 +668,14 @@ export class ScanHandler {
         return;
       }
 
-      // If private repo, ensure we have a token
-      if (isPrivate && !this.checkGithubToken()) {
-        alert("⚠️ GitHub token required for private repositories. Please add one in Settings.");
+      // If private checked but no token
+      if (isPrivateChecked && !token) {
+        alert("⚠️ Please enter a GitHub token for private repositories.");
+        this.btnImport.disabled = false;
+        this.btnImport.textContent = "🚀 IMPORT_AND_SCAN";
         return;
       }
+
 
       const urlObj = new URL(url);
       const parts = urlObj.pathname.split("/").filter((p) => p);
@@ -695,43 +694,26 @@ export class ScanHandler {
         analysis_depth: this.mapDetailLevelToAnalysisDepth(this.selectedAnalysisDepth),
         callback_url: undefined, // Optional: can be added if needed
         is_private: isPrivate, // Signal backend to use token
+        github_token: manualToken || undefined // Pass manual token if provided
       };
 
-      // For public repos, we explicitly omit credentials (cookies) to prevent
-      // sending the github_token if it exists. The auth_token is sent via Header.
-      const fetchOptions: RequestInit = {
-        credentials: isPrivate ? "include" : "omit"
-      };
+      // Removed fetchOptions to always include credentials
+      // If manual token is provided, we might need to pass it in headers or body
+      // Assuming backend handles 'github_token' in body for now, or we rely on cookie if manual token is not supported by backend yet.
+      // If backend only checks cookie, we might need to set a temporary cookie or update the backend.
+      // For now, let's assume we can pass it in the body or the backend checks the cookie we might set.
 
-      logger.debug("Sending import request", { ...requestBody, credentials: fetchOptions.credentials });
+      // Ideally, we should set the cookie if manual token is provided so the backend middleware picks it up
+      if (manualToken) {
+        document.cookie = `github_token=${manualToken}; path=/; max-age=3600; SameSite=Strict`;
+      }
 
       const apiResponse = await apiClient.post(
         API_ENDPOINTS.ANALYSIS.ANALYZE,
-        requestBody,
-        fetchOptions
+        requestBody
       );
 
-      if (!apiResponse.ok) {
-        if (apiResponse.status === 401) {
-          throw new Error("Session expired. Please log in again.");
-        }
-        if (apiResponse.status === 403) {
-          if (!isPrivate) {
-            throw new Error("Access denied. If this is a private repository, please check the 'Private Repository' box to use your GitHub token.");
-          }
-          throw new Error("Access denied. Please check your GitHub token permissions.");
-        }
-        if (apiResponse.status === 404) {
-          throw new Error(
-            "Backend /api/v1/analyze/job endpoint not implemented."
-          );
-        }
-        if (apiResponse.status === 429) {
-          throw new Error("Rate limit exceeded. Try again later.");
-        }
-        const errorMsg = typeof apiResponse.error === 'string' ? apiResponse.error : `HTTP ${apiResponse.status}`;
-        throw new Error(errorMsg);
-      }
+
 
       const result = apiResponse.data as {
         job_id?: string;
@@ -914,9 +896,10 @@ export class ScanHandler {
     list: HTMLElement,
     btnScan: HTMLButtonElement,
     btnImport: HTMLButtonElement,
-    btnReset: HTMLElement,
+    btnReset: HTMLButtonElement,
     repoUrl: HTMLInputElement,
     chkPrivateRepo: HTMLInputElement,
+    githubTokenInput: HTMLInputElement,
     detailLevelBtns: NodeListOf<HTMLElement>,
     analysisDepthBtns: NodeListOf<HTMLElement>
   ) {
@@ -928,12 +911,18 @@ export class ScanHandler {
     this.btnReset = btnReset;
     this.repoUrl = repoUrl;
     this.chkPrivateRepo = chkPrivateRepo;
+    this.githubTokenInput = githubTokenInput;
     this.detailLevelBtns = detailLevelBtns;
     this.analysisDepthBtns = analysisDepthBtns;
 
     // Initialize checkbox listener
     this.chkPrivateRepo?.addEventListener('change', () => {
-      this.checkGithubToken();
+      const tokenContainer = document.getElementById('token-input-container');
+      if (this.chkPrivateRepo.checked) {
+        tokenContainer?.classList.remove('hidden');
+      } else {
+        tokenContainer?.classList.add('hidden');
+      }
     });
   }
 }

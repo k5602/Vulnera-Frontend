@@ -429,19 +429,19 @@ export default function ScanReport({ data }: { data: ScanReportData }) {
             <li
               key={v.id}
               className={`relative border bg-black/60 p-5 transition-all hover:bg-black/80 group ${v.severity === 'CRITICAL' ? 'border-red-500 shadow-[0_0_10px_rgba(220,38,38,0.2)]' :
-                  v.severity === 'HIGH' ? 'border-orange-500 shadow-[0_0_10px_rgba(234,88,12,0.2)]' :
-                    v.severity === 'MEDIUM' ? 'border-yellow-500' :
-                      'border-blue-500'
+                v.severity === 'HIGH' ? 'border-orange-500 shadow-[0_0_10px_rgba(234,88,12,0.2)]' :
+                  v.severity === 'MEDIUM' ? 'border-yellow-500' :
+                    'border-blue-500'
                 }`}
             >
               {/* Corner markers for tech look */}
               <div className={`absolute top-0 right-0 w-0 h-0 border-t-[10px] border-r-[10px] border-t-transparent ${v.severity === 'CRITICAL' ? 'border-r-red-500' :
-                  v.severity === 'HIGH' ? 'border-r-orange-500' :
-                    v.severity === 'MEDIUM' ? 'border-r-yellow-500' :
-                      'border-r-blue-500'
+                v.severity === 'HIGH' ? 'border-r-orange-500' :
+                  v.severity === 'MEDIUM' ? 'border-r-yellow-500' :
+                    'border-r-blue-500'
                 }`}></div>
 
-              <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+              <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 relative">
                 <div className="space-y-2 flex-1">
                   <div className="flex flex-wrap items-center gap-3">
                     <SeverityBadge level={v.severity} />
@@ -450,7 +450,7 @@ export default function ScanReport({ data }: { data: ScanReportData }) {
                       <span className="text-green-500/60 text-sm">v{v.version}</span>
                     )}
                   </div>
-                  <div className="text-green-400/80 font-medium leading-relaxed">{v.title}</div>
+                  <div className="text-green-400/80 font-medium leading-relaxed break-words min-w-0">{v.title}</div>
 
                   {/* Metadata Row */}
                   {detailLevel !== 'minimal' && (
@@ -488,14 +488,14 @@ export default function ScanReport({ data }: { data: ScanReportData }) {
                 </div>
 
                 {/* Fix Button - Industrial/Terminal Style */}
-                <div className="flex-shrink-0 pt-1">
+                <div className="flex-shrink-0 pt-1 md:self-start self-end">
                   {!fixData[v.id] && (
                     <button
                       onClick={() => handleFix(v)}
                       disabled={fixingFindingId === v.id}
                       className={`px-4 py-2 text-xs font-bold border transition-all duration-150 flex items-center gap-2 uppercase tracking-wider ${fixingFindingId === v.id
-                          ? 'border-green-500 text-green-400 bg-green-900/20 animate-pulse cursor-wait'
-                          : 'bg-green-900/10 text-green-400 border-green-500 hover:bg-green-500 hover:text-black hover:shadow-[0_0_10px_rgba(0,255,65,0.4)]'
+                        ? 'border-green-500 text-green-400 bg-green-900/20 animate-pulse cursor-wait'
+                        : 'bg-green-900/10 text-green-400 border-green-500 hover:bg-green-500 hover:text-black hover:shadow-[0_0_10px_rgba(0,255,65,0.4)]'
                         }`}
                     >
                       {fixingFindingId === v.id ? (
