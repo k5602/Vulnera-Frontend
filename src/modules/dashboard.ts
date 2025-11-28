@@ -154,7 +154,7 @@ export class OrgDashboardHandler {
         apiCallsMth = 3;
         criticalFindings = 4;
         highFindings = 5;
-        mediumFindings = 6;
+        mediumFindings = 60;
         lowFindings = 7;
       }
     } catch (e) {
