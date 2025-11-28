@@ -4,6 +4,7 @@ import { detectEcosystem } from "../utils/scan-handler";
 import { apiClient } from "../utils/api/client";
 import { API_ENDPOINTS } from "../config/api";
 import { isAuthenticated } from "../utils/api/auth-store";
+import { normalizeSeverity } from "../utils/severity";
 
 
 
@@ -257,18 +258,8 @@ export class ScanHandler {
           const packageName = affectedPackage?.name || vuln.package_name || vuln.name || "unknown";
           const packageVersion = affectedPackage?.version || vuln.current_version || vuln.version || "unknown";
 
-          // Get severity - check multiple possible locations
-          let severity = "UNKNOWN";
-          if (vuln.severity) {
-            severity = vuln.severity.toUpperCase();
-          } else if (scanResult.metadata?.severity_breakdown) {
-            // If individual vuln doesn't have severity, try to infer from overall breakdown
-            const breakdown = scanResult.metadata.severity_breakdown;
-            if (breakdown.critical > 0) severity = "CRITICAL";
-            else if (breakdown.high > 0) severity = "HIGH";
-            else if (breakdown.medium > 0) severity = "MEDIUM";
-            else if (breakdown.low > 0) severity = "LOW";
-          }
+          // Get severity using centralized utility
+          const severity = normalizeSeverity(vuln.severity);
 
           const depvuln = {
             id: vuln.id || `dep-${Date.now()}-${Math.random()}`,
@@ -300,7 +291,7 @@ export class ScanHandler {
             const depvuln = {
               id: vuln.id,
               type: "dependency",
-              severity: vuln.severity?.toUpperCase() || "UNKNOWN",
+              severity: normalizeSeverity(vuln.severity),
               package: depen.package_name || "unknown",
               version: depen.current_version || "unknown",
               title: vuln.description || "Vulnerable dependency",
@@ -326,7 +317,7 @@ export class ScanHandler {
           id: sastFind.id,
           type: "sast",
           confidence: sastFind.confidence || "Not Sure",
-          severity: sastFind.severity?.toUpperCase() || "UNDECIDED",
+          severity: normalizeSeverity(sastFind.severity),
           title: sastFind.rule_id || "SAST issue detected",
           description: sastFind.description,
           package: sastFind.location.path.split('/').pop(), // Show filename as package
@@ -487,9 +478,11 @@ export class ScanHandler {
     this.renderFiles();
   }
 
-  getRepoReportData(result: any, repoInfo: { owner: string; repo: string }, durationMs: number, jobId: string) {
+  getRepoReportData(result: unknown, repoInfo: { owner: string; repo: string }, durationMs: number, _jobId: string) {
     // Similar to getReportData but tailored for repo scans
+    // _jobId reserved for future use (e.g., linking to job details page)
     // We can reuse getReportData logic for now, but wrap it to inject repo info
+    const data = result as { metadata?: { duration_ms?: number } };
 
     // Construct a synthetic file object for the repo
     const repoFile = {
@@ -500,13 +493,13 @@ export class ScanHandler {
 
     // Hack: Add to pickedFiles so getReportData processes it correctly
     // In a real refactor, we should separate data processing from UI state
-    this.pickedFiles = [repoFile as any];
+    this.pickedFiles = [repoFile as unknown as File];
 
     // Inject duration if missing
-    if (!result.metadata) result.metadata = {};
-    if (!result.metadata.duration_ms) result.metadata.duration_ms = durationMs;
+    if (!data.metadata) data.metadata = {};
+    if (!data.metadata.duration_ms) data.metadata.duration_ms = durationMs;
 
-    this.getReportData(result);
+    this.getReportData(data);
   }
   async startScan() {
     if (!this.pickedFiles.length) {
@@ -564,7 +557,7 @@ export class ScanHandler {
         }))
       };
 
-      console.log(">>> Sending payload:", payload);
+      logger.debug("Sending scan payload", { fileCount: filesPayload.length });
 
       // -------------------------------------------
       // 3) Send request to backend
@@ -587,10 +580,15 @@ export class ScanHandler {
           alert("⚠️ Rate limit exceeded. Try again later.");
           return;
         }
-        throw new Error(apiResponse.error || `HTTP ${apiResponse.status}`);
+        const errorMsg = typeof apiResponse.error === 'string' ? apiResponse.error : `HTTP ${apiResponse.status}`;
+        throw new Error(errorMsg);
       }
 
-      const result = apiResponse.data;
+      const result = apiResponse.data as {
+        results?: unknown[];
+        total_vulnerabilities?: number;
+        metadata?: { total_files?: number };
+      } | null;
 
       logger.debug("Full API response:", {
         ok: apiResponse.ok,
@@ -681,13 +679,21 @@ export class ScanHandler {
         if (apiResponse.status === 429) {
           throw new Error("Rate limit exceeded. Try again later.");
         }
-        throw new Error(apiResponse.error || `HTTP ${apiResponse.status}`);
+        const errorMsg = typeof apiResponse.error === 'string' ? apiResponse.error : `HTTP ${apiResponse.status}`;
+        throw new Error(errorMsg);
       }
 
-      const result = apiResponse.data;
+      const result = apiResponse.data as {
+        job_id?: string;
+        status?: string;
+        message?: string;
+        error?: string;
+        results?: unknown[];
+        findings_by_type?: unknown;
+      } | null;
 
       // New job-based API returns job info, not immediate results
-      if (result.job_id) {
+      if (result?.job_id) {
         logger.info("Repository scan job submitted", {
           job_id: result.job_id,
           status: result.status,
@@ -714,12 +720,12 @@ export class ScanHandler {
       }
 
       // Legacy format support - if we get immediate results
-      if (result.status === "failed") {
+      if (result?.status === "failed") {
         throw new Error("Repository analysis failed.");
       }
 
       // If we somehow got immediate results, process them
-      if (result.results || result.findings_by_type) {
+      if (result?.results || result?.findings_by_type) {
         this.getReportData(result);
       }
 
@@ -778,14 +784,19 @@ export class ScanHandler {
           throw new Error(`Failed to check job status: HTTP ${response.status}`);
         }
 
-        const job = response.data;
-        const status = job.status?.toLowerCase() || "unknown";
+        const job = response.data as {
+          status?: string;
+          error?: string;
+          message?: string;
+          [key: string]: unknown;
+        } | null;
+        const status = job?.status?.toLowerCase() || "unknown";
 
         logger.debug("Job status poll:", {
           id: jobId,
           status: status,
           attempt: attempts,
-          rawStatus: job.status
+          rawStatus: job?.status
         });
 
         // Handle terminal states
@@ -795,9 +806,9 @@ export class ScanHandler {
           this.stopPolling();
 
           // Use repo-specific report generator for proper formatting
-          if (repoInfo) {
+          if (repoInfo && job) {
             this.getRepoReportData(job, repoInfo, durationMs, jobId);
-          } else {
+          } else if (job) {
             this.getReportData(job);
           }
 
@@ -808,7 +819,7 @@ export class ScanHandler {
         }
 
         if (status === "failed" || status === "error") {
-          throw new Error(job.error || job.message || "Scan job failed");
+          throw new Error(job?.error || job?.message || "Scan job failed");
         }
 
         if (status === "cancelled") {

@@ -19,7 +19,8 @@ export const onRequest = defineMiddleware((context, next) => {
   if (!isPublicPage) {
     // Protected route - verify authentication
     // Check for access_token (JWT) or other session cookies
-    const cookieHeader = context.request.headers.get('cookie') || '';
+    // Note: Auth check currently disabled - uncomment below to enable
+    // const cookieHeader = context.request.headers.get('cookie') || '';
 
     // Simple check if access_token exists in cookies
     // const hasToken = cookieHeader.includes('access_token=');

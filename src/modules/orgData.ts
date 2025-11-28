@@ -1,5 +1,19 @@
 import { message } from './message';
 import { apiClient } from '../utils';
+import { logger } from '../utils/logger';
+
+/** Type definition for OrgData constructor parameter */
+export interface OrgDataInit {
+    id: string;
+    name: string;
+    description: string;
+    created_at: string;
+    updated_at: string;
+    owner_id: string;
+    members_count: number;
+    tier: string;
+    isOrganization: boolean;
+}
 
 export class OrgData {
     orgId: string;
@@ -15,26 +29,15 @@ export class OrgData {
     trueIsOrganization() {
         this.isOrganization = true;
         localStorage.setItem('isOrganization', 'true');
-        console.log(this.isOrganization);
+        logger.debug('isOrganization set to true');
     }
     falseIsOrganization() {
         this.isOrganization = false;
         localStorage.removeItem('isOrganization');
-        console.log(this.isOrganization);
+        logger.debug('isOrganization set to false');
     }
 
-
-    constructor(data: {
-        id: string;
-        name: string;
-        description: string;
-        created_at: string;
-        updated_at: string;
-        owner_id: string;
-        members_count: number;
-        tier: string;
-        isOrganization: boolean;
-    }) {
+    constructor(data: OrgDataInit) {
         this.orgId = data.id;
         this.orgName = data.name;
         this.orgDescription = data.description;
@@ -96,18 +99,21 @@ export class OrgSignupOrgData {
             description: this.formData.orgDescription
         });
 
-        const orgResData = await orgRes.data;
+        const orgResData = orgRes.data as OrgDataInit | undefined;
 
-        console.log(orgRes);
+        logger.debug('Organization creation response', { status: orgRes.status, ok: orgRes.ok });
 
         if (!orgRes.ok) {
-            messageHandler.showError(orgResData?.message || ", isOrganization creation failed.");
+            const errorData = orgResData as { message?: string } | undefined;
+            messageHandler.showError(errorData?.message || "Organization creation failed.");
             this.submitBtn.disabled = false;
             this.submitBtn.textContent = "CREATE_ORG";
             return;
         }
 
-        organization = new OrgData(orgResData);
+        if (orgResData) {
+            organization = new OrgData(orgResData);
+        }
 
         messageHandler.showSuccess("Organization created! Redirecting...");
         organization.isOrganization = true;
@@ -135,16 +141,22 @@ export { organization };
 
 import { getCurrentUser } from '../utils/api/auth-store';
 
+/** Type for the organizations API response */
+interface OrganizationsResponse {
+    organizations: OrgDataInit[];
+}
+
 export async function loadUserOrganization() {
     try {
-        const res = await apiClient.get("/api/v1/organizations");
-        if (res.ok && res.data.organizations && res.data.organizations.length > 0) {
-            const orgList = res.data.organizations;
+        const res = await apiClient.get<OrganizationsResponse>("/api/v1/organizations");
+        const data = res.data;
+        if (res.ok && data?.organizations && data.organizations.length > 0) {
+            const orgList = data.organizations;
             const currentUser = getCurrentUser();
 
             let targetOrg = orgList[0];
             if (currentUser) {
-                const ownedOrg = orgList.find((o: any) => o.owner_id === currentUser.id);
+                const ownedOrg = orgList.find((o) => o.owner_id === currentUser.id);
                 if (ownedOrg) targetOrg = ownedOrg;
             }
 
@@ -152,7 +164,7 @@ export async function loadUserOrganization() {
             // We need to map API response to OrgData constructor expected format if needed
             // Assuming API response matches mostly, but let's be safe with isOrganization
 
-            const orgData = {
+            const orgData: OrgDataInit = {
                 ...targetOrg,
                 isOrganization: true
             };
@@ -162,7 +174,7 @@ export async function loadUserOrganization() {
             return true;
         }
     } catch (e) {
-        console.error("Failed to load organization", e);
+        logger.error('Failed to load organization', { error: e instanceof Error ? e.message : String(e) });
     }
     return false;
 }

@@ -5,7 +5,6 @@
 import {
     getCsrfToken,
     refreshAuth,
-    clearAuth,
     setCsrfToken,
     setCurrentUser,
 } from "../api/auth-store";
@@ -30,41 +29,54 @@ function normalizeHeaders(init?: HeadersInit): Record<string, string> {
 
     return { ...init };
 }
-export interface ApiResponse<T = any> {
-    success?: boolean;
-    ok?: boolean;
+
+/**
+ * API Response interface for client operations
+ * Uses 'ok' as the primary success indicator (aligned with fetch Response.ok)
+ */
+export interface ApiResponse<T = unknown> {
+    /** HTTP ok status (true if status is 200-299) */
+    ok: boolean;
+    /** HTTP status code */
     status: number;
+    /** Response data (only present if request was successful) */
     data?: T;
-    error?: any;
+    /** Error data (only present if request failed) */
+    error?: unknown;
 }
 
 /**
  * Extract and store auth data from response
  * Handles both header-based and body-based CSRF tokens
+ * Header CSRF takes priority over body CSRF
  */
-function extractAndStoreAuthData(res: Response, data: any): void {
+function extractAndStoreAuthData(res: Response, data: unknown): void {
     try {
-        // Extract CSRF from response headers
+        // Extract CSRF from response headers (takes priority)
         const csrfFromHeader = res.headers.get("X-CSRF-Token");
+        let csrfSet = false;
         if (csrfFromHeader) {
             setCsrfToken(csrfFromHeader);
+            csrfSet = true;
         }
 
         // Extract auth data from response body
-        if (data) {
-            if (data.csrf || data.csrf_token) {
-                setCsrfToken(data.csrf || data.csrf_token);
+        if (data && typeof data === 'object') {
+            const responseData = data as Record<string, unknown>;
+            // Only set CSRF from body if header didn't provide one
+            if (!csrfSet && (responseData.csrf || responseData.csrf_token)) {
+                setCsrfToken(String(responseData.csrf || responseData.csrf_token));
             }
 
-            if (data.user) {
-                setCurrentUser(data.user);
-            } else if (data.user_id || data.email) {
+            if (responseData.user && typeof responseData.user === 'object') {
+                setCurrentUser(responseData.user as Parameters<typeof setCurrentUser>[0]);
+            } else if (responseData.user_id || responseData.email) {
                 // Map flat structure to CurrentUser
                 setCurrentUser({
-                    id: data.user_id || data.id,
-                    email: data.email,
-                    name: data.name || data.first_name, // fallback
-                    roles: data.roles || []
+                    id: responseData.user_id as string || responseData.id as string,
+                    email: responseData.email as string,
+                    name: (responseData.name || responseData.first_name) as string | undefined,
+                    roles: (responseData.roles || []) as string[]
                 });
             }
         }
@@ -73,7 +85,7 @@ function extractAndStoreAuthData(res: Response, data: any): void {
     }
 }
 
-export async function apiFetch<T = any>(
+export async function apiFetch<T = unknown>(
     url: string,
     opts: RequestInit = {}
 ): Promise<ApiResponse<T>> {
@@ -98,7 +110,6 @@ export async function apiFetch<T = any>(
 
     if (isMutating && !skipCsrf) {
         let csrfToken = getCsrfToken();
-        console.log("CSRF Token:", csrfToken);
 
         // If we don't have a CSRF token for a mutating request, try to get one via refresh
         if (!csrfToken) {
@@ -111,8 +122,6 @@ export async function apiFetch<T = any>(
         if (csrfToken && !headers["X-CSRF-Token"]) {
             headers["X-CSRF-Token"] = csrfToken;
             localStorage.setItem("CSRF_STORAGE_KEY", csrfToken);
-            console.log("inside if");
-            
         } else {
             logger.warn("Proceeding with mutating request without CSRF token");
         }
@@ -126,18 +135,15 @@ export async function apiFetch<T = any>(
 
     // Prevent GET requests from having a body
     if (method === "GET" && opts.body) {
-        delete (opts as any).body;
+        delete (opts as Record<string, unknown>).body;
     }
 
     // Construct full URL with base URL
     const fullUrl = `${API_CONFIG.BASE_URL}${url}`;
 
     try {
-        console.log("API Request",{
-            ...opts,
-            headers,
-            credentials: "include",
-        });
+        logger.debug("API Request", { url: fullUrl, method });
+        
         // First request attempt
         let res = await fetch(fullUrl, {
             ...opts,
@@ -182,80 +188,68 @@ export async function apiFetch<T = any>(
         extractAndStoreAuthData(res, data);
 
         // Handle 401 Unauthorized (Token Expired)
-        // if (res.status === 401 && !skipCsrf) {
-        //     logger.debug("Received 401, attempting token refresh");
+        if (res.status === 401 && !skipCsrf) {
+            logger.debug("Received 401, attempting token refresh");
 
-        //     // Use the centralized refresh logic (mutex protected)
-        //     const refreshed = await refreshAuth();
+            // Use the centralized refresh logic (mutex protected)
+            let refreshed = false;
+            try {
+                refreshed = await refreshAuth();
+            } catch (refreshError) {
+                logger.warn("Token refresh threw an error", refreshError);
+            }
 
-        //     if (!refreshed) {
-        //         logger.warn("Token refresh failed, redirecting to login");
-        //         clearAuth();
+            if (!refreshed) {
+                logger.warn("Token refresh failed, redirecting to login");
 
-        //         // Avoid infinite redirect loop
-        //         if (
-        //             typeof window !== "undefined" &&
-        //             !window.location.pathname.startsWith("/login")
-        //         ) {
-        //             window.location.replace("/login");
-        //         }
+                // Avoid infinite redirect loop
+                if (
+                    typeof window !== "undefined" &&
+                    !window.location.pathname.startsWith("/login")
+                ) {
+                    window.location.replace("/login");
+                }
 
-        //         return { ok: false, status: 401, error: "Authentication expired" };
-        //     }
+                return { ok: false, status: 401, error: "Authentication expired" };
+            }
 
-        //     logger.debug("Token refresh successful, retrying request");
+            logger.debug("Token refresh successful, retrying request");
 
-        //     // Update CSRF token for the retry
-        //     if (isMutating) {
-        //         headers["X-CSRF-Token"] = getCsrfToken();
-        //     }
+            // Update CSRF token for the retry
+            if (isMutating) {
+                const newCsrfToken = getCsrfToken();
+                if (newCsrfToken) {
+                    headers["X-CSRF-Token"] = newCsrfToken;
+                }
+            }
 
-        //     // Retry the request
-        //     res = await fetch(fullUrl, {
-        //         ...opts,
-        //         headers,
-        //         credentials: "include",
-        //     });
+            // Retry the request
+            res = await fetch(fullUrl, {
+                ...opts,
+                headers,
+                credentials: "include",
+            });
 
-        //     // Parse retry response
-        //     let retryData = null;
-        //     try {
-        //         const text = await res.text();
-        //         if (text) {
-        //             retryData = JSON.parse(text);
-        //         }
-        //     } catch (e) {
-        //         if (res.status !== 204) {
-        //             logger.debug("Failed to parse retry response JSON", {
-        //                 url,
-        //                 status: res.status,
-        //             });
-        //         }
-        //     }
+            // Parse retry response
+            let retryData = null;
+            try {
+                const text = await res.text();
+                if (text) {
+                    retryData = JSON.parse(text);
+                }
+            } catch (e) {
+                if (res.status !== 204) {
+                    logger.debug("Failed to parse retry response JSON", {
+                        url,
+                        status: res.status,
+                    });
+                }
+            }
 
-        //     // Extract auth data from retry response
-        //     extractAndStoreAuthData(res, retryData);
-        //     data = retryData;
-        // }
-
-        // // Handle 403 Forbidden (Permission/Role lost - user should logout)
-        // if (res.status === 403 && !skipCsrf) {
-        //     logger.warn(`Access forbidden to ${method} ${url} - user permissions changed`);
-        //     clearAuth();
-
-        //     if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
-        //         window.location.replace("/login?reason=forbidden");
-        //     }
-
-        //     return { ok: false, status: 403, error: "Access forbidden - please re-authenticate" };
-        // }
-
-        // if (!res.ok) {
-        //     logger.warn(`API Request failed: ${method} ${url}`, {
-        //         status: res.status,
-        //         error: data,
-        //     });
-        // }
+            // Extract auth data from retry response
+            extractAndStoreAuthData(res, retryData);
+            data = retryData;
+        }
 
         return {
             ok: res.ok,
@@ -274,22 +268,40 @@ export async function apiFetch<T = any>(
 }
 
 export const apiClient = {
-    get: <T = any>(url: string) => apiFetch<T>(url),
-    post: <T = any>(url: string, body?: any) =>
+    get: <T = unknown>(url: string) => apiFetch<T>(url),
+    post: <T = unknown>(url: string, body?: unknown) =>
         apiFetch<T>(url, {
             method: "POST",
             body: JSON.stringify(body || {}),
         }),
 
-    put: <T = any>(url: string, body?: any) =>
+    put: <T = unknown>(url: string, body?: unknown) =>
         apiFetch<T>(url, {
             method: "PUT",
             body: JSON.stringify(body || {}),
         }),
-    delete: <T = any>(url: string) => apiFetch<T>(url, { method: "DELETE" }),
-    patch: <T = any>(url: string, body?: any) =>
+    delete: <T = unknown>(url: string) => apiFetch<T>(url, { method: "DELETE" }),
+    patch: <T = unknown>(url: string, body?: unknown) =>
         apiFetch<T>(url, {
             method: "PATCH",
             body: JSON.stringify(body || {}),
         }),
+    
+    /**
+     * Replace path parameters in a URL template
+     * @param template - URL template with :param placeholders (e.g., '/api/jobs/:job_id')
+     * @param params - Object with parameter values (e.g., { job_id: '123' })
+     * @returns URL with parameters replaced (e.g., '/api/jobs/123')
+     * 
+     * @example
+     * apiClient.replacePath('/api/jobs/:job_id', { job_id: '123' })
+     * // => '/api/jobs/123'
+     */
+    replacePath: (template: string, params: Record<string, string>): string => {
+        let result = template;
+        for (const [key, value] of Object.entries(params)) {
+            result = result.replace(`:${key}`, encodeURIComponent(value));
+        }
+        return result;
+    },
 };
