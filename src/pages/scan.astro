@@ -54,304 +54,374 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
         </p>
       </header>
 
-      <!-- Upload area -->
-      <section
-        class="terminal-border bg-black/70 rounded-lg md:rounded-xl p-3 sm:p-4 md:p-6 overflow-hidden"
-      >
-        <h2
-          class="text-cyber-400 font-mono text-sm sm:text-base md:text-lg mb-3 flex items-center gap-2"
-        >
-          <span>📁</span> UPLOAD_FILES
-        </h2>
-
-        <!-- Dropzone -->
+      <!-- AI Features Description -->
+      <div class="mt-8 mb-8 grid grid-cols-1 md:grid-cols-2 gap-4">
         <div
-          id="dropzone"
-          class="relative border-2 border-dashed border-cyber-400/40 rounded-lg p-6 sm:p-8 text-center bg-black/40 hover:bg-black/50 hover:border-cyber-400/60 transition-all group"
+          class="bg-gradient-to-br from-blue-900/10 to-transparent border border-blue-500/20 rounded-xl p-4 flex gap-3 items-start"
         >
+          <div class="p-2 bg-blue-500/10 rounded-lg text-blue-400">✨</div>
+          <div>
+            <h3 class="text-blue-300 font-mono text-sm font-bold mb-1">
+              AI_ENRICHMENT
+            </h3>
+            <p class="text-gray-400 text-xs leading-relaxed">
+              Our AI analyzes vulnerability context to provide deeper insights,
+              impact assessment, and false positive reduction.
+            </p>
+          </div>
+        </div>
+
+        <div
+          class="bg-gradient-to-br from-purple-900/10 to-transparent border border-purple-500/20 rounded-xl p-4 flex gap-3 items-start"
+        >
+          <div class="p-2 bg-purple-500/10 rounded-lg text-purple-400">🛠️</div>
+          <div>
+            <h3 class="text-purple-300 font-mono text-sm font-bold mb-1">
+              AUTO_FIX
+            </h3>
+            <p class="text-gray-400 text-xs leading-relaxed">
+              Generate intelligent code patches for identified vulnerabilities.
+              Review and apply fixes directly from the report.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- GitHub import (Now Primary) -->
+      <section
+        id="github-import-section"
+        class="mb-8 terminal-border bg-black/60 backdrop-blur-md rounded-xl p-6 sm:p-8 overflow-hidden relative group border border-purple-500/20 shadow-2xl shadow-purple-900/10"
+      >
+        <!-- Premium Glow Effect -->
+        <div
+          class="absolute -inset-0.5 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl opacity-20 group-hover:opacity-50 transition duration-700 blur-md"
+        >
+        </div>
+
+        <div class="relative z-10">
+          <h2
+            class="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-400 font-mono text-xl md:text-2xl mb-6 flex items-center gap-3 font-bold tracking-tight"
+          >
+            <span class="text-3xl filter drop-shadow-lg">🐙</span> IMPORT_GITHUB_REPO
+          </h2>
+
+          <!-- GitHub Token Required Notice -->
           <div
-            class="absolute inset-0 bg-gradient-to-br from-cyber-400/5 to-matrix-400/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+            id="github-token-notice"
+            class="hidden mb-6 p-4 bg-purple-900/40 border border-purple-500/50 rounded-xl backdrop-blur-sm shadow-lg"
           >
-          </div>
-          <div class="relative z-10">
-            <div class="text-4xl mb-3">📦</div>
-            <p class="text-matrix-300 text-sm sm:text-base font-medium mb-2">
-              Drag & drop your files here
-            </p>
-            <p class="text-gray-500 text-xs sm:text-sm mb-4">
-              or click to browse
-            </p>
             <div
-              class="flex flex-wrap gap-1 justify-center text-xs text-gray-600 mb-4"
+              class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
             >
-              <span
-                class="px-2 py-1 bg-black/40 rounded border border-gray-700/30"
-                >package.json</span
+              <div class="flex items-center gap-4">
+                <span class="text-2xl">🔐</span>
+                <div>
+                  <h3
+                    class="text-base text-purple-200 font-bold font-mono tracking-wide"
+                  >
+                    Token Required for Private Repo
+                  </h3>
+                  <p class="text-sm text-purple-300/80 mt-1">
+                    To scan private repositories, you must add a GitHub token in
+                    settings.
+                  </p>
+                </div>
+              </div>
+              <a
+                href="/settings#api-keys"
+                class="whitespace-nowrap inline-flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-500 text-white px-5 py-2.5 rounded-lg font-mono text-xs font-bold transition-all shadow-lg shadow-purple-900/40 hover:shadow-purple-900/60 ring-1 ring-purple-400/50"
               >
-              <span
-                class="px-2 py-1 bg-black/40 rounded border border-gray-700/30"
-                >requirements.txt</span
-              >
-              <span
-                class="px-2 py-1 bg-black/40 rounded border border-gray-700/30"
-                >pom.xml</span
-              >
-              <span
-                class="px-2 py-1 bg-black/40 rounded border border-gray-700/30"
-                >Cargo.lock</span
-              >
+                <span>⚙️</span>
+                <span>ADD_TOKEN</span>
+              </a>
             </div>
-            <input id="file-input" type="file" class="sr-only" multiple />
-            <label
-              for="file-input"
-              id="btn-select"
-              role="button"
-              tabindex="0"
-              class="inline-flex items-center cursor-pointer bg-gradient-to-r from-cyber-600 to-matrix-600 hover:from-cyber-500 hover:to-matrix-500 text-black font-bold px-4 sm:px-6 py-2.5 rounded-lg font-mono text-xs sm:text-sm terminal-border shadow-lg hover:shadow-cyber-400/20 transition-all"
-            >
-              <span class="mr-2">📂</span> SELECT_FILES
-            </label>
-          </div>
-        </div>
-
-        <!-- File List -->
-        <div class="mt-4 min-h-[40px]">
-          <ul
-            id="file-list"
-            class="text-matrix-300 text-xs sm:text-sm font-mono space-y-2 max-h-40 overflow-y-auto"
-          >
-          </ul>
-        </div>
-
-        <div class="mt-5 space-y-3">
-        
-          <!-- Detail Level Selection -->
-          <div class="border border-cyber-400/30 rounded-lg p-3 bg-black/30">
-            <label class="block text-xs text-matrix-300 font-mono mb-2"
-              >REPORT_DETAIL_LEVEL</label
-            >
-            <div class="flex flex-wrap gap-2">
-              <button
-                data-detail-level="minimal"
-                class="detail-level-btn flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 border border-gray-600/40 text-gray-400 px-3 py-1.5 rounded-lg font-mono text-xs hover:bg-gray-600/10 hover:border-gray-500/60 transition-all"
-              >
-                <span>⚡</span> MINIMAL
-              </button>
-              <button
-                data-detail-level="standard"
-                class="detail-level-btn active flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 border border-cyber-400/60 bg-cyber-400/10 text-cyber-300 px-3 py-1.5 rounded-lg font-mono text-xs hover:bg-cyber-400/20 transition-all"
-              >
-                <span>📊</span> STANDARD
-              </button>
-              <button
-                data-detail-level="full"
-                class="detail-level-btn flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 border border-gray-600/40 text-gray-400 px-3 py-1.5 rounded-lg font-mono text-xs hover:bg-gray-600/10 hover:border-gray-500/60 transition-all"
-              >
-                <span>🔬</span> FULL
-              </button>
-            </div>
-            <p class="mt-2 text-[10px] text-gray-500 leading-relaxed">
-              <span class="text-cyan-400 font-bold">⚡ Minimal:</span> Critical/High
-              vulns only<br />
-              <span class="text-cyan-400 font-bold">📊 Standard:</span> All vulns
-              + CVE/CVSS + recommendations + files analysis<br />
-              <span class="text-cyan-400 font-bold">🔬 Full:</span> Complete details
-              + affected files + extended recommendations
-            </p>
           </div>
 
-          <!-- Secondary Actions -->
-          <div class="flex flex-wrap gap-2">
+          <div id="github-import-controls" class="flex flex-col gap-6">
+            <div class="relative group/input">
+              <div
+                class="absolute -inset-0.5 bg-gradient-to-r from-purple-500/50 to-blue-500/50 rounded-lg opacity-0 group-hover/input:opacity-100 transition duration-500 blur-sm"
+              >
+              </div>
+              <input
+                id="repo-url"
+                type="url"
+                placeholder="https://github.com/owner/repo"
+                class="relative w-full px-5 py-4 rounded-lg bg-black/80 border border-gray-700/50 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 text-white placeholder-gray-500 text-sm sm:text-base font-mono transition-all shadow-inner"
+              />
+              <div
+                class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none text-xs font-bold tracking-wider bg-gray-900/80 px-2 py-1 rounded"
+              >
+                GIT
+              </div>
+            </div>
+
+            <div
+              class="flex flex-col lg:flex-row gap-6 justify-between items-start lg:items-center bg-black/20 p-4 rounded-xl border border-white/5"
+            >
+              <!-- Private Repo Checkbox -->
+              <label
+                class="flex items-center gap-3 cursor-pointer group/check select-none"
+              >
+                <div class="relative">
+                  <input
+                    type="checkbox"
+                    id="chk-private-repo"
+                    class="peer sr-only"
+                  />
+                  <div
+                    class="w-6 h-6 border-2 border-gray-600 rounded bg-black/60 peer-checked:bg-purple-600 peer-checked:border-purple-400 transition-all shadow-lg"
+                  >
+                  </div>
+                  <svg
+                    class="absolute inset-0 w-6 h-6 text-white opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none drop-shadow"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clip-rule="evenodd"></path>
+                  </svg>
+                </div>
+                <span
+                  class="text-sm sm:text-base text-gray-400 font-mono group-hover/check:text-purple-300 transition-colors font-medium"
+                  >Private Repository</span
+                >
+              </label>
+
+              <!-- Analysis Depth Selection -->
+              <div
+                class="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full lg:w-auto"
+              >
+                <span
+                  class="text-xs text-gray-500 font-mono uppercase tracking-widest font-bold"
+                  >Depth:</span
+                >
+                <div class="flex gap-2 w-full sm:w-auto">
+                  <button
+                    data-analysis-depth="minimal"
+                    class="analysis-depth-btn flex-1 sm:flex-none inline-flex items-center justify-center gap-2 border border-gray-800 bg-black/40 text-gray-500 px-4 py-2.5 rounded-lg font-mono text-xs font-bold hover:bg-gray-800 hover:text-gray-300 transition-all hover:shadow-lg hover:border-gray-600"
+                  >
+                    MINIMAL
+                  </button>
+                  <button
+                    data-analysis-depth="standard"
+                    class="analysis-depth-btn active flex-1 sm:flex-none inline-flex items-center justify-center gap-2 border border-purple-500/50 bg-purple-500/20 text-purple-300 px-4 py-2.5 rounded-lg font-mono text-xs font-bold transition-all shadow-lg shadow-purple-900/20 ring-1 ring-purple-500/20"
+                  >
+                    STANDARD
+                  </button>
+                  <button
+                    data-analysis-depth="full"
+                    class="analysis-depth-btn flex-1 sm:flex-none inline-flex items-center justify-center gap-2 border border-gray-800 bg-black/40 text-gray-500 px-4 py-2.5 rounded-lg font-mono text-xs font-bold hover:bg-gray-800 hover:text-gray-300 transition-all hover:shadow-lg hover:border-gray-600"
+                  >
+                    FULL
+                  </button>
+                </div>
+              </div>
+            </div>
+
             <button
-              id="btn-reset-files"
-              class="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 border border-red-400/40 text-red-300 px-3 py-2 rounded-lg font-mono text-xs hover:bg-red-400/10 hover:border-red-400/60 transition-all"
+              id="btn-import"
+              class="w-full inline-flex items-center justify-center gap-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-bold px-8 py-4 rounded-xl font-mono text-base shadow-xl shadow-purple-900/40 hover:shadow-purple-900/60 transition-all transform hover:scale-[1.02] ring-1 ring-white/10"
             >
-              <span>🗑️</span> RESET
+              <span class="text-xl filter drop-shadow">🚀</span>
+              <span class="tracking-wider">IMPORT_AND_SCAN</span>
             </button>
           </div>
-
-          <!-- Primary Action -->
-          <button
-            id="btn-scan"
-            class="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-cyber-500 to-matrix-500 hover:from-cyber-400 hover:to-matrix-400 text-black font-bold px-6 py-3 rounded-lg font-mono text-sm sm:text-base shadow-lg hover:shadow-cyber-400/30 transition-all transform hover:scale-[1.02]"
-          >
-            <span class="text-lg">🚀</span> START_SCAN
-          </button>
         </div>
       </section>
 
-      <!-- GitHub import -->
+      <!-- Upload area (Secondary) -->
       <section
-        id="github-import-section"
-        class="mt-6 sm:mt-8 md:mt-10 terminal-border bg-black/70 rounded-lg md:rounded-xl p-3 sm:p-4 md:p-6 overflow-hidden"
+        class="terminal-border bg-black/60 backdrop-blur-md rounded-xl p-6 sm:p-8 overflow-hidden relative group border border-cyan-500/20 shadow-2xl shadow-cyan-900/10"
       >
-        <h2
-          class="text-cyber-400 font-mono text-sm sm:text-base md:text-lg mb-3"
-        >
-          IMPORT_GITHUB_REPO
-        </h2>
-
-        <!-- GitHub Token Required Notice -->
+        <!-- Premium Glow Effect (Cyan/Green for files) -->
         <div
-          id="github-token-notice"
-          class="hidden mb-3 p-2 sm:p-3 bg-purple-900/20 border border-purple-500/40 rounded-lg"
+          class="absolute -inset-0.5 bg-gradient-to-r from-cyan-600 to-green-600 rounded-xl opacity-20 group-hover:opacity-40 transition duration-700 blur-md"
         >
-          <div class="flex flex-col gap-2">
-            <div class="flex items-center gap-2">
-              <span class="text-lg">🔐</span>
-              <h3
-                class="text-xs sm:text-sm text-purple-400 font-bold font-mono"
-              >
-                GitHub Token Required For Private Repo
-              </h3>
-            </div>
-            <p class="text-xs text-gray-300">
-              Add token in Settings to import private repos. If repo is public
-              ignore this notice.
-            </p>
-            <a
-              href="/settings#api-keys"
-              class="inline-flex items-center justify-center gap-1 bg-purple-500 hover:bg-purple-600 text-white px-3 py-1.5 rounded font-mono text-xs transition-all w-full sm:w-auto"
-            >
-              <span>⚙️</span>
-              <span>Add Token</span>
-            </a>
-          </div>
         </div>
 
-        <div id="github-import-controls" class="flex flex-col gap-2">
-          <input
-            id="repo-url"
-            type="url"
-            placeholder="github.com/owner/repo"
-            class="w-full px-3 py-2 rounded-lg bg-black/60 border border-cyber-400/30 focus:border-cyber-400 focus:ring-1 focus:ring-cyber-400 text-white placeholder-gray-500 text-xs sm:text-sm"
-          />
-
-          <!-- Analysis Depth Selection -->
-          <div
-            class="border border-cyber-400/30 rounded-lg p-2 bg-black/30 mt-2"
+        <div class="relative z-10">
+          <h2
+            class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-green-400 font-mono text-xl md:text-2xl mb-6 flex items-center gap-3 font-bold tracking-tight"
           >
-            <label class="block text-[10px] text-matrix-300 font-mono mb-1.5"
-              >DETAIL_LEVEL</label
+            <span class="text-3xl filter drop-shadow-lg">📁</span> OR_UPLOAD_FILES
+          </h2>
+
+          <!-- Dropzone -->
+          <div
+            id="dropzone"
+            class="relative border-2 border-dashed border-gray-700/50 rounded-xl p-8 sm:p-10 text-center bg-black/40 hover:bg-black/60 hover:border-cyan-500/50 transition-all group/drop cursor-pointer shadow-inner"
+          >
+            <div class="relative z-10">
+              <div
+                class="text-5xl mb-4 opacity-50 group-hover/drop:opacity-100 group-hover/drop:scale-110 transition-all duration-300 filter drop-shadow-lg"
+              >
+                📦
+              </div>
+              <p
+                class="text-gray-300 text-base font-medium mb-2 font-mono tracking-wide"
+              >
+                Drag & drop manifests
+              </p>
+              <p class="text-gray-500 text-sm mb-6">
+                package.json, requirements.txt, pom.xml...
+              </p>
+
+              <input id="file-input" type="file" class="sr-only" multiple />
+              <label
+                for="file-input"
+                id="btn-select"
+                class="inline-flex items-center cursor-pointer bg-gray-800 hover:bg-gray-700 text-cyan-300 px-6 py-3 rounded-lg font-mono text-sm font-bold border border-gray-600 hover:border-cyan-500/50 transition-all shadow-lg hover:shadow-cyan-900/30"
+              >
+                BROWSE_FILES
+              </label>
+            </div>
+          </div>
+
+          <!-- File List -->
+          <div class="mt-6 min-h-[20px]">
+            <ul
+              id="file-list"
+              class="text-gray-400 text-xs font-mono space-y-2 max-h-48 overflow-y-auto custom-scrollbar"
             >
-            <div class="flex gap-2">
+            </ul>
+          </div>
+
+          <!-- Analysis Depth Selection for Upload -->
+          <div
+            class="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3"
+          >
+            <span
+              class="text-xs text-gray-500 font-mono uppercase tracking-widest font-bold"
+              >Depth:</span
+            >
+            <div class="flex gap-2 w-full sm:w-auto">
               <button
                 data-analysis-depth="minimal"
-                class="analysis-depth-btn flex-1 inline-flex items-center justify-center gap-1 border border-gray-600/40 text-gray-400 px-2 py-1 rounded font-mono text-[10px] hover:bg-gray-600/10 transition-all"
+                class="analysis-depth-btn flex-1 sm:flex-none inline-flex items-center justify-center gap-2 border border-gray-800 bg-black/40 text-gray-500 px-4 py-2.5 rounded-lg font-mono text-xs font-bold hover:bg-gray-800 hover:text-gray-300 transition-all hover:shadow-lg hover:border-gray-600"
               >
                 MINIMAL
               </button>
               <button
                 data-analysis-depth="standard"
-                class="analysis-depth-btn active flex-1 inline-flex items-center justify-center gap-1 border border-cyber-400/60 bg-cyber-400/10 text-cyber-300 px-2 py-1 rounded font-mono text-[10px] transition-all"
+                class="analysis-depth-btn active flex-1 sm:flex-none inline-flex items-center justify-center gap-2 border border-cyan-500/50 bg-cyan-500/20 text-cyan-300 px-4 py-2.5 rounded-lg font-mono text-xs font-bold transition-all shadow-lg shadow-cyan-900/20 ring-1 ring-cyan-500/20"
               >
                 STANDARD
               </button>
               <button
                 data-analysis-depth="full"
-                class="analysis-depth-btn flex-1 inline-flex items-center justify-center gap-1 border border-gray-600/40 text-gray-400 px-2 py-1 rounded font-mono text-[10px] hover:bg-gray-600/10 transition-all"
+                class="analysis-depth-btn flex-1 sm:flex-none inline-flex items-center justify-center gap-2 border border-gray-800 bg-black/40 text-gray-500 px-4 py-2.5 rounded-lg font-mono text-xs font-bold hover:bg-gray-800 hover:text-gray-300 transition-all hover:shadow-lg hover:border-gray-600"
               >
                 FULL
               </button>
             </div>
           </div>
 
-          <button
-            id="btn-import"
-            class="w-full inline-flex items-center justify-center bg-gradient-to-r from-cyber-600 to-matrix-600 hover:from-cyber-500 hover:to-matrix-500 text-black px-3 py-2 rounded-lg font-mono text-xs sm:text-sm terminal-border cursor-pointer transition-colors"
-          >
-            <span class="mr-1">&gt;</span> IMPORT_REPO
-          </button>
-        </div>
-        <p class="text-gray-400 text-xs mt-2">
-          Fetch manifest files and analyze dependencies.
-        </p>
-      </section>
+          <div class="mt-8 flex justify-end gap-4">
+            <button
+              id="btn-reset-files"
+              class="inline-flex items-center justify-center gap-2 text-red-400 hover:text-red-300 px-5 py-2.5 rounded-lg font-mono text-xs font-bold hover:bg-red-900/20 transition-all"
+            >
+              <span>🗑️</span> CLEAR
+            </button>
 
-      <!-- Report Island Mount -->
-      <div class="mt-4">
-        <ScanReportIsland client:idle />
-      </div>
+            <button
+              id="btn-scan"
+              class="inline-flex items-center justify-center gap-3 bg-gradient-to-r from-cyan-600 to-green-600 hover:from-cyan-500 hover:to-green-500 text-black font-bold px-8 py-3 rounded-xl font-mono text-sm sm:text-base transition-all shadow-lg shadow-cyan-900/20 hover:shadow-cyan-900/40 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none ring-1 ring-white/10"
+            >
+              <span class="text-lg">▶</span> SCAN_FILES
+            </button>
+          </div>
+        </div>
+      </section>
     </div>
   </section>
 
-  <Footer />
+  <!-- Report Island Mount -->
+  <div class="mt-8">
+    <ScanReportIsland client:idle />
+  </div>
+</Layout>
 
-  <script>
-    import { ScanHandler } from "../modules/scanModule";
+<Footer />
 
-    const scanHandler = new ScanHandler(
-      document.getElementById("dropzone")!,
-      document.getElementById("file-input")! as HTMLInputElement,
-      document.getElementById("file-list")!,
-      document.getElementById("btn-scan")! as HTMLButtonElement,
-      document.getElementById("btn-import")! as HTMLButtonElement,
-      document.getElementById("btn-reset-files")! as HTMLButtonElement,
-      document.getElementById("repo-url")! as HTMLInputElement,
-      document.querySelectorAll(".detail-level-btn"),
-      document.querySelectorAll(".analysis-depth-btn"),
+<script>
+  import { ScanHandler } from "../modules/scanModule";
+
+  const scanHandler = new ScanHandler(
+    document.getElementById("dropzone")!,
+    document.getElementById("file-input")! as HTMLInputElement,
+    document.getElementById("file-list")!,
+    document.getElementById("btn-scan")! as HTMLButtonElement,
+    document.getElementById("btn-import")! as HTMLButtonElement,
+    document.getElementById("btn-reset-files")! as HTMLButtonElement,
+    document.getElementById("repo-url")! as HTMLInputElement,
+    document.getElementById("chk-private-repo")! as HTMLInputElement,
+    document.querySelectorAll(".detail-level-btn"),
+    document.querySelectorAll(".analysis-depth-btn"),
+  );
+
+  // GitHub Token Management
+  // Check token on page load
+  scanHandler.checkGithubToken();
+
+  // Listen for token updates from settings page
+  window.addEventListener("github-token-updated", () => {
+    scanHandler.checkGithubToken();
+  });
+
+  // Handle navigation to settings with hash
+  // window.addEventListener("load", () => {
+  //   if (window.location.hash === "#api-keys") {
+  //     const apiKeysTab = document.querySelector('[data-tab="api-keys"]');
+  //     if (apiKeysTab && apiKeysTab.click) {
+  //       apiKeysTab.click();
+  //     }
+  //   }
+  // });
+
+  function initializeHandlers() {
+    // Disable browser default file-open on drop anywhere
+    document.addEventListener("dragover", (e) => e.preventDefault());
+    document.addEventListener("drop", (e) => e.preventDefault());
+
+    // Handle detail level selection
+    scanHandler.addActiveBTNDetailClass();
+
+    // Handle analysis depth selection
+    scanHandler.addActiveBTNAnalysisClass();
+
+    scanHandler.renderFiles();
+
+    // Drag and drop handlers
+    scanHandler.dragAndDropSetup();
+    scanHandler.input?.addEventListener("change", () =>
+      scanHandler.handleFiles(scanHandler.input?.files),
     );
 
-    // GitHub Token Management
-    // Check token on page load
-    scanHandler.checkGithubToken();
-
-    // Listen for token updates from settings page
-    window.addEventListener("github-token-updated", () => {
-      scanHandler.checkGithubToken();
+    // RESET_FILES handler
+    scanHandler.btnReset?.addEventListener("click", () => {
+      scanHandler.pickedFiles = [];
+      scanHandler.renderFiles();
+      scanHandler.repoUrl.value = "";
     });
 
-    // Handle navigation to settings with hash
-    // window.addEventListener("load", () => {
-    //   if (window.location.hash === "#api-keys") {
-    //     const apiKeysTab = document.querySelector('[data-tab="api-keys"]');
-    //     if (apiKeysTab && apiKeysTab.click) {
-    //       apiKeysTab.click();
-    //     }
-    //   }
-    // });
+    // START_SCAN handler - Using new /api/v1/dependencies/analyze endpoint
+    scanHandler.btnScan?.addEventListener("click", () =>
+      scanHandler.startScan(),
+    );
+    // IMPORT_REPO handler - Using new /api/v1/analyze/job endpoint
+    scanHandler.btnImport?.addEventListener("click", () =>
+      scanHandler.importRepository(),
+    );
+  }
 
-    function initializeHandlers() {
-      // Disable browser default file-open on drop anywhere
-      document.addEventListener("dragover", (e) => e.preventDefault());
-      document.addEventListener("drop", (e) => e.preventDefault());
-
-      // Handle detail level selection
-      scanHandler.addActiveBTNDetailClass();
-
-      // Handle analysis depth selection
-      scanHandler.addActiveBTNAnalysisClass();
-
-      scanHandler.renderFiles();
-
-      // Drag and drop handlers
-      scanHandler.dragAndDropSetup();
-      scanHandler.input?.addEventListener("change", () =>
-        scanHandler.handleFiles(scanHandler.input?.files),
-      );
-
-      // RESET_FILES handler
-      scanHandler.btnReset?.addEventListener("click", () => {
-        scanHandler.pickedFiles = [];
-        scanHandler.renderFiles();
-        scanHandler.repoUrl.value = "";
-      });
-
-      // START_SCAN handler - Using new /api/v1/dependencies/analyze endpoint
-      scanHandler.btnScan?.addEventListener("click", () =>
-        scanHandler.startScan(),
-      );
-      // IMPORT_REPO handler - Using new /api/v1/analyze/job endpoint
-      scanHandler.btnImport?.addEventListener("click", () =>
-        scanHandler.importRepository(),
-      );
-    }
-
-    // Initialize when DOM is ready
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", initializeHandlers);
-    } else {
-      initializeHandlers();
-    }
-  </script>
-</Layout>
+  // Initialize when DOM is ready
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initializeHandlers);
+  } else {
+    initializeHandlers();
+  }
+</script>
