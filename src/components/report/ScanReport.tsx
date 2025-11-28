@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { usePagination } from '../../hooks/usePagination';
 import { enrichService, type EnrichedFinding } from '../../utils/api/enrich-service';
+import { fixService, type FixResponse } from '../../utils/api/fix-service';
 
 export type Vulnerability = {
   id: string;
@@ -65,6 +66,78 @@ export default function ScanReport({ data }: { data: ScanReportData }) {
 
   const [isEnriching, setIsEnriching] = useState(false);
   const [enrichedData, setEnrichedData] = useState<Record<string, EnrichedFinding>>({});
+
+  const [fixingFindingId, setFixingFindingId] = useState<string | null>(null);
+  const [fixData, setFixData] = useState<Record<string, FixResponse & { error?: string }>>({});
+
+  const handleFix = async (finding: Vulnerability) => {
+    setFixingFindingId(finding.id);
+    try {
+      // 1. Try to get language from file analysis data first
+      let language = 'javascript'; // Default
+
+      // Try to match affected file to analysis results to get ecosystem/language
+      if (finding.affectedFiles && finding.affectedFiles.length > 0) {
+        const affectedFile = finding.affectedFiles[0];
+        const fileAnalysis = data.files.find(f => f.file === affectedFile);
+
+        if (fileAnalysis?.ecosystem) {
+          const eco = fileAnalysis.ecosystem.toLowerCase();
+          if (eco === 'npm' || eco === 'node') language = 'javascript';
+          else if (eco === 'pypi' || eco === 'python') language = 'python';
+          else if (eco === 'maven' || eco === 'gradle' || eco === 'java') language = 'java';
+          else if (eco === 'go' || eco === 'golang') language = 'go';
+          else if (eco === 'composer' || eco === 'php') language = 'php';
+          else if (eco === 'rubygems' || eco === 'ruby') language = 'ruby';
+          else if (eco === 'rust' || eco === 'cargo') language = 'rust';
+        }
+
+        // Fallback to extension if ecosystem didn't give us a clear language
+        if (language === 'javascript') {
+          if (affectedFile.endsWith('.py')) language = 'python';
+          else if (affectedFile.endsWith('.java')) language = 'java';
+          else if (affectedFile.endsWith('.go')) language = 'go';
+          else if (affectedFile.endsWith('.ts') || affectedFile.endsWith('.tsx')) language = 'typescript';
+          else if (affectedFile.endsWith('.php')) language = 'php';
+          else if (affectedFile.endsWith('.rb')) language = 'ruby';
+          else if (affectedFile.endsWith('.rs')) language = 'rust';
+          else if (affectedFile.endsWith('.c')) language = 'c';
+          else if (affectedFile.endsWith('.cpp')) language = 'cpp';
+          else if (affectedFile.endsWith('.cs')) language = 'csharp';
+        }
+      }
+
+      const response = await fixService.generateFix({
+        context: finding.affectedFiles?.[0] || finding.package,
+        language: language,
+        vulnerability_id: finding.id,
+        vulnerable_code: finding.title || "Code not available", // Fallback as we don't have code content here
+      });
+
+      if (response.ok && response.data) {
+        setFixData(prev => ({
+          ...prev,
+          [finding.id]: response.data!
+        }));
+      } else {
+        throw new Error(response.error || "Failed to generate fix");
+      }
+    } catch (error: any) {
+      console.error("Fix generation failed:", error);
+      // Store error in state instead of alerting
+      setFixData(prev => ({
+        ...prev,
+        [finding.id]: {
+          confidence: 0,
+          explanation: "",
+          fixed_code: "",
+          error: error.message || "Failed to generate fix. Please try again."
+        }
+      }));
+    } finally {
+      setFixingFindingId(null);
+    }
+  };
 
   const handleEnrich = async () => {
     if (!data.jobId) {
@@ -371,6 +444,67 @@ export default function ScanReport({ data }: { data: ScanReportData }) {
                 <div className="mt-2 bg-black/50 border border-red-500/20 rounded-md p-2 text-xs text-red-200">
                   <div className="text-red-400 mb-1">RECOMMENDATION</div>
                   {v.recommendation}
+                </div>
+              )}
+
+              {/* Fix with AI Button */}
+              <div className="mt-2 flex justify-end">
+                {!fixData[v.id] && (
+                  <button
+                    onClick={() => handleFix(v)}
+                    disabled={fixingFindingId === v.id}
+                    className={`px-2 py-1 text-xs font-mono rounded-md border flex items-center gap-2 ${fixingFindingId === v.id
+                      ? 'border-cyber-500/40 text-cyber-400 animate-pulse cursor-wait'
+                      : 'border-cyber-400/40 text-cyber-300 hover:bg-cyber-500/10 hover:shadow-[0_0_10px_rgba(0,229,209,0.3)]'
+                      }`}
+                  >
+                    {fixingFindingId === v.id ? (
+                      <>
+                        <span className="w-2 h-2 rounded-full bg-cyber-400 animate-ping" />
+                        GENERATING_FIX...
+                      </>
+                    ) : (
+                      <>
+                        <span>🔧</span>
+                        FIX_WITH_AI
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
+
+              {/* AI Fix Results */}
+              {fixData[v.id] && (
+                <div className={`mt-3 border rounded-lg overflow-hidden ${fixData[v.id].error ? 'border-red-500/30' : 'border-green-500/30'}`}>
+                  <div className={`px-3 py-1 border-b flex items-center gap-2 ${fixData[v.id].error ? 'bg-red-950/30 border-red-500/20' : 'bg-green-950/30 border-green-500/20'}`}>
+                    <span className={`text-xs font-mono ${fixData[v.id].error ? 'text-red-400' : 'text-green-400'}`}>
+                      {fixData[v.id].error ? '⚠️ FIX_GENERATION_FAILED' : '🔧 AI_FIX_SUGGESTION'}
+                    </span>
+                    {!fixData[v.id].error && (
+                      <span className="text-[10px] text-green-500/70 ml-auto">Confidence: {(fixData[v.id].confidence * 100).toFixed(0)}%</span>
+                    )}
+                  </div>
+                  <div className="p-3 bg-black/40 space-y-2">
+                    {fixData[v.id].error ? (
+                      <div className="text-sm text-red-300">
+                        <span className="text-red-500 font-mono text-xs uppercase tracking-wider block mb-1">Error</span>
+                        {fixData[v.id].error}
+                      </div>
+                    ) : (
+                      <>
+                        <div className="text-sm text-gray-300">
+                          <span className="text-green-500 font-mono text-xs uppercase tracking-wider block mb-1">Explanation</span>
+                          {fixData[v.id].explanation}
+                        </div>
+                        <div className="mt-2">
+                          <span className="text-green-500 font-mono text-xs uppercase tracking-wider block mb-1">Fixed Code</span>
+                          <pre className="bg-black/80 p-2 rounded border border-green-500/20 text-xs text-green-300 overflow-x-auto font-mono">
+                            {fixData[v.id].fixed_code}
+                          </pre>
+                        </div>
+                      </>
+                    )}
+                  </div>
                 </div>
               )}
 
