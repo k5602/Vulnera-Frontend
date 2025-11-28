@@ -52,15 +52,15 @@ export default defineConfig({
         react(),
     ],
     vite: {
-// @ts-ignore
+        // @ts-ignore
         plugins: [tailwindcss()],
-            server: {
+        server: {
             proxy: getProxyConfig(),
         }
 
     },
 
     server: {
-        port: 3000,
+        port: 5173,
     },
 });
