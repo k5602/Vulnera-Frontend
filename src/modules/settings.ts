@@ -40,9 +40,26 @@ export class Settings {
             email: email
         });
 
-        if (req.success) {
+        if (req.ok) {
             this.orgData.membersCount += 1;
             window.alert("Member invited successfully.");
+        }
+        switch (req.status) {
+            case 409:
+                window.alert("User is already a member of the organization.");
+                break;
+            
+            case 401:
+                window.alert("You are not authorized to invite members.");
+                break;
+
+            case 403:
+                window.alert("Only members can invite members.");
+                break;
+
+            case 404:
+                window.alert("Organization or user not found.");
+                break;
         }
     }
 

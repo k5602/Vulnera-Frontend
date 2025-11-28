@@ -11,6 +11,7 @@ export class OrgData {
     membersCount: number;
     tier: string;
     isOrganization: boolean;
+    signOrg: boolean;
 
     trueIsOrganization() {
         this.isOrganization = true;
@@ -21,6 +22,16 @@ export class OrgData {
         this.isOrganization = false;
         localStorage.removeItem('isOrganization');
         console.log(this.isOrganization);
+    }
+    trueSignOrganization() {
+        this.signOrg = true;
+        localStorage.setItem('signOrg', 'true');
+        console.log(this.signOrg);
+    }
+    falseSignOrganization() {
+        this.signOrg = false;
+        localStorage.removeItem('signOrg');
+        console.log(this.signOrg);
     }
 
 
@@ -34,6 +45,7 @@ export class OrgData {
         members_count: number;
         tier: string;
         isOrganization: boolean;
+        signOrg: boolean;
     }) {
         this.orgId = data.id;
         this.orgName = data.name;
@@ -44,6 +56,7 @@ export class OrgData {
         this.membersCount = data.members_count;
         this.tier = data.tier;
         this.isOrganization = data.isOrganization;
+        this.signOrg = data.signOrg;
     }
 }
 
@@ -57,6 +70,7 @@ let organization: OrgData = new OrgData({
     members_count: 0,
     tier: "",
     isOrganization: typeof localStorage !== 'undefined' && localStorage.getItem('isOrganization') === 'true',
+    signOrg: typeof localStorage !== 'undefined' && localStorage.getItem('signOrg') === 'true',
 });
 
 export class OrgSignupOrgData {
