@@ -625,10 +625,10 @@ const ecosystems = [
 
     <Footer />
     <script>
-        import { trueIsOrganization } from "../modules/orgData";
+        import { organization } from "../modules/orgData";
         const createOrgBtn = document.getElementById('create-organization') as HTMLAnchorElement;
         createOrgBtn.addEventListener('click', () => {
-            trueIsOrganization();
+            organization.trueIsOrganization();
         });
     </script>
 </Layout>

@@ -582,22 +582,14 @@ import Footer from "../components/Footer.astro";
   </div>
 
   <script>
-    document.addEventListener("DOMContentLoaded", async () => {
-      const { authService } = await import("../utils/api/auth-service");
-      const { apiClient } = await import("../utils/api/client");
-      const { API_ENDPOINTS } = await import("../config/api");
-      const { setCookie, getCookie, removeCookie } = await import(
-        "../utils/cookies"
-      );
-      const { logger } = await import("../utils/logger");
-      const { Settings } = await import("../modules/settings");
-
-      const { organization } = await import("../modules/orgData");
-
-      if (organization.isOrganization) {
+    import { organization } from "../modules/orgData";
+    console.log(organization);
+    if (organization?.isOrganization) {
         const navList = document.getElementById("nav-list");
-        const orgSettingTab = document.createElement("li");
-        orgSettingTab.innerHTML = `
+        console.log("Organization detected, adding Org Settings tab.");
+        if (navList && navList.children.length > 1) {
+          const orgSettingTab = document.createElement("li");
+          orgSettingTab.innerHTML = `
                 <button
                   class="settings-tab w-full text-left px-6 py-3 font-mono text-sm transition-all duration-200 hover:bg-cyber-400/10 hover:border-l-4 hover:border-cyber-400"
                   data-tab="org-settings"
@@ -608,8 +600,25 @@ import Footer from "../components/Footer.astro";
                   </span>
                 </button>
               `;
-        navList?.replaceChild(orgSettingTab, navList.children[1]);
+          navList.replaceChild(orgSettingTab, navList.children[1]);
+        }
       }
+
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      const { authService } = await import("../utils/api/auth-service");
+      const { apiClient } = await import("../utils/api/client");
+      const { API_ENDPOINTS } = await import("../config/api");
+      const { setCookie, getCookie, removeCookie } = await import(
+        "../utils/cookies"
+      );
+      const { logger } = await import("../utils/logger");
+      const { Settings } = await import("../modules/settings");
+
+      // const { organization } = await import("../modules/orgData");
+
+      // Organization tab setup - after imports are complete
+      
       const settingsHandler = new Settings();
 
       // Tab switching functionality
@@ -630,10 +639,10 @@ import Footer from "../components/Footer.astro";
       changeNameValue.value = settingsHandler.orgData.orgName;
 
       createOrgBtn.addEventListener('click', () => {
-        // window.location.href = '/orgsignup';
+        window.location.href = '/orgsignup';
         organization.trueIsOrganization();
         console.log(organization.isOrganization);
-        window.location.reload();
+        // window.location.reload();
       });
 
       changeName.addEventListener('click', () => {

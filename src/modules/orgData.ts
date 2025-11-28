@@ -10,15 +10,17 @@ export class OrgData {
     ownerId: string;
     membersCount: number;
     tier: string;
-        isOrganization = false;
+    isOrganization: boolean;
 
     trueIsOrganization() {
-    this.isOrganization = true;
-    console.log(this.isOrganization);
-}
+        this.isOrganization = true;
+        localStorage.setItem('isOrganization', 'true');
+        console.log(this.isOrganization);
+    }
     falseIsOrganization() {
-    this.isOrganization = false;
-    console.log(this.isOrganization);
+        this.isOrganization = false;
+        localStorage.removeItem('isOrganization');
+        console.log(this.isOrganization);
     }
 
 
@@ -31,6 +33,7 @@ export class OrgData {
         owner_id: string;
         members_count: number;
         tier: string;
+        isOrganization: boolean;
     }) {
         this.orgId = data.id;
         this.orgName = data.name;
@@ -40,6 +43,7 @@ export class OrgData {
         this.ownerId = data.owner_id;
         this.membersCount = data.members_count;
         this.tier = data.tier;
+        this.isOrganization = data.isOrganization;
     }
 }
 
@@ -52,6 +56,7 @@ let organization: OrgData = new OrgData({
     owner_id: "",
     members_count: 0,
     tier: "",
+    isOrganization: typeof localStorage !== 'undefined' && localStorage.getItem('isOrganization') === 'true',
 });
 
 export class OrgSignupOrgData {
