@@ -125,4 +125,9 @@ export const API_ENDPOINTS = {
         CHECK: "/health",
         METRICS: "/metrics",
     },
+
+    // Webhook endpoints (frontend receivers for backend callbacks)
+    WEBHOOKS: {
+        SCAN_COMPLETE: "/api/v1/webhooks/scan-complete",
+    },
 } as const;
