@@ -79,7 +79,7 @@ import Logo from "./Logo.astro";
             </a>
 
             <!-- Auth Only Links -->
-            <a
+            <a id="dash-link"
                 href="/dashboard"
                 class="nav-auth-only hidden text-matrix-300 hover:text-cyber-400 font-mono text-sm tracking-wider transition-colors duration-300 relative group"
             >
@@ -124,6 +124,13 @@ import Logo from "./Logo.astro";
     import { organization } from "../modules/orgData";
     // Mobile sidebar toggle
     const toggleBtn = document.getElementById("menu-toggle");
+    const dashboardLink = document.getElementById("dash-link") as HTMLAnchorElement;
+
+    if (organization.isOrganization) {
+        dashboardLink.href = "/orgdashboard";
+    } else {
+        dashboardLink.href = "/dashboard";
+    }
 
     // Dispatch event for Sidebar component to handle
     function toggleMobileSidebar() {

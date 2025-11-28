@@ -48,7 +48,7 @@ export class OrgData {
         localStorage.removeItem('signOrg');
         console.log(this.signOrg);
     }
-
+    
     constructor(data: OrgDataInit) {
         this.orgId = data.id;
         this.orgName = data.name;
@@ -63,6 +63,10 @@ export class OrgData {
     }
 }
 
+function setId(id: string) {
+    localStorage.setItem('orgId', id);
+}
+
 let organization: OrgData = new OrgData({
     id: "",
     name: "",
@@ -75,6 +79,35 @@ let organization: OrgData = new OrgData({
     isOrganization: typeof localStorage !== 'undefined' && localStorage.getItem('isOrganization') === 'true',
     signOrg: typeof localStorage !== 'undefined' && localStorage.getItem('signOrg') === 'true',
 });
+
+function formatDate(dateString: string) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+    });
+};
+
+async function loadOrgData(orgId: string) {
+    const req = await apiClient.get(`api/v1/organizations/${orgId}`);
+    if (req.ok) {
+        const data = await req.data as any;
+        organization.orgName = data.name;
+        organization.orgDescription = data.description;
+        organization.createdAt = formatDate(data.created_at.toString());
+        organization.updatedAt = formatDate(data.updated_at.toString());
+        organization.ownerId = data.owner_id;
+        organization.membersCount = data.member_count;
+        organization.tier = data.tier;
+        organization.orgId = data.id;
+
+        organization.trueIsOrganization();
+    }
+}
+
 
 export class OrgSignupOrgData {
     formData: {
@@ -151,7 +184,6 @@ export class OrgSignupOrgData {
     }
 }
 
-export { organization };
 
 import { getCurrentUser } from '../utils/api/auth-store';
 
@@ -192,3 +224,7 @@ export async function loadUserOrganization() {
     }
     return false;
 }
+
+loadOrgData(localStorage.getItem('orgId')!);
+
+export { organization , loadOrgData , setId};

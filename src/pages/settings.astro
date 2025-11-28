@@ -620,7 +620,6 @@ import Footer from "../components/Footer.astro";
 
       <script>
         import { organization } from "../modules/orgData";
-        console.log(organization);
         if (organization?.isOrganization) {
           const navList = document.getElementById("nav-list");
           console.log("Organization detected, adding Org Settings tab.");

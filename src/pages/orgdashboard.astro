@@ -8,14 +8,16 @@ export const prerender = false;
 <Layout title="Dashboard — Vulnera" description="Overview of reports, projects, and recent activity.">
   <script>
     import { setupAuthGuard } from '../utils/auth-guard';
-    import { organization } from '../modules/orgData.js';
+    import { loadOrgData, organization } from '../modules/orgData.js';
     setupAuthGuard({ requireAuth: true });
     const subtitleEl = document.getElementById('dash-subtitle') as HTMLElement;
+    await loadOrgData(localStorage.getItem('orgId')!);
     subtitleEl.innerHTML = `ORGANIZATION_NAME: ${organization.orgName || 'N/A' } ||
                             DESCRIPTION: ${organization.orgDescription || 'N/A'} ||
                             TIER: ${organization.tier || 'N/A'} ||
-                            CREATED_AT: ${organization.createdAt || 'N/A'} ||
-                            MEMBERS_COUNT: ${organization.membersCount || 'N/A'}`;
+                            CREATED_AT: ${organization.createdAt.toString() || 'N/A'} ||
+                            MEMBERS_COUNT: ${organization.membersCount.toString() || 'N/A'} ||
+                            Role: ${(organization.ownerId === JSON.parse(localStorage.getItem('__vulnera_current_user')!).id)? 'Owner' : 'Member'}`;
 
   </script>
 
