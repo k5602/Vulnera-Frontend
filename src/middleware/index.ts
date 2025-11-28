@@ -22,14 +22,14 @@ export const onRequest = defineMiddleware((context, next) => {
     const cookieHeader = context.request.headers.get('cookie') || '';
 
     // Simple check if access_token exists in cookies
-    const hasToken = cookieHeader.includes('access_token=');
+    // const hasToken = cookieHeader.includes('access_token=');
 
-    if (!hasToken) {
-      console.log('[Middleware] No access_token found, redirecting to login');
-      return context.redirect(
-        `/login?next=${encodeURIComponent(pathname)}`
-      );
-    }
+    // if (!hasToken) {
+    //   console.log('[Middleware] No access_token found, redirecting to login');
+    //   return context.redirect(
+    //     `/login?next=${encodeURIComponent(pathname)}`
+    //   );
+    // }
   }
 
   return next();

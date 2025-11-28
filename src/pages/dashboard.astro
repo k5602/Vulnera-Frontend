@@ -233,80 +233,80 @@ export const prerender = false;
   <Footer />
 
   <script>
-    import { DashboardHandler } from "../modules/dashboard";
-    // Public dashboard: no auth guard
+    // import { DashboardHandler } from "../modules/dashboard";
+    // // Public dashboard: no auth guard
 
-    const dashboardHandler = new DashboardHandler(
-      document.getElementById("stat-reports")!,
-      document.getElementById("stat-projects")!,
-      document.getElementById("stat-vuln")!,
-      document.getElementById("stat-last")!,
-      document.getElementById("recent-list")!,
-      document.getElementById("reports-tbody")!,
-      document.getElementById("projects-grid")!,
-      document.getElementById("trend-svg")!,
-      document.getElementById("filter-ecosystem")! as HTMLSelectElement,
-      document.getElementById("filter-severity")! as HTMLSelectElement,
-    );
+    // const dashboardHandler = new DashboardHandler(
+    //   document.getElementById("stat-reports")!,
+    //   document.getElementById("stat-projects")!,
+    //   document.getElementById("stat-vuln")!,
+    //   document.getElementById("stat-last")!,
+    //   document.getElementById("recent-list")!,
+    //   document.getElementById("reports-tbody")!,
+    //   document.getElementById("projects-grid")!,
+    //   document.getElementById("trend-svg")!,
+    //   document.getElementById("filter-ecosystem")! as HTMLSelectElement,
+    //   // document.getElementById("filter-severity")! as HTMLSelectElement,
+    // );
 
-    dashboardHandler.loadReportsAndProjects();
+    // dashboardHandler.loadReportsAndProjects();
 
-    // Defer binding and initial load until idle to free up the main thread on first paint
-    const scheduleIdle = (cb: any) => {
-      if (typeof window.requestIdleCallback === "function") {
-        window.requestIdleCallback(cb);
-      } else {
-        setTimeout(cb, 120);
-      }
-    };
+    // // Defer binding and initial load until idle to free up the main thread on first paint
+    // const scheduleIdle = (cb: any) => {
+    //   if (typeof window.requestIdleCallback === "function") {
+    //     window.requestIdleCallback(cb);
+    //   } else {
+    //     setTimeout(cb, 120);
+    //   }
+    // };
 
-    scheduleIdle(() => {
-      document
-        .getElementById("btn-refresh")
-        ?.addEventListener("click", () =>
-          dashboardHandler.loadReportsAndProjects(),
-        );
-      document
-        .getElementById("filter-ecosystem")
-        ?.addEventListener("change", () =>
-          dashboardHandler.loadReportsAndProjects(),
-        );
-      document
-        .getElementById("filter-severity")
-        ?.addEventListener("change", () =>
-          dashboardHandler.loadReportsAndProjects(),
-        );
+    // scheduleIdle(() => {
+    //   document
+    //     .getElementById("btn-refresh")
+    //     ?.addEventListener("click", () =>
+    //       dashboardHandler.loadReportsAndProjects(),
+    //     );
+    //   document
+    //     .getElementById("filter-ecosystem")
+    //     ?.addEventListener("change", () =>
+    //       dashboardHandler.loadReportsAndProjects(),
+    //     );
+    //   document
+    //     .getElementById("filter-severity")
+    //     ?.addEventListener("change", () =>
+    //       dashboardHandler.loadReportsAndProjects(),
+    //     );
 
-      // Export CSV
-      document.getElementById("btn-export")?.addEventListener("click", () => {
-        const header = ["id", "project", "severity", "issues", "createdAt"];
-        const rows = dashboardHandler.currentReportsFiltered.map((r) => [
-          r.id,
-          r.project,
-          r.severity,
-          String(r.issues),
-          r.createdAt,
-        ]);
-        const csv = [header, ...rows]
-          .map((cols) =>
-            cols
-              .map((v) => '"' + String(v).replace(/"/g, '""') + '"')
-              .join(","),
-          )
-          .join("\n");
-        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `reports_${Date.now()}.csv`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
-      });
+    //   // Export CSV
+    //   document.getElementById("btn-export")?.addEventListener("click", () => {
+    //     const header = ["id", "project", "severity", "issues", "createdAt"];
+    //     const rows = dashboardHandler.currentReportsFiltered.map((r) => [
+    //       r.id,
+    //       r.project,
+    //       r.severity,
+    //       String(r.issues),
+    //       r.createdAt,
+    //     ]);
+    //     const csv = [header, ...rows]
+    //       .map((cols) =>
+    //         cols
+    //           .map((v) => '"' + String(v).replace(/"/g, '""') + '"')
+    //           .join(","),
+    //       )
+    //       .join("\n");
+    //     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    //     const url = URL.createObjectURL(blob);
+    //     const a = document.createElement("a");
+    //     a.href = url;
+    //     a.download = `reports_${Date.now()}.csv`;
+    //     document.body.appendChild(a);
+    //     a.click();
+    //     a.remove();
+    //     URL.revokeObjectURL(url);
+    //   });
 
-      // Initial data load
-      dashboardHandler.loadReportsAndProjects();
-    });
+    //   // Initial data load
+    //   dashboardHandler.loadReportsAndProjects();
+    // });
   </script>
 </Layout>

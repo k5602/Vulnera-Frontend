@@ -1,31 +1,32 @@
-export class DashboardHandler {
-    reportElement: HTMLElement;
-    projectElement: HTMLElement;
-    vulnElement: HTMLElement;
-    lastElement: HTMLElement;
-    recent: HTMLElement;
+import { apiClient } from '../utils/index.js';
+import { organization } from './orgData.js';
+export class OrgDashboardHandler {
+    criticalElement: HTMLElement;
+    highElement: HTMLElement;
+    medElement: HTMLElement;
+    lowElement: HTMLElement;
+    monthActivity: HTMLElement;
     reportBody: HTMLElement;
     projectGrid: HTMLElement;
     chartSvg: HTMLElement;
     currentReportsFiltered: any[] = [];
     ecoSelect: HTMLSelectElement;
-    sevSelect: HTMLSelectElement;
 
 
-    renderOverview(o: any) {
-      if (this.reportElement) this.reportElement.textContent = String(o.reportsTotal ?? 0);
-      if (this.projectElement) this.projectElement.textContent = String(o.projectsAnalyzed ?? 0);
-      if (this.vulnElement) this.vulnElement.textContent = o.vulnerableProjects != null ? String(o.vulnerableProjects) : '--';
-      if (this.lastElement) this.lastElement.textContent = o.lastScanAt || '--';
+    renderOverview(data: any) {
+      if (this.criticalElement) this.criticalElement.textContent = String(data.critical_findings ?? 0);
+      if (this.highElement) this.highElement.textContent = String(data.high_findings ?? 0);
+      if (this.medElement) this.medElement.textContent =  String(data.medium_findings ?? 0);
+      if (this.lowElement) this.lowElement.textContent = String(data.low_findings ?? 0);
     }
 
-    renderRecent(list: any[]) {
-      if (!this.recent) return;
-      this.recent.innerHTML = '';
+    renderMonthActivity(list: any[]) {
+      if (!this.monthActivity) return;
+      this.monthActivity.innerHTML = '';
       for (const it of list) {
         const li = document.createElement('li');
         li.textContent = it;
-        this.recent.appendChild(li);
+        this.monthActivity.appendChild(li);
       }
     }
 
@@ -123,36 +124,61 @@ export class DashboardHandler {
     async loadReportsAndProjects() {
       // loading scan history is to be implemented
       let scanHistory: any[] = [];
+      
+      let totalScan = 0;
+      let totalVuln = 0;
+      let apiCallsMth = 0;
+      let criticalFindings = 0;
+      let highFindings = 0;
+      let mediumFindings = 0;
+      let lowFindings = 0;
+      
+      try{
+        const res = await apiClient.get(`/api/v1/organizations/${organization.orgId}/stats`);
 
+        if (res.ok) {
+          const data = res.data;
+          totalScan = data.total_scans;
+          totalVuln = data.total_findings;
+          apiCallsMth = data.api_calls_this_month;
+          criticalFindings = data.critical_findings;
+          highFindings = data.high_findings;
+          mediumFindings = data.medium_findings;
+          lowFindings = data.low_findings;
+        }
+      } catch (e) {
+        console.error("Failed to load organization stats:", e);
+      }
       // Calculate overview stats
-      const reportsTotal = scanHistory.length;
-      const projectsAnalyzed = new Set(scanHistory.map(s => s.project || 'File Upload')).size;
-      const vulnerableProjects = scanHistory.filter(s => (s.vulnerabilities || 0) > 0).length;
-      const lastScan = scanHistory[0];
-      const lastScanAt = lastScan ? new Date(lastScan.timestamp).toLocaleString() : '--';
-
-      const overview = { 
-        reportsTotal, 
-        projectsAnalyzed, 
-        vulnerableProjects, 
-        lastScanAt 
+      
+      const overviewMonth = { 
+        totalScan, 
+        totalVuln, 
+        apiCallsMth
       };
 
+      const overviewStatus = {
+        criticalFindings,
+        highFindings,
+        mediumFindings,
+        lowFindings
+      }
+
       // Transform scan history to reports format
-      const reports = scanHistory.map(scan => {
-        const severity = scan.critical > 0 ? 'critical' 
-                      : scan.high > 0 ? 'high'
-                      : scan.medium > 0 ? 'medium'
-                      : scan.low > 0 ? 'low'
-                      : 'none';
-        return {
-          id: scan.id,
-          project: scan.project || `Files (${scan.filesCount || 0})`,
-          severity: severity,
-          issues: scan.vulnerabilities || 0,
-          createdAt: scan.timestamp
-        };
-      });
+      // const reports = scanHistory.map(scan => {
+      //   const severity = scan.critical > 0 ? 'critical' 
+      //                 : scan.high > 0 ? 'high'
+      //                 : scan.medium > 0 ? 'medium'
+      //                 : scan.low > 0 ? 'low'
+      //                 : 'none';
+      //   return {
+      //     id: scan.id,
+      //     project: scan.project || `Files (${scan.filesCount || 0})`,
+      //     severity: severity,
+      //     issues: scan.vulnerabilities || 0,
+      //     createdAt: scan.timestamp
+      //   };
+      // });
 
       // Group by project for projects view
       const projectsMap: any = {};
@@ -192,45 +218,58 @@ export class DashboardHandler {
       }
 
   // Apply filters (client-side) to reports/projects
-      const filteredReports = reports.filter((r:any) => (this.sevSelect.value === 'all' ? true : r.severity === this.sevSelect.value));
       const filteredProjects = projects.filter((p:any) => (this.ecoSelect.value === 'all' ? true : p.ecosystem === this.ecoSelect.value));
 
-      this.renderOverview(overview);
-      this.renderRecent([
-        `Reports: ${overview.reportsTotal}`,
-        `Projects analyzed: ${overview.projectsAnalyzed}`,
-        `Vulnerable projects: ${overview.vulnerableProjects}`,
-        overview.lastScanAt ? `Last scan: ${overview.lastScanAt}` : 'Last scan: --',
+      this.renderOverview(overviewStatus);
+      this.renderMonthActivity([
+        `Total Scans: ${overviewMonth.totalScan}`,
+        `Total Vulnerabilities: ${overviewMonth.totalVuln}`,
+        `API calls this month: ${overviewMonth.apiCallsMth}`,
       ]);
-      this.currentReportsFiltered = filteredReports;
-      this.renderReports(filteredReports);
       this.renderProjects(filteredProjects);
       this.renderChartData(trend);
+    }
+
+    changeDashboard(selection: string) {
+      const titleEl = document.getElementById('dash-title') as HTMLElement;
+      const subtitleEl = document.getElementById('dash-subtitle') as HTMLElement;
+      if (selection == "organization") {
+        titleEl.innerHTML = `<span class="text-cyber-400">&gt;</span> ORGANIZATION_DASHBOARD`;
+        subtitleEl.innerHTML = `ORGANIZATION_NAME: ${organization.orgName || 'N/A' } ||
+                                DESCRIPTION: ${organization.orgDescription || 'N/A'} ||
+                                TIER: ${organization.tier || 'N/A'} ||
+                                CREATED_AT: ${organization.createdAt || 'N/A'} ||
+                                MEMBERS_COUNT: ${organization.membersCount || 'N/A'}`;
+      };
+      if (selection == "member") {
+        titleEl.innerHTML = `<span class="text-cyber-400">&gt;</span> MEMBER_DASHBOARD`;
+        subtitleEl.innerHTML = `MEMBER_OF_ORGANIZATION: ${organization.orgName || 'N/A'} ||
+                                DESCRIPTION: ${organization.orgDescription || 'N/A'} ||
+                                CREATED_AT: ${organization.createdAt || 'N/A'}`;
+      }
     }
 
 
 
 
-    constructor(reportElement: HTMLElement, 
-                projectElement: HTMLElement,
-                vulnElement: HTMLElement,
-                lastElement: HTMLElement,
-                recent: HTMLElement,
+    constructor(criticalElement: HTMLElement, 
+                highElement: HTMLElement,
+                medElement: HTMLElement,
+                lowElement: HTMLElement,
+                monthActivity: HTMLElement,
                 reportBody: HTMLElement,
                 projectGrid: HTMLElement,
                 chartSvg: HTMLElement,
-                ecoSelect: HTMLSelectElement,
-                sevSelect: HTMLSelectElement) {
-        this.reportElement = reportElement;
-        this.projectElement = projectElement;
-        this.vulnElement = vulnElement;
-        this.lastElement = lastElement;
-        this.recent = recent;
+                ecoSelect: HTMLSelectElement) {
+        this.criticalElement = criticalElement;
+        this.highElement = highElement;
+        this.medElement =  medElement;
+        this.lowElement = lowElement;
+        this.monthActivity = monthActivity;
         this.reportBody = reportBody;
         this.projectGrid = projectGrid;
         this.chartSvg = chartSvg;
         this.ecoSelect = ecoSelect;
-        this.sevSelect = sevSelect;
     }
 
 }   

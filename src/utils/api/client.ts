@@ -65,7 +65,7 @@ function extractAndStoreAuthData(res: Response, data: any): void {
 
 export async function apiFetch<T = any>(
     url: string,
-    opts: RequestInit = {},
+    opts: RequestInit = {}
 ): Promise<ApiResponse<T>> {
     const method = (opts.method || "GET").toUpperCase();
     // Do NOT use CSRF for login and register
@@ -77,10 +77,12 @@ export async function apiFetch<T = any>(
     const headers = {
         ...normalizeHeaders(opts.headers),
         Accept: "application/json",
+        "Content-Type": "application/json",
     } as Record<string, string>;
 
     if (isMutating && !skipCsrf) {
         let csrfToken = getCsrfToken();
+        console.log("CSRF Token:", csrfToken);
 
         // If we don't have a CSRF token for a mutating request, try to get one via refresh
         if (!csrfToken) {
@@ -89,14 +91,22 @@ export async function apiFetch<T = any>(
             csrfToken = getCsrfToken();
         }
 
-        if (csrfToken) {
+        document.cookie = `csrf_token=${csrfToken}; path=/; SameSite=Lax`;
+        if (csrfToken && !headers["X-CSRF-Token"]) {
             headers["X-CSRF-Token"] = csrfToken;
+            localStorage.setItem("CSRF_STORAGE_KEY", csrfToken);
+            console.log("inside if");
+            
         } else {
             logger.warn("Proceeding with mutating request without CSRF token");
         }
 
         headers["Content-Type"] = "application/json";
     }
+
+    const customHeaders = normalizeHeaders(opts.headers);
+    Object.assign(headers, customHeaders);
+
 
     // Prevent GET requests from having a body
     if (method === "GET" && opts.body) {
@@ -107,6 +117,11 @@ export async function apiFetch<T = any>(
     const fullUrl = `${API_CONFIG.BASE_URL}${url}`;
 
     try {
+        console.log("API Request",{
+            ...opts,
+            headers,
+            credentials: "include",
+        });
         // First request attempt
         let res = await fetch(fullUrl, {
             ...opts,
@@ -128,84 +143,103 @@ export async function apiFetch<T = any>(
             }
         }
 
+                // Extract CSRF from response and set as cookie
+        if (data?.csrf_token) {
+            if (typeof document !== "undefined") {
+                document.cookie = `csrf_token=${data.csrf_token}; path=/; SameSite=Strict; Secure`;
+            }
+            setCsrfToken(data.csrf_token);
+        }
+
+        // Also check Set-Cookie header
+        const setCookieHeader = res.headers.get("set-cookie");
+        if (setCookieHeader && typeof document !== "undefined") {
+            // Parse and set individual cookies
+            const cookies = setCookieHeader.split(",");
+            cookies.forEach(cookie => {
+                document.cookie = cookie.trim();
+            });
+        }
+
+
         // Extract and store auth data from response
         extractAndStoreAuthData(res, data);
 
         // Handle 401 Unauthorized (Token Expired)
-        if (res.status === 401 && !skipCsrf) {
-            logger.debug("Received 401, attempting token refresh");
+        // if (res.status === 401 && !skipCsrf) {
+        //     logger.debug("Received 401, attempting token refresh");
 
-            // Use the centralized refresh logic (mutex protected)
-            const refreshed = await refreshAuth();
+        //     // Use the centralized refresh logic (mutex protected)
+        //     const refreshed = await refreshAuth();
 
-            if (!refreshed) {
-                logger.warn("Token refresh failed, redirecting to login");
-                clearAuth();
+        //     if (!refreshed) {
+        //         logger.warn("Token refresh failed, redirecting to login");
+        //         clearAuth();
 
-                // Avoid infinite redirect loop
-                if (
-                    typeof window !== "undefined" &&
-                    !window.location.pathname.startsWith("/login")
-                ) {
-                    window.location.replace("/login");
-                }
+        //         // Avoid infinite redirect loop
+        //         if (
+        //             typeof window !== "undefined" &&
+        //             !window.location.pathname.startsWith("/login")
+        //         ) {
+        //             window.location.replace("/login");
+        //         }
 
-                return { ok: false, status: 401, error: "Authentication expired" };
-            }
+        //         return { ok: false, status: 401, error: "Authentication expired" };
+        //     }
 
-            logger.debug("Token refresh successful, retrying request");
+        //     logger.debug("Token refresh successful, retrying request");
 
-            // Update CSRF token for the retry
-            if (isMutating) {
-                headers["X-CSRF-Token"] = getCsrfToken();
-            }
+        //     // Update CSRF token for the retry
+        //     if (isMutating) {
+        //         headers["X-CSRF-Token"] = getCsrfToken();
+        //     }
 
-            // Retry the request
-            res = await fetch(fullUrl, {
-                ...opts,
-                headers,
-                credentials: "include",
-            });
+        //     // Retry the request
+        //     res = await fetch(fullUrl, {
+        //         ...opts,
+        //         headers,
+        //         credentials: "include",
+        //     });
 
-            // Parse retry response
-            let retryData = null;
-            try {
-                const text = await res.text();
-                if (text) {
-                    retryData = JSON.parse(text);
-                }
-            } catch (e) {
-                if (res.status !== 204) {
-                    logger.debug("Failed to parse retry response JSON", {
-                        url,
-                        status: res.status,
-                    });
-                }
-            }
+        //     // Parse retry response
+        //     let retryData = null;
+        //     try {
+        //         const text = await res.text();
+        //         if (text) {
+        //             retryData = JSON.parse(text);
+        //         }
+        //     } catch (e) {
+        //         if (res.status !== 204) {
+        //             logger.debug("Failed to parse retry response JSON", {
+        //                 url,
+        //                 status: res.status,
+        //             });
+        //         }
+        //     }
 
-            // Extract auth data from retry response
-            extractAndStoreAuthData(res, retryData);
-            data = retryData;
-        }
+        //     // Extract auth data from retry response
+        //     extractAndStoreAuthData(res, retryData);
+        //     data = retryData;
+        // }
 
-        // Handle 403 Forbidden (Permission/Role lost - user should logout)
-        if (res.status === 403 && !skipCsrf) {
-            logger.warn(`Access forbidden to ${method} ${url} - user permissions changed`);
-            clearAuth();
+        // // Handle 403 Forbidden (Permission/Role lost - user should logout)
+        // if (res.status === 403 && !skipCsrf) {
+        //     logger.warn(`Access forbidden to ${method} ${url} - user permissions changed`);
+        //     clearAuth();
 
-            if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
-                window.location.replace("/login?reason=forbidden");
-            }
+        //     if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
+        //         window.location.replace("/login?reason=forbidden");
+        //     }
 
-            return { ok: false, status: 403, error: "Access forbidden - please re-authenticate" };
-        }
+        //     return { ok: false, status: 403, error: "Access forbidden - please re-authenticate" };
+        // }
 
-        if (!res.ok) {
-            logger.warn(`API Request failed: ${method} ${url}`, {
-                status: res.status,
-                error: data,
-            });
-        }
+        // if (!res.ok) {
+        //     logger.warn(`API Request failed: ${method} ${url}`, {
+        //         status: res.status,
+        //         error: data,
+        //     });
+        // }
 
         return {
             ok: res.ok,
@@ -228,7 +262,6 @@ export const apiClient = {
     post: <T = any>(url: string, body?: any) =>
         apiFetch<T>(url, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(body || {}),
         }),
 
