@@ -1,7 +1,7 @@
 import { apiClient } from '../utils/index.js';
-import { organization, loadUserOrganization } from './orgData.js';
-import { logger } from '../utils/logger';
-import { getSeverityTextColor } from '../utils/severity';
+// import { organization, loadUserOrganization } from './orgData.js';
+import { logger } from '../utils/logger.js';
+import { getSeverityTextColor } from '../utils/severity.js';
 export class OrgDashboardHandler {
   criticalElement: HTMLElement;
   highElement: HTMLElement;
@@ -118,34 +118,42 @@ export class OrgDashboardHandler {
   }
 
   async loadReportsAndProjects() {
-    // loading scan history is to be implemented
+    // Load scan history from local storage
     let scanHistory: any[] = [];
-
-    if (!organization.orgId) {
-      await loadUserOrganization();
-      this.changeDashboard('organization');
+    try {
+      const storedHistory = localStorage.getItem("scan_history");
+      if (storedHistory) {
+        scanHistory = JSON.parse(storedHistory);
+      }
+    } catch (e) {
+      logger.error("Failed to load local scan history", e);
     }
 
-    let totalScan = 0;
-    let totalVuln = 0;
-    let apiCallsMth = 0;
+    // Removed organization check as we are now using user analytics
+
+    interface UserDashboardStats {
+      critical_this_month: number;
+      current_month: string;
+      findings_this_month: number;
+      findings_trend_percent: number;
+      high_this_month: number;
+      low_this_month: number;
+      medium_this_month: number;
+      scans_this_month: number;
+      scans_trend_percent: number;
+      user_id: string;
+    }
+
     let criticalFindings = 0;
     let highFindings = 0;
     let mediumFindings = 0;
     let lowFindings = 0;
-
-    interface OrgStats {
-      total_scans: number;
-      total_findings: number;
-      api_calls_this_month: number;
-      critical_findings: number;
-      high_findings: number;
-      medium_findings: number;
-      low_findings: number;
-    }
+    let totalScan = 0;
+    let totalVuln = 0;
 
     try {
       const res = await apiClient.get<OrgStats>(`/api/v1/organizations/${organization.orgId}/analytics/dashboard`);
+      const res = await apiClient.get<UserDashboardStats>(`/api/v1/me/analytics/dashboard`);
 
       if (res.ok && res.data) {
         const data = res.data;
@@ -156,23 +164,23 @@ export class OrgDashboardHandler {
         highFindings = 5;
         mediumFindings = 60;
         lowFindings = 7;
+        criticalFindings = data.critical_this_month;
+        highFindings = data.high_this_month;
+        mediumFindings = data.medium_this_month;
+        lowFindings = data.low_this_month;
+        totalScan = data.scans_this_month;
+        totalVuln = data.findings_this_month;
       }
     } catch (e) {
-      logger.error("Failed to load organization stats:", e);
+      logger.error("Failed to load user analytics:", e);
     }
     // Calculate overview stats
 
-    const overviewMonth = {
-      totalScan,
-      totalVuln,
-      apiCallsMth
-    };
-
     const overviewStatus = {
-      criticalFindings,
-      highFindings,
-      mediumFindings,
-      lowFindings
+      critical_findings: criticalFindings,
+      high_findings: highFindings,
+      medium_findings: mediumFindings,
+      low_findings: lowFindings
     }
 
     // Transform scan history to reports format
@@ -190,6 +198,22 @@ export class OrgDashboardHandler {
     //     createdAt: scan.timestamp
     //   };
     // });s
+    const reports = scanHistory.map(scan => {
+      const severity = scan.critical > 0 ? 'critical'
+        : scan.high > 0 ? 'high'
+          : scan.medium > 0 ? 'medium'
+            : scan.low > 0 ? 'low'
+              : 'none';
+      return {
+        id: scan.id,
+        project: scan.project || `Files (${scan.filesCount || 0})`,
+        severity: severity,
+        issues: scan.vulnerabilities || 0,
+        createdAt: scan.timestamp
+      };
+    });
+
+    this.currentReportsFiltered = reports;
 
     // Group by project for projects view
     const projectsMap: any = {};
@@ -233,32 +257,16 @@ export class OrgDashboardHandler {
 
     this.renderOverview(overviewStatus);
     this.renderMonthActivity([
-      `Total Scans: ${overviewMonth.totalScan}`,
-      `Total Vulnerabilities: ${overviewMonth.totalVuln}`,
-      `API calls this month: ${overviewMonth.apiCallsMth}`,
+      `Scans this month: ${totalScan}`,
+      `Findings this month: ${totalVuln}`,
     ]);
     this.renderProjects(filteredProjects);
     this.renderChartData(trend);
+    this.renderReports(reports);
   }
 
-  changeDashboard(selection: string) {
-    const titleEl = document.getElementById('dash-title') as HTMLElement;
-    const subtitleEl = document.getElementById('dash-subtitle') as HTMLElement;
-    if (selection == "organization") {
-      titleEl.innerHTML = `<span class="text-cyber-400">&gt;</span> ORGANIZATION_DASHBOARD`;
-      subtitleEl.innerHTML = `ORGANIZATION_NAME: ${organization.orgName || 'N/A'} ||
-                                DESCRIPTION: ${organization.orgDescription || 'N/A'} ||
-                                TIER: ${organization.tier || 'N/A'} ||
-                                CREATED_AT: ${organization.createdAt || 'N/A'} ||
-                                MEMBERS_COUNT: ${organization.membersCount || 'N/A'}`;
-    };
-    if (selection == "member") {
-      titleEl.innerHTML = `<span class="text-cyber-400">&gt;</span> MEMBER_DASHBOARD`;
-      subtitleEl.innerHTML = `MEMBER_OF_ORGANIZATION: ${organization.orgName || 'N/A'} ||
-                                DESCRIPTION: ${organization.orgDescription || 'N/A'} ||
-                                CREATED_AT: ${organization.createdAt || 'N/A'}`;
-    }
-  }
+  // changeDashboard method removed as it depends on organization object which is not used anymore
+  // and we are showing user analytics now.
 
 
 

@@ -16,6 +16,8 @@ export class ScanHandler {
   btnImport: HTMLButtonElement;
   btnReset: HTMLElement;
   repoUrl: HTMLInputElement;
+  chkPrivateRepo: HTMLInputElement;
+  githubTokenInput: HTMLInputElement;
   detailLevelBtns: NodeListOf<HTMLElement>;
   analysisDepthBtns: NodeListOf<HTMLElement>;
   selectedDetailLevel: string = "standard"; // Default
@@ -51,18 +53,7 @@ export class ScanHandler {
   }
 
   checkGithubToken() {
-    const token = getCookie("github_token");
-    const notice = document.getElementById("github-token-notice");
-
-    if (!token) {
-      // No token - show notice and disable controls
-      notice?.classList.remove("hidden");
-    } else {
-      // Token exists - hide notice and enable controls
-      notice?.classList.add("hidden");
-    }
-
-    return token;
+    return getCookie("github_token");
   }
 
   removeActiveBTNDetailClass() {
@@ -115,21 +106,44 @@ export class ScanHandler {
   addActiveBTNAnalysisClass() {
     this.analysisDepthBtns.forEach((btn) => {
       btn.addEventListener("click", () => {
-        // Remove active class from all buttons
-        this.removeActiveBTNAnalysisClass();
-        // Add active class to clicked button
-        btn.classList.add(
-          "active",
-          "border-cyber-400/60",
-          "bg-cyber-400/10",
-          "text-cyber-300"
-        );
-        btn.classList.remove("border-gray-600/40", "text-gray-400");
-
         // Update selected analysis depth
         const depthValue = btn.getAttribute("data-analysis-depth");
         this.selectedAnalysisDepth = depthValue || "standard";
         logger.debug("Analysis depth selected:", this.selectedAnalysisDepth);
+
+        // Update UI for ALL buttons to match the selected depth
+        this.analysisDepthBtns.forEach((b) => {
+          const bDepth = b.getAttribute("data-analysis-depth");
+          if (bDepth === this.selectedAnalysisDepth) {
+            // Add active class
+            b.classList.add("active");
+            b.classList.remove("border-gray-600/40", "text-gray-400", "border-transparent");
+
+            // Check if it's in the upload section (cyan) or github section (purple)
+            // This is a bit hacky, but we can check the parent or just apply generic active styles
+            // For now, let's try to preserve the specific color if possible, or just use a neutral active color
+            // Or better: check if the button contains specific classes or is in a specific container.
+            // Simpler: Just re-apply the classes that were there initially for "active" state.
+            // But the initial HTML has different colors (purple vs cyan).
+
+            if (b.closest('#github-import-section')) {
+              b.classList.add("border-purple-500/30", "bg-purple-500/10", "text-purple-300");
+              b.classList.remove("text-gray-500");
+            } else {
+              // Upload section (Cyan)
+              b.classList.add("border-cyan-500/30", "bg-cyan-500/10", "text-cyan-300");
+              b.classList.remove("text-gray-500");
+            }
+          } else {
+            // Remove active class
+            b.classList.remove(
+              "active",
+              "border-purple-500/30", "bg-purple-500/10", "text-purple-300",
+              "border-cyan-500/30", "bg-cyan-500/10", "text-cyan-300"
+            );
+            b.classList.add("border-transparent", "text-gray-500");
+          }
+        });
       });
     });
   }
@@ -635,6 +649,16 @@ export class ScanHandler {
       return;
     }
 
+    // Check for private repo checkbox and token input
+    const isPrivateChecked = this.chkPrivateRepo?.checked;
+    const manualToken = this.githubTokenInput?.value;
+
+    // Use manual token if provided, otherwise fallback to cookie
+    const token = manualToken || this.checkGithubToken();
+    const isPrivate = !!token || isPrivateChecked;
+
+    logger.debug("Importing repository", { url, isPrivate, hasToken: !!token, manualToken: !!manualToken });
+
     try {
       this.btnImport.disabled = true;
       this.btnImport.textContent = "> IMPORTING...";
@@ -643,6 +667,15 @@ export class ScanHandler {
         alert("⚠️ Session expired. Please log in again.");
         return;
       }
+
+      // If private checked but no token
+      if (isPrivateChecked && !token) {
+        alert("⚠️ Please enter a GitHub token for private repositories.");
+        this.btnImport.disabled = false;
+        this.btnImport.textContent = "🚀 IMPORT_AND_SCAN";
+        return;
+      }
+
 
       const urlObj = new URL(url);
       const parts = urlObj.pathname.split("/").filter((p) => p);
@@ -660,28 +693,27 @@ export class ScanHandler {
         source_uri: `https://github.com/${owner}/${repo}.git`,
         analysis_depth: this.mapDetailLevelToAnalysisDepth(this.selectedAnalysisDepth),
         callback_url: undefined, // Optional: can be added if needed
+        is_private: isPrivate, // Signal backend to use token
+        github_token: manualToken || undefined // Pass manual token if provided
       };
+
+      // Removed fetchOptions to always include credentials
+      // If manual token is provided, we might need to pass it in headers or body
+      // Assuming backend handles 'github_token' in body for now, or we rely on cookie if manual token is not supported by backend yet.
+      // If backend only checks cookie, we might need to set a temporary cookie or update the backend.
+      // For now, let's assume we can pass it in the body or the backend checks the cookie we might set.
+
+      // Ideally, we should set the cookie if manual token is provided so the backend middleware picks it up
+      if (manualToken) {
+        document.cookie = `github_token=${manualToken}; path=/; max-age=3600; SameSite=Strict`;
+      }
 
       const apiResponse = await apiClient.post(
         API_ENDPOINTS.ANALYSIS.ANALYZE,
         requestBody
       );
 
-      if (!apiResponse.ok) {
-        if (apiResponse.status === 401) {
-          throw new Error("Session expired. Please log in again.");
-        }
-        if (apiResponse.status === 404) {
-          throw new Error(
-            "Backend /api/v1/analyze/job endpoint not implemented."
-          );
-        }
-        if (apiResponse.status === 429) {
-          throw new Error("Rate limit exceeded. Try again later.");
-        }
-        const errorMsg = typeof apiResponse.error === 'string' ? apiResponse.error : `HTTP ${apiResponse.status}`;
-        throw new Error(errorMsg);
-      }
+
 
       const result = apiResponse.data as {
         job_id?: string;
@@ -858,7 +890,19 @@ export class ScanHandler {
   }
 
 
-  constructor(dropzone: HTMLElement, input: HTMLInputElement, list: HTMLElement, btnScan: HTMLButtonElement, btnImport: HTMLButtonElement, btnReset: HTMLButtonElement, repoUrl: HTMLInputElement, detailLevelBtns: NodeListOf<HTMLButtonElement>, analysisDepthBtns: NodeListOf<HTMLButtonElement>) {
+  constructor(
+    dropzone: HTMLElement,
+    input: HTMLInputElement,
+    list: HTMLElement,
+    btnScan: HTMLButtonElement,
+    btnImport: HTMLButtonElement,
+    btnReset: HTMLButtonElement,
+    repoUrl: HTMLInputElement,
+    chkPrivateRepo: HTMLInputElement,
+    githubTokenInput: HTMLInputElement,
+    detailLevelBtns: NodeListOf<HTMLElement>,
+    analysisDepthBtns: NodeListOf<HTMLElement>
+  ) {
     this.dropzone = dropzone;
     this.input = input;
     this.list = list;
@@ -866,7 +910,19 @@ export class ScanHandler {
     this.btnImport = btnImport;
     this.btnReset = btnReset;
     this.repoUrl = repoUrl;
+    this.chkPrivateRepo = chkPrivateRepo;
+    this.githubTokenInput = githubTokenInput;
     this.detailLevelBtns = detailLevelBtns;
     this.analysisDepthBtns = analysisDepthBtns;
+
+    // Initialize checkbox listener
+    this.chkPrivateRepo?.addEventListener('change', () => {
+      const tokenContainer = document.getElementById('token-input-container');
+      if (this.chkPrivateRepo.checked) {
+        tokenContainer?.classList.remove('hidden');
+      } else {
+        tokenContainer?.classList.add('hidden');
+      }
+    });
   }
 }

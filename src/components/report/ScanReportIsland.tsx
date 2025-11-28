@@ -46,22 +46,32 @@ export default function ScanReportIsland() {
           role="dialog"
           aria-modal="true"
           aria-label="Scan report"
-          className="w-full max-w-5xl terminal-border bg-black/90 rounded-xl shadow-xl"
+          className="w-full max-w-5xl terminal-border bg-black/95 rounded-sm shadow-2xl relative overflow-hidden border border-green-500/30"
         >
-          {/* Header actions */}
-          <div className="flex items-center justify-between px-4 pt-4">
-            <div className="text-cyber-400 font-mono text-sm">REPORT_VIEW</div>
-            <button
-              ref={closeBtnRef}
-              onClick={() => setData(null)}
-              className="px-2 py-1 text-xs font-mono rounded-md border border-cyber-400/40 text-cyber-300 hover:bg-cyber-500/10"
-              aria-label="Close report"
-            >CLOSE</button>
+          {/* Matrix Background */}
+          <div className="absolute inset-0 pointer-events-none z-0">
+            <div className="absolute inset-0 matrix-rain opacity-10"></div>
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/50 to-black/90"></div>
           </div>
 
-          {/* Content scroll */}
-          <div className="max-h-[80vh] overflow-y-auto px-2 sm:px-4 pb-4">
-            <ScanReport data={data} />
+          <div className="relative z-10">
+            {/* Header actions */}
+            <div className="flex items-center justify-between px-4 pt-4">
+              <div className="text-cyber-400 font-mono text-sm">REPORT_VIEW</div>
+              <button
+                ref={closeBtnRef}
+                onClick={() => setData(null)}
+                className="px-2 py-1 text-xs font-mono rounded-md border border-cyber-400/40 text-cyber-300 hover:bg-cyber-500/10"
+                aria-label="Close report"
+              >
+                CLOSE
+              </button>
+            </div>
+
+            {/* Content scroll */}
+            <div className="max-h-[80vh] overflow-y-auto px-2 sm:px-4 pb-4">
+              <ScanReport data={data} />
+            </div>
           </div>
         </div>
       </div>
