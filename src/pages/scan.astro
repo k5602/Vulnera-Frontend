@@ -144,7 +144,9 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
                   class="w-full px-6 py-4 bg-black border border-white/10 text-white placeholder-gray-600 font-mono text-base focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500/50 transition-all rounded-md"
                 />
                 <div
-                  class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none text-xs font-bold tracking-wider border border-white/10 px-2 py-1 rounded"
+                  id="source-type-toggle"
+                  class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-purple-400 cursor-pointer text-xs font-bold tracking-wider border border-white/10 hover:border-purple-500/50 bg-white/5 hover:bg-purple-500/10 px-2 py-1 rounded transition-all select-none"
+                  title="Click to switch source"
                 >
                   GIT
                 </div>
@@ -187,6 +189,7 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
                   class="hidden mt-4 pt-4 border-t border-white/10 animate-fade-in"
                 >
                   <label
+                    id="auth-token-label"
                     for="github-token-input"
                     class="block text-xs text-purple-400 font-mono mb-2 uppercase tracking-wider"
                     >GitHub Token (PAT)</label
@@ -369,6 +372,8 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
       document.getElementById("repo-url")! as HTMLInputElement,
       document.getElementById("chk-private-repo")! as HTMLInputElement,
       document.getElementById("github-token-input")! as HTMLInputElement,
+      document.getElementById("auth-token-label")! as HTMLElement,
+      document.getElementById("source-type-toggle")! as HTMLElement,
       document.querySelectorAll(".detail-level-btn"),
       document.querySelectorAll(".analysis-depth-btn"),
     );

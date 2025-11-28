@@ -18,6 +18,9 @@ export class ScanHandler {
   repoUrl: HTMLInputElement;
   chkPrivateRepo: HTMLInputElement;
   githubTokenInput: HTMLInputElement;
+  authTokenLabel: HTMLElement;
+  sourceTypeToggle: HTMLElement;
+  currentSourceType: 'git' | 's3' = 'git';
   detailLevelBtns: NodeListOf<HTMLElement>;
   analysisDepthBtns: NodeListOf<HTMLElement>;
   selectedDetailLevel: string = "standard"; // Default
@@ -667,6 +670,33 @@ export class ScanHandler {
         alert("⚠️ Session expired. Please log in again.");
         return;
       }
+      let owner, repo;
+      if (this.currentSourceType === 'git') {
+        const urlObj = new URL(url);
+        const parts = urlObj.pathname.split("/").filter((p) => p);
+        if (parts.length < 2) {
+          alert("⚠️ Invalid GitHub URL. Format: https://github.com/owner/repo");
+          this.btnImport.disabled = false;
+          this.btnImport.textContent = "🚀 IMPORT_AND_SCAN";
+          return;
+        }
+        owner = parts[0];
+        repo = parts[1]?.replace(/\.git$/, "");
+      } else {
+        // For S3, we might not need owner/repo parsing in the same way, or we parse bucket/key
+        // For now, let's just use the URL as is or do basic validation
+        if (!url.startsWith('s3://') && !url.startsWith('https://')) {
+          // Basic check, though https s3 urls exist too
+        }
+        // For S3, owner/repo might not be directly applicable, or we can derive bucket/key
+        // For now, we'll leave them undefined or set to empty strings if not used.
+        owner = "";
+        repo = "";
+      }
+
+      if (!owner && this.currentSourceType === 'git' || !repo && this.currentSourceType === 'git') {
+        throw new Error("Invalid GitHub URL format.");
+      }
 
       // If private checked but no token
       if (isPrivateChecked && !token) {
@@ -676,26 +706,21 @@ export class ScanHandler {
         return;
       }
 
-
-      const urlObj = new URL(url);
-      const parts = urlObj.pathname.split("/").filter((p) => p);
-      const owner = parts[0];
-      const repo = parts[1]?.replace(/\.git$/, "");
-
-      if (!owner || !repo) {
-        throw new Error("Invalid GitHub URL format.");
-      }
-
       // For git repositories, source_uri is the GitHub URL
       // Valid analysis_depth: "full", "dependencies_only", "fast_scan"
-      const requestBody = {
-        source_type: "git" as const,
-        source_uri: `https://github.com/${owner}/${repo}.git`,
+      const requestBody: any = {
+        source_type: this.currentSourceType,
+        source_uri: this.currentSourceType === 'git' ? `https://github.com/${owner}/${repo}.git` : url, // For S3, use full URL
         analysis_depth: this.mapDetailLevelToAnalysisDepth(this.selectedAnalysisDepth),
         callback_url: undefined, // Optional: can be added if needed
         is_private: isPrivate, // Signal backend to use token
-        github_token: manualToken || undefined // Pass manual token if provided
       };
+
+      if (this.currentSourceType === 'git') {
+        requestBody.github_token = token || undefined;
+      } else {
+        requestBody.aws_credentials = token || undefined;
+      }
 
       // Removed fetchOptions to always include credentials
       // If manual token is provided, we might need to pass it in headers or body
@@ -704,13 +729,23 @@ export class ScanHandler {
       // For now, let's assume we can pass it in the body or the backend checks the cookie we might set.
 
       // Ideally, we should set the cookie if manual token is provided so the backend middleware picks it up
-      if (manualToken) {
+      if (manualToken && this.currentSourceType === 'git') {
         document.cookie = `github_token=${manualToken}; path=/; max-age=3600; SameSite=Strict`;
+      }
+
+      const headers: Record<string, string> = {};
+      if (token) {
+        if (this.currentSourceType === 'git') {
+          headers["X-GitHub-Token"] = token;
+        } else {
+          headers["X-AWS-Credentials"] = token;
+        }
       }
 
       const apiResponse = await apiClient.post(
         API_ENDPOINTS.ANALYSIS.ANALYZE,
-        requestBody
+        requestBody,
+        { headers }
       );
 
 
@@ -900,6 +935,8 @@ export class ScanHandler {
     repoUrl: HTMLInputElement,
     chkPrivateRepo: HTMLInputElement,
     githubTokenInput: HTMLInputElement,
+    authTokenLabel: HTMLElement,
+    sourceTypeToggle: HTMLElement,
     detailLevelBtns: NodeListOf<HTMLElement>,
     analysisDepthBtns: NodeListOf<HTMLElement>
   ) {
@@ -912,6 +949,8 @@ export class ScanHandler {
     this.repoUrl = repoUrl;
     this.chkPrivateRepo = chkPrivateRepo;
     this.githubTokenInput = githubTokenInput;
+    this.authTokenLabel = authTokenLabel;
+    this.sourceTypeToggle = sourceTypeToggle;
     this.detailLevelBtns = detailLevelBtns;
     this.analysisDepthBtns = analysisDepthBtns;
 
@@ -923,6 +962,28 @@ export class ScanHandler {
       } else {
         tokenContainer?.classList.add('hidden');
       }
+    });
+
+    // Initialize source type toggle listener
+    this.sourceTypeToggle?.addEventListener('click', () => {
+      if (this.currentSourceType === 'git') {
+        this.currentSourceType = 's3';
+        this.sourceTypeToggle.textContent = 'AWS S3';
+        this.sourceTypeToggle.classList.add('text-orange-400', 'border-orange-500/50', 'bg-orange-500/10');
+        this.sourceTypeToggle.classList.remove('text-gray-500', 'border-white/10', 'bg-white/5');
+        this.repoUrl.placeholder = 's3://bucket-name/path/to/repo';
+        this.authTokenLabel.textContent = 'AWS Credentials';
+        this.githubTokenInput.placeholder = 'Access Key:Secret Key';
+      } else {
+        this.currentSourceType = 'git';
+        this.sourceTypeToggle.textContent = 'GIT';
+        this.sourceTypeToggle.classList.remove('text-orange-400', 'border-orange-500/50', 'bg-orange-500/10');
+        this.sourceTypeToggle.classList.add('text-gray-500', 'border-white/10', 'bg-white/5');
+        this.repoUrl.placeholder = 'https://github.com/owner/repo';
+        this.authTokenLabel.textContent = 'GitHub Token (PAT)';
+        this.githubTokenInput.placeholder = 'ghp_...';
+      }
+      logger.debug("Source type switched to:", this.currentSourceType);
     });
   }
 }
