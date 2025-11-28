@@ -159,7 +159,8 @@ export class OrgSignupOrgData {
         }
 
         if (orgResData) {
-            organization = new OrgData(orgResData);
+            setId(orgResData.id);
+            loadOrgData(orgResData.id);
         }
 
         messageHandler.showSuccess("Organization created! Redirecting...");

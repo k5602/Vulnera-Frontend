@@ -16,10 +16,10 @@ export class OrgDashboardHandler {
 
 
   renderOverview(data: any) {
-    if (this.criticalElement) this.criticalElement.textContent = String(data.critical_findings ?? 0);
-    if (this.highElement) this.highElement.textContent = String(data.high_findings ?? 0);
-    if (this.medElement) this.medElement.textContent = String(data.medium_findings ?? 0);
-    if (this.lowElement) this.lowElement.textContent = String(data.low_findings ?? 0);
+    if (this.criticalElement) this.criticalElement.textContent = String(data.criticalFindings ?? 0);
+    if (this.highElement) this.highElement.textContent = String(data.highFindings ?? 0);
+    if (this.medElement) this.medElement.textContent = String(data.mediumFindings ?? 0);
+    if (this.lowElement) this.lowElement.textContent = String(data.lowFindings ?? 0);
   }
 
   renderMonthActivity(list: any[]) {
@@ -145,17 +145,17 @@ export class OrgDashboardHandler {
     }
 
     try {
-      const res = await apiClient.get<OrgStats>(`/api/v1/organizations/${organization.orgId}/stats`);
+      const res = await apiClient.get<OrgStats>(`/api/v1/organizations/${organization.orgId}/analytics/dashboard`);
 
       if (res.ok && res.data) {
         const data = res.data;
-        totalScan = data.total_scans;
-        totalVuln = data.total_findings;
-        apiCallsMth = data.api_calls_this_month;
-        criticalFindings = data.critical_findings;
-        highFindings = data.high_findings;
-        mediumFindings = data.medium_findings;
-        lowFindings = data.low_findings;
+        totalScan = 1;
+        totalVuln = 2;
+        apiCallsMth = 3;
+        criticalFindings = 4;
+        highFindings = 5;
+        mediumFindings = 6;
+        lowFindings = 7;
       }
     } catch (e) {
       logger.error("Failed to load organization stats:", e);
@@ -189,7 +189,7 @@ export class OrgDashboardHandler {
     //     issues: scan.vulnerabilities || 0,
     //     createdAt: scan.timestamp
     //   };
-    // });
+    // });s
 
     // Group by project for projects view
     const projectsMap: any = {};
