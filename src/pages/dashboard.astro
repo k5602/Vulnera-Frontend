@@ -239,10 +239,10 @@ export const prerender = false;
   <Footer />
 
   <script>
-    import { OrgDashboardHandler } from "../modules/userDashboard";
+    import { DashboardHandler } from "../modules/userDashboard";
     // Public dashboard: no auth guard
 
-    const dashboardHandler = new OrgDashboardHandler(
+    const dashboardHandler = new DashboardHandler(
       document.getElementById("stat-critical")!,
       document.getElementById("stat-high")!,
       document.getElementById("stat-medium")!,

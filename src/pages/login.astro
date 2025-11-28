@@ -224,13 +224,8 @@ export const prerender = false;
         if (res.data) {
           const loginData = res.data as any;
           if (loginData.csrf_token) setCsrfToken(loginData.csrf_token);
-          const loginData = res.data as any;
-          if (loginData.csrf_token) setCsrfToken(loginData.csrf_token);
 
           setCurrentUser({
-            id: loginData.user_id,
-            email: loginData.email,
-            roles: loginData.roles,
             id: loginData.user_id,
             email: loginData.email,
             roles: loginData.roles,
@@ -246,8 +241,6 @@ export const prerender = false;
         let isInOrg = false;
 
         if (organizations.ok) {
-          const orgData = organizations.data as any;
-          const orgList = orgData.organizations;
           const orgData = organizations.data as any;
           const orgList = orgData.organizations;
 

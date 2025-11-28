@@ -14,7 +14,6 @@ export interface OrgDataInit {
     tier: string;
     isOrganization: boolean;
     signOrg: boolean;
-    signOrg: boolean;
 }
 
 export class OrgData {
@@ -27,7 +26,6 @@ export class OrgData {
     membersCount: number;
     tier: string;
     isOrganization: boolean;
-    signOrg: boolean;
     signOrg: boolean;
 
     trueIsOrganization() {
@@ -61,7 +59,6 @@ export class OrgData {
         this.membersCount = data.members_count;
         this.tier = data.tier;
         this.isOrganization = data.isOrganization;
-        this.signOrg = data.signOrg;
         this.signOrg = data.signOrg;
     }
 }

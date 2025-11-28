@@ -66,7 +66,7 @@ export const prerender = false;
       <!-- Stats Grid -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
         <div class="terminal-border bg-black/60 rounded-lg p-4 sm:p-6">
-          <div class="text-cyber-400 text-xs sm:text-sm mb-1">criticalFindings_FINDINGS</div>
+          <div class="text-cyber-400 text-xs sm:text-sm mb-1">CRITICAL_FINDINGS</div>
           <div id="criticalFindings" class="text-2xl sm:text-3xl lg:text-4xl text-yellow-400 font-mono">--</div>
         </div>
         <div class="terminal-border bg-black/60 rounded-lg p-4 sm:p-6">
@@ -152,7 +152,7 @@ export const prerender = false;
   <Footer />
 
   <script>
-    import { OrgDashboardHandler } from '../modules/dashboard';
+    import { OrgDashboardHandler } from '../modules/userDashboard';
     // Public dashboard: no auth guard
 
     const dashboardHandler = new OrgDashboardHandler(
@@ -169,11 +169,7 @@ export const prerender = false;
 
 
   dashboardHandler.loadReportsAndProjects();
-    const filterView = document.getElementById('filter-view') as HTMLSelectElement;
-    filterView.addEventListener('change', (selection) => {
-      dashboardHandler.changeDashboard((selection.target as HTMLSelectElement).value);
-      dashboardHandler.loadReportsAndProjects();
-    });
+
     // Defer binding and initial load until idle to free up the main thread on first paint
     const scheduleIdle = (cb: any) => {
       if (typeof window.requestIdleCallback === 'function') {
@@ -187,6 +183,10 @@ export const prerender = false;
       document.getElementById('btn-refresh')?.addEventListener('click', () => dashboardHandler.loadReportsAndProjects());
       document.getElementById('filter-ecosystem')?.addEventListener('change', () => dashboardHandler.loadReportsAndProjects());
       document.getElementById('filter-severity')?.addEventListener('change', () => dashboardHandler.loadReportsAndProjects());
+      document.getElementById('filter-view')?.addEventListener('change', (selection) => {
+      dashboardHandler.changeDashboard((selection.target as HTMLSelectElement).value);
+      dashboardHandler.loadReportsAndProjects();
+    });
 
       // Export CSV
       document.getElementById('btn-export')?.addEventListener('click', () => {
