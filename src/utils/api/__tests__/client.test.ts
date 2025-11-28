@@ -171,7 +171,7 @@ describe('API Client', () => {
       expect(result.status).toBe(401);
       expect(result.ok).toBe(false);
 
-      window.location = originalLocation;
+      (window as any).location = originalLocation;
     });
   });
 

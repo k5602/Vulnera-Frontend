@@ -478,9 +478,11 @@ export class ScanHandler {
     this.renderFiles();
   }
 
-  getRepoReportData(result: any, repoInfo: { owner: string; repo: string }, durationMs: number, jobId: string) {
+  getRepoReportData(result: unknown, repoInfo: { owner: string; repo: string }, durationMs: number, _jobId: string) {
     // Similar to getReportData but tailored for repo scans
+    // _jobId reserved for future use (e.g., linking to job details page)
     // We can reuse getReportData logic for now, but wrap it to inject repo info
+    const data = result as { metadata?: { duration_ms?: number } };
 
     // Construct a synthetic file object for the repo
     const repoFile = {
@@ -491,13 +493,13 @@ export class ScanHandler {
 
     // Hack: Add to pickedFiles so getReportData processes it correctly
     // In a real refactor, we should separate data processing from UI state
-    this.pickedFiles = [repoFile as any];
+    this.pickedFiles = [repoFile as unknown as File];
 
     // Inject duration if missing
-    if (!result.metadata) result.metadata = {};
-    if (!result.metadata.duration_ms) result.metadata.duration_ms = durationMs;
+    if (!data.metadata) data.metadata = {};
+    if (!data.metadata.duration_ms) data.metadata.duration_ms = durationMs;
 
-    this.getReportData(result);
+    this.getReportData(data);
   }
   async startScan() {
     if (!this.pickedFiles.length) {
@@ -578,10 +580,15 @@ export class ScanHandler {
           alert("⚠️ Rate limit exceeded. Try again later.");
           return;
         }
-        throw new Error(apiResponse.error || `HTTP ${apiResponse.status}`);
+        const errorMsg = typeof apiResponse.error === 'string' ? apiResponse.error : `HTTP ${apiResponse.status}`;
+        throw new Error(errorMsg);
       }
 
-      const result = apiResponse.data;
+      const result = apiResponse.data as {
+        results?: unknown[];
+        total_vulnerabilities?: number;
+        metadata?: { total_files?: number };
+      } | null;
 
       logger.debug("Full API response:", {
         ok: apiResponse.ok,
@@ -672,13 +679,21 @@ export class ScanHandler {
         if (apiResponse.status === 429) {
           throw new Error("Rate limit exceeded. Try again later.");
         }
-        throw new Error(apiResponse.error || `HTTP ${apiResponse.status}`);
+        const errorMsg = typeof apiResponse.error === 'string' ? apiResponse.error : `HTTP ${apiResponse.status}`;
+        throw new Error(errorMsg);
       }
 
-      const result = apiResponse.data;
+      const result = apiResponse.data as {
+        job_id?: string;
+        status?: string;
+        message?: string;
+        error?: string;
+        results?: unknown[];
+        findings_by_type?: unknown;
+      } | null;
 
       // New job-based API returns job info, not immediate results
-      if (result.job_id) {
+      if (result?.job_id) {
         logger.info("Repository scan job submitted", {
           job_id: result.job_id,
           status: result.status,
@@ -705,12 +720,12 @@ export class ScanHandler {
       }
 
       // Legacy format support - if we get immediate results
-      if (result.status === "failed") {
+      if (result?.status === "failed") {
         throw new Error("Repository analysis failed.");
       }
 
       // If we somehow got immediate results, process them
-      if (result.results || result.findings_by_type) {
+      if (result?.results || result?.findings_by_type) {
         this.getReportData(result);
       }
 
@@ -769,14 +784,19 @@ export class ScanHandler {
           throw new Error(`Failed to check job status: HTTP ${response.status}`);
         }
 
-        const job = response.data;
-        const status = job.status?.toLowerCase() || "unknown";
+        const job = response.data as {
+          status?: string;
+          error?: string;
+          message?: string;
+          [key: string]: unknown;
+        } | null;
+        const status = job?.status?.toLowerCase() || "unknown";
 
         logger.debug("Job status poll:", {
           id: jobId,
           status: status,
           attempt: attempts,
-          rawStatus: job.status
+          rawStatus: job?.status
         });
 
         // Handle terminal states
@@ -786,9 +806,9 @@ export class ScanHandler {
           this.stopPolling();
 
           // Use repo-specific report generator for proper formatting
-          if (repoInfo) {
+          if (repoInfo && job) {
             this.getRepoReportData(job, repoInfo, durationMs, jobId);
-          } else {
+          } else if (job) {
             this.getReportData(job);
           }
 
@@ -799,7 +819,7 @@ export class ScanHandler {
         }
 
         if (status === "failed" || status === "error") {
-          throw new Error(job.error || job.message || "Scan job failed");
+          throw new Error(job?.error || job?.message || "Scan job failed");
         }
 
         if (status === "cancelled") {
