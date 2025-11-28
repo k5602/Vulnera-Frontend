@@ -349,11 +349,11 @@ import Footer from "../components/Footer.astro";
                 // ignore refresh errors here; we still redirect
             }
 
-            // if (organization.isOrganization) {
-            //     setTimeout(() => {
-            //         window.location.replace("/orgsignup");
-            //     }, 800);
-            // } else {
+            if (isOrganization) {
+                setTimeout(() => {
+                    window.location.replace("/orgsignup");
+                }, 800);
+            } else {
                 setTimeout(() => {
                     window.location.replace("/dashboard");
                 }, 800);
