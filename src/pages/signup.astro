@@ -235,7 +235,7 @@ import Footer from "../components/Footer.astro";
     <script>
         import { apiClient } from "../utils/api/client";
         import { isAuthenticated, refreshAuth } from "../utils/api/auth-store";
-        import { isOrganization } from "../modules/orgData";
+        import { organization } from "../modules/orgData";
 
         if (isAuthenticated()) {
             window.location.replace("/dashboard");
@@ -329,7 +329,7 @@ import Footer from "../components/Footer.astro";
             }
 
 
-            if (isOrganization) {
+            if (organization.isOrganization) {
                 showSuccess("Account created! Redirecting to organization creation...");
             } else {
                 showSuccess("Account created! Redirecting to dashboard...");
@@ -349,7 +349,7 @@ import Footer from "../components/Footer.astro";
                 // ignore refresh errors here; we still redirect
             }
 
-            if (isOrganization) {
+            if (organization.isOrganization) {
                 setTimeout(() => {
                     window.location.replace("/orgsignup");
                 }, 800);

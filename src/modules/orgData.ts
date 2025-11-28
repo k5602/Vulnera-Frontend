@@ -1,4 +1,4 @@
-import {message} from './message';
+import { message } from './message';
 import { apiClient } from '../utils';
 
 export class OrgData {
@@ -91,9 +91,10 @@ export class OrgSignupOrgData {
             this.successDiv
         );
 
-        const orgRes = await apiClient.post("/api/v1/organizations",{
+        const orgRes = await apiClient.post("/api/v1/organizations", {
             name: this.formData.orgName,
-            description: this.formData.orgDescription});
+            description: this.formData.orgDescription
+        });
 
         const orgResData = await orgRes.data;
 
@@ -119,15 +120,49 @@ export class OrgSignupOrgData {
         orgName: string;
         orgDescription: string;
     },
-    successDiv: HTMLElement,
-    errorDiv: HTMLElement,
-    submitBtn: HTMLButtonElement,
-) {
+        successDiv: HTMLElement,
+        errorDiv: HTMLElement,
+        submitBtn: HTMLButtonElement,
+    ) {
         this.formData = formData;
         this.successDiv = successDiv;
         this.errorDiv = errorDiv;
         this.submitBtn = submitBtn;
-}
+    }
 }
 
 export { organization };
+
+import { getCurrentUser } from '../utils/api/auth-store';
+
+export async function loadUserOrganization() {
+    try {
+        const res = await apiClient.get("/api/v1/organizations");
+        if (res.ok && res.data.organizations && res.data.organizations.length > 0) {
+            const orgList = res.data.organizations;
+            const currentUser = getCurrentUser();
+
+            let targetOrg = orgList[0];
+            if (currentUser) {
+                const ownedOrg = orgList.find((o: any) => o.owner_id === currentUser.id);
+                if (ownedOrg) targetOrg = ownedOrg;
+            }
+
+            // Update the existing organization object's properties
+            // We need to map API response to OrgData constructor expected format if needed
+            // Assuming API response matches mostly, but let's be safe with isOrganization
+
+            const orgData = {
+                ...targetOrg,
+                isOrganization: true
+            };
+
+            const newOrgData = new OrgData(orgData);
+            Object.assign(organization, newOrgData);
+            return true;
+        }
+    } catch (e) {
+        console.error("Failed to load organization", e);
+    }
+    return false;
+}
