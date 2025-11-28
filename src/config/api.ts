@@ -113,6 +113,12 @@ export const API_ENDPOINTS = {
         GET_JOB: "/api/v1/jobs/:job_id",
     },
 
+    // LLM endpoints
+    LLM: {
+        QUERY: "/api/v1/llm/query",
+        ENRICH: "/api/v1/jobs/:job_id/enrich",
+    },
+
     // Health endpoints
     HEALTH: {
         CHECK: "/health",
