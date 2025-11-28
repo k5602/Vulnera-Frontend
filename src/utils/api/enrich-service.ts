@@ -20,7 +20,13 @@ export const enrichService = {
     /**
      * Trigger AI enrichment for a specific job
      */
-    enrichJob: async (jobId: string): Promise<ApiResponse<EnrichmentResponse>> => {
-        return apiClient.post<EnrichmentResponse>(`/api/v1/jobs/${jobId}/enrich`);
+    enrichJob: async (
+        jobId: string,
+        payload: {
+            finding_ids: string[];
+            code_contexts: Record<string, string>;
+        }
+    ): Promise<ApiResponse<EnrichmentResponse>> => {
+        return apiClient.post<EnrichmentResponse>(`/api/v1/jobs/${jobId}/enrich`, payload);
     }
 };

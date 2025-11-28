@@ -74,7 +74,27 @@ export default function ScanReport({ data }: { data: ScanReportData }) {
 
     setIsEnriching(true);
     try {
-      const response = await enrichService.enrichJob(data.jobId);
+      // 1. Prioritize findings (Critical > High > Medium > Low > Info)
+      const severityOrder = { CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3, INFO: 4 };
+      const sortedVulns = [...data.vulnerabilities].sort((a, b) => {
+        return severityOrder[a.severity] - severityOrder[b.severity];
+      });
+
+      // 2. Take top N findings (e.g., 10)
+      const topFindings = sortedVulns.slice(0, 10);
+      const findingIds = topFindings.map(v => v.id);
+
+      // 3. Collect code contexts (if available)
+      // Note: Currently the frontend might not have full code context unless passed in data
+      // We'll send what we have or empty map if not available
+      const codeContexts: Record<string, string> = {};
+
+      // 4. Call enrichment service with payload
+      const response = await enrichService.enrichJob(data.jobId, {
+        finding_ids: findingIds,
+        code_contexts: codeContexts
+      });
+
       if (response.ok && response.data) {
         const newEnrichedData: Record<string, EnrichedFinding> = {};
         response.data.findings.forEach(f => {
@@ -256,7 +276,7 @@ export default function ScanReport({ data }: { data: ScanReportData }) {
           </div>
           <div className="bg-black/60 rounded-lg p-3 border border-red-600/40">
             <div className="text-red-400">CRITICAL/HIGH</div>
-            <div className="text-red-300 text-xl">{data.summary.critical + data.summary.high}</div>
+            <div className="text-red-300 text-xl">{(data.summary.critical || 0) + (data.summary.high || 0)}</div>
           </div>
         </div>
         <div className="mt-3 text-xs text-gray-400 font-mono">Duration: {fmtDuration}</div>
@@ -323,7 +343,9 @@ export default function ScanReport({ data }: { data: ScanReportData }) {
                   <div className="flex items-center gap-2">
                     <SeverityBadge level={v.severity} />
                     <span className="text-white font-semibold">{v.package}</span>
-                    <span className="text-gray-400">@ {v.version}</span>
+                    {v.version && v.version !== '-' && (
+                      <span className="text-gray-400">@ {v.version}</span>
+                    )}
                   </div>
                   <div className="text-red-300">{v.title}</div>
 
@@ -353,15 +375,27 @@ export default function ScanReport({ data }: { data: ScanReportData }) {
               )}
 
               {/* AI Enrichment Details */}
-              {(enrichedData[v.id] || v.explanation) && (
-                <div className="mt-3 border border-cyber-500/30 rounded-lg overflow-hidden">
-                  <div className="bg-cyber-950/50 px-3 py-1 border-b border-cyber-500/20 flex items-center gap-2">
-                    <span className="text-xs text-cyber-400 font-mono">✨ AI_INSIGHTS</span>
+              {(enrichedData[v.id] || v.explanation || (enrichedData[v.id] && enrichedData[v.id].enrichment_successful === false)) && (
+                <div className={`mt-3 border rounded-lg overflow-hidden ${enrichedData[v.id]?.enrichment_successful === false ? 'border-red-500/30' : 'border-cyber-500/30'}`}>
+                  <div className={`px-3 py-1 border-b flex items-center gap-2 ${enrichedData[v.id]?.enrichment_successful === false ? 'bg-red-950/30 border-red-500/20' : 'bg-cyber-950/50 border-cyber-500/20'}`}>
+                    <span className={`text-xs font-mono ${enrichedData[v.id]?.enrichment_successful === false ? 'text-red-400' : 'text-cyber-400'}`}>
+                      {enrichedData[v.id]?.enrichment_successful === false ? '⚠️ ENRICHMENT_FAILED' : '✨ AI_INSIGHTS'}
+                    </span>
                   </div>
                   <div className="p-3 bg-black/40 space-y-2">
                     {/* Use enriched data if available, otherwise fall back to static data if it exists */}
                     {(() => {
                       const enriched = enrichedData[v.id] || v;
+
+                      if (enriched.enrichment_successful === false) {
+                        return (
+                          <div className="text-sm text-red-300">
+                            <span className="text-red-500 font-mono text-xs uppercase tracking-wider block mb-1">Error</span>
+                            {enriched.enrichment_error || "Failed to generate AI insights for this finding."}
+                          </div>
+                        );
+                      }
+
                       return (
                         <>
                           {enriched.risk_summary && (

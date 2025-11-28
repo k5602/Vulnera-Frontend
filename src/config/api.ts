@@ -110,8 +110,13 @@ export const API_ENDPOINTS = {
     // Analysis endpoints
     ANALYSIS: {
         ANALYZE: "/api/v1/analyze/job",
-        ANALYZE_DEPENDENCIES: "/api/v1/dependencies/analyze",
-        GET_JOB: "/api/v1/analyze/job/:job_id",
+        GET_JOB: "/api/v1/jobs/:job_id",
+    },
+
+    // LLM endpoints
+    LLM: {
+        QUERY: "/api/v1/llm/query",
+        ENRICH: "/api/v1/jobs/:job_id/enrich",
     },
 
     // Health endpoints
