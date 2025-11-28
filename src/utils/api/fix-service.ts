@@ -1,4 +1,5 @@
 import { apiClient, type ApiResponse } from './client';
+import { API_ENDPOINTS } from '../../config/api';
 
 export interface FixRequest {
     context: string;
@@ -18,6 +19,6 @@ export const fixService = {
      * Generate a code fix for a specific vulnerability
      */
     generateFix: async (payload: FixRequest): Promise<ApiResponse<FixResponse>> => {
-        return apiClient.post<FixResponse>('/api/v1/llm/fix', payload);
+        return apiClient.post<FixResponse>(API_ENDPOINTS.LLM.FIX, payload);
     }
 };

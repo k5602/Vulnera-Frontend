@@ -23,10 +23,6 @@ export interface AnalyzeJobRequest {
   source_uri: string;
   analysis_depth: AnalysisDepth;
   callback_url?: string | null;
-  // Legacy fields kept for backward compatibility (not in OpenAPI spec)
-  sourceType?: AnalysisSourceType;
-  sourceUri?: string;
-  analysisDepth?: AnalysisDepth;
   filename?: string;
   fileContent?: string;
   ecosystem?: string;
@@ -52,21 +48,6 @@ export interface ReportSummary {
 }
 
 /**
- * AnalysisJobSummary - legacy name, use ReportSummary instead
- * @deprecated Use ReportSummary to match OpenAPI schema
- */
-export interface AnalysisJobSummary extends ReportSummary {
-  // Legacy field names kept for backward compatibility
-  totalFindings?: number;
-  criticalCount?: number;
-  highCount?: number;
-  mediumCount?: number;
-  lowCount?: number;
-  infoCount?: number;
-  [key: string]: unknown;
-}
-
-/**
  * Finding matches Finding from OpenAPI
  * Required: id, type, location, severity, confidence, description
  * Optional: recommendation, rule_id
@@ -84,36 +65,6 @@ export interface Finding {
   severity: 'Critical' | 'High' | 'Medium' | 'Low' | 'Info';
   confidence: 'High' | 'Medium' | 'Low';
   description: string;
-  recommendation?: string | null;
-  rule_id?: string | null;
-}
-
-/**
- * AnalysisFinding - legacy interface, use Finding instead
- * @deprecated Use Finding to match OpenAPI schema
- */
-export interface AnalysisFinding {
-  id?: string;
-  module?: string;
-  severity?: 'critical' | 'high' | 'medium' | 'low' | 'info';
-  title?: string;
-  description?: string;
-  remediation?: string;
-  packageName?: string;
-  packageVersion?: string;
-  ecosystem?: string;
-  identifiers?: Array<{ type: string; value: string }>;
-  metadata?: Record<string, unknown>;
-  // OpenAPI Finding fields
-  type?: 'Vulnerability' | 'Secret' | 'LicenseViolation' | 'Misconfiguration';
-  location?: {
-    path: string;
-    line?: number | null;
-    column?: number | null;
-    end_line?: number | null;
-    end_column?: number | null;
-  };
-  confidence?: 'High' | 'Medium' | 'Low';
   recommendation?: string | null;
   rule_id?: string | null;
 }
@@ -152,14 +103,13 @@ export interface AnalyzeJobResponseData {
 export interface AnalysisJobStatusData {
   job_id: string;
   status: AnalysisJobStatus | string;
-  summary: ReportSummary | AnalysisJobSummary;
-  findings: Finding[] | AnalysisFinding[];
+  summary: ReportSummary;
+  findings: Finding[];
   started_at?: string;
   completed_at?: string;
   expires_at?: string;
   submitted_at?: string;
   queued_at?: string;
-  // Legacy fields for backward compatibility
   errors?: AnalysisJobError[];
 }
 
@@ -186,11 +136,11 @@ class ScanService {
   async submitAnalysisJob(
     payload: AnalyzeJobRequest
   ): Promise<ApiResponse<FinalReportResponse | AnalyzeJobResponseData>> {
-    // Normalize payload to match OpenAPI schema (support both snake_case and camelCase)
-    const normalizedPayload: any = {
-      source_type: payload.source_type || payload.sourceType,
-      source_uri: payload.source_uri || payload.sourceUri,
-      analysis_depth: payload.analysis_depth || payload.analysisDepth,
+    // Build normalized payload matching OpenAPI schema
+    const normalizedPayload: Record<string, unknown> = {
+      source_type: payload.source_type,
+      source_uri: payload.source_uri,
+      analysis_depth: payload.analysis_depth,
     };
     
     if (payload.callback_url !== undefined) {
@@ -232,7 +182,7 @@ class ScanService {
     while (true) {
       if (options.signal?.aborted) {
         return {
-          success: false,
+          ok: false,
           error: 'Polling aborted',
           status: 499,
         };
@@ -240,7 +190,7 @@ class ScanService {
 
       const response = await this.getAnalysisJob(jobId);
 
-      if (!response.success || !response.data) {
+      if (!response.ok || !response.data) {
         return response;
       }
 
@@ -252,7 +202,7 @@ class ScanService {
 
       if (Date.now() - start >= timeout) {
         return {
-          success: false,
+          ok: false,
           error: 'Analysis job polling timed out',
           status: 408,
         };
@@ -266,7 +216,7 @@ class ScanService {
       } catch (error) {
         if (this.isAbortError(error)) {
           return {
-            success: false,
+            ok: false,
             error: 'Polling aborted',
             status: 499,
           };

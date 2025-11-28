@@ -5,12 +5,22 @@
 import { apiClient } from './client';
 import { clearAuth, isAuthenticated, getCurrentUser } from './auth-store';
 import { API_ENDPOINTS } from '../../config/api';
+import { logger } from '../logger';
+
+/** Extract error message from unknown API error response */
+function extractApiErrorMessage(error: unknown, fallback: string): string {
+  if (typeof error === 'string') return error;
+  if (error && typeof error === 'object' && 'message' in error) {
+    return String((error as { message: unknown }).message);
+  }
+  return fallback;
+}
 
 export interface ApiKeyResponse {
   success: boolean;
   status?: number;
   error?: string;
-  data?: any;
+  data?: unknown;
 }
 
 export interface CreateApiKeyRequest {
@@ -52,7 +62,7 @@ export class AuthService {
       // Call backend logout endpoint
       await apiClient.post(API_ENDPOINTS.AUTH.LOGOUT);
     } catch (error) {
-      console.warn('Logout endpoint failed, proceeding with local cleanup', error);
+      logger.warn('Logout endpoint failed, proceeding with local cleanup', { error: error instanceof Error ? error.message : String(error) });
     } finally {
       // Always clear local state
       clearAuth();
@@ -76,7 +86,7 @@ export class AuthService {
         return {
           success: false,
           status: response.status,
-          error: response.error?.message || 'Failed to load API keys',
+          error: extractApiErrorMessage(response.error, 'Failed to load API keys'),
           data: response.error,
         };
       }
@@ -105,7 +115,7 @@ export class AuthService {
         return {
           success: false,
           status: response.status,
-          error: response.error?.message || 'Failed to create API key',
+          error: extractApiErrorMessage(response.error, 'Failed to create API key'),
           data: response.error,
         };
       }
@@ -135,7 +145,7 @@ export class AuthService {
         return {
           success: false,
           status: response.status,
-          error: response.error?.message || 'Failed to revoke API key',
+          error: extractApiErrorMessage(response.error, 'Failed to revoke API key'),
           data: response.error,
         };
       }

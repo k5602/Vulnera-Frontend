@@ -2,10 +2,11 @@ import { useMemo, useState } from 'react';
 import { usePagination } from '../../hooks/usePagination';
 import { enrichService, type EnrichedFinding } from '../../utils/api/enrich-service';
 import { fixService, type FixResponse } from '../../utils/api/fix-service';
+import { getSeverityClasses, SEVERITY_ORDER, type SeverityLevel } from '../../utils/severity';
 
 export type Vulnerability = {
   id: string;
-  severity: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' | 'INFO';
+  severity: SeverityLevel;
   package: string;
   version: string;
   title: string;
@@ -47,16 +48,11 @@ export type ScanReportData = {
   vulnerabilities: Vulnerability[];
 };
 
-function SeverityBadge({ level }: { level: Vulnerability['severity'] }) {
-  const map: Record<Vulnerability['severity'], string> = {
-    CRITICAL: 'bg-red-600/20 text-red-400 border-red-500/40',
-    HIGH: 'bg-red-500/15 text-red-300 border-red-400/30',
-    MEDIUM: 'bg-yellow-500/15 text-yellow-300 border-yellow-400/30',
-    LOW: 'bg-cyan-500/15 text-cyan-300 border-cyan-400/30',
-    INFO: 'bg-matrix-500/10 text-matrix-300 border-matrix-400/20',
-  };
+function SeverityBadge({ level }: { level: SeverityLevel }) {
   return (
-    <span className={`px-2 py-0.5 rounded-md text-xs font-mono border ${map[level]}`}>{level}</span>
+    <span className={`px-2 py-0.5 rounded-md text-xs font-mono border ${getSeverityClasses(level)}`}>
+      {level}
+    </span>
   );
 }
 
@@ -120,10 +116,10 @@ export default function ScanReport({ data }: { data: ScanReportData }) {
           [finding.id]: response.data!
         }));
       } else {
-        throw new Error(response.error || "Failed to generate fix");
+        throw new Error(String(response.error) || "Failed to generate fix");
       }
-    } catch (error: any) {
-      console.error("Fix generation failed:", error);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to generate fix. Please try again.";
       // Store error in state instead of alerting
       setFixData(prev => ({
         ...prev,
@@ -131,7 +127,7 @@ export default function ScanReport({ data }: { data: ScanReportData }) {
           confidence: 0,
           explanation: "",
           fixed_code: "",
-          error: error.message || "Failed to generate fix. Please try again."
+          error: errorMessage
         }
       }));
     } finally {
@@ -141,16 +137,15 @@ export default function ScanReport({ data }: { data: ScanReportData }) {
 
   const handleEnrich = async () => {
     if (!data.jobId) {
-      console.error("No Job ID available for enrichment");
+      // No Job ID available for enrichment - silently return
       return;
     }
 
     setIsEnriching(true);
     try {
       // 1. Prioritize findings (Critical > High > Medium > Low > Info)
-      const severityOrder = { CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3, INFO: 4 };
       const sortedVulns = [...data.vulnerabilities].sort((a, b) => {
-        return severityOrder[a.severity] - severityOrder[b.severity];
+        return SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity];
       });
 
       // 2. Take top N findings (e.g., 10)
@@ -175,8 +170,8 @@ export default function ScanReport({ data }: { data: ScanReportData }) {
         });
         setEnrichedData(newEnrichedData);
       }
-    } catch (error) {
-      console.error("Enrichment failed:", error);
+    } catch {
+      // Error during enrichment - silently fail, UI will show unenriched state
     } finally {
       setIsEnriching(false);
     }

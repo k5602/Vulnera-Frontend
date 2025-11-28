@@ -1,3 +1,4 @@
+// @ts-nocheck - Vite version mismatch between Astro's bundled Vite and project Vite
 import { defineConfig } from 'vitest/config';
 import { getViteConfig } from 'astro/config';
 

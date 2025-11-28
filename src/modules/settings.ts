@@ -21,7 +21,7 @@ export class Settings {
             name: newName
         });
 
-        if (req.success) {
+        if (req.ok) {
             this.orgData.orgName = newName;
             window.alert("Organization name updated successfully.");
             window.location.reload();
@@ -80,7 +80,7 @@ export class Settings {
             new_owner_id: new_id
         });
 
-        if (req.success) {
+        if (req.ok) {
             this.orgData.ownerId = new_id;
             window.alert("Ownership transferred successfully.");
         } else {
@@ -98,7 +98,7 @@ export class Settings {
 
         const req = await apiClient.delete(`api/v1/organizations/${id}/members/${member_id}`);
 
-        if (req.success) {
+        if (req.ok) {
             this.orgData.membersCount -= 1;
             window.alert("Member removed successfully.");
         } else {
@@ -113,7 +113,7 @@ export class Settings {
             id: id,
         });
 
-        if (req.success) {
+        if (req.ok) {
             window.alert("Left the organization successfully.");
             window.location.reload();
         } else {
@@ -126,7 +126,7 @@ export class Settings {
 
         const req = await apiClient.delete(`api/v1/organizations/${id}`);
 
-        if (req.success) {
+        if (req.ok) {
             organization.falseIsOrganization();
             window.alert("Organization deleted successfully.");
             window.location.reload();

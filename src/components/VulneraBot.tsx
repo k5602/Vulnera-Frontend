@@ -2,6 +2,17 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { isAuthenticated as isAuthenticatedStore } from '../utils/api/auth-store';
 import { apiClient } from '../utils/api/client';
+import { logger } from '../utils/logger';
+
+/** Extract error message from unknown error types */
+function extractErrorMessage(error: unknown, fallback = 'An unknown error occurred'): string {
+    if (error instanceof Error) return error.message;
+    if (typeof error === 'string') return error;
+    if (error && typeof error === 'object' && 'message' in error) {
+        return String((error as { message: unknown }).message);
+    }
+    return fallback;
+}
 
 interface Message {
     id: string;
@@ -84,12 +95,15 @@ export default function VulneraBot() {
             });
 
             if (!response.ok) {
-                console.error("LLM Query failed:", response.status, response.error);
-                const errorMsg = response.error?.message ||
-                    response.error?.details ||
-                    response.error?.error ||
-                    response.error?.detail ||
-                    (typeof response.error === 'string' ? response.error : 'Network response was not ok');
+                logger.warn('LLM Query failed', { status: response.status, error: response.error });
+                // Safely extract error message from unknown error type
+                const err = response.error as Record<string, unknown> | string | undefined;
+                const errorMsg = typeof err === 'string' ? err :
+                    (err?.message as string) ||
+                    (err?.details as string) ||
+                    (err?.error as string) ||
+                    (err?.detail as string) ||
+                    'Network response was not ok';
                 throw new Error(errorMsg);
             }
 
@@ -104,11 +118,11 @@ export default function VulneraBot() {
             };
 
             setMessages(prev => [...prev, botMessage]);
-        } catch (error: any) {
-            console.error('Error querying LLM:', error);
+        } catch (error: unknown) {
+            logger.error('Error querying LLM', { error: extractErrorMessage(error) });
             const errorMessage: Message = {
                 id: (Date.now() + 1).toString(),
-                text: `System Error: ${error.message || "Unable to connect to the server."}`,
+                text: `System Error: ${extractErrorMessage(error, 'Unable to connect to the server.')}`,
                 sender: 'bot',
                 timestamp: new Date()
             };
