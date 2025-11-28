@@ -235,6 +235,7 @@ import Footer from "../components/Footer.astro";
     <script>
         import { apiClient } from "../utils/api/client";
         import { isAuthenticated, refreshAuth } from "../utils/api/auth-store";
+        import { isOrganization } from "../modules/orgData";
 
         if (isAuthenticated()) {
             window.location.replace("/dashboard");
@@ -327,7 +328,12 @@ import Footer from "../components/Footer.astro";
                 return;
             }
 
-            showSuccess("Account created! Redirecting...");
+
+            if (isOrganization) {
+                showSuccess("Account created! Redirecting to organization creation...");
+            } else {
+                showSuccess("Account created! Redirecting to dashboard...");
+            }
 
             // Refresh auth state to get CSRF token and user data (if backend creates session)
             try {
@@ -343,9 +349,16 @@ import Footer from "../components/Footer.astro";
                 // ignore refresh errors here; we still redirect
             }
 
-            setTimeout(() => {
-                window.location.replace("/dashboard");
-            }, 800);
+            if (isOrganization) {
+                setTimeout(() => {
+                    window.location.replace("/orgsignup");
+                }, 800);
+            } else {
+                setTimeout(() => {
+                    window.location.replace("/dashboard");
+                }, 800);
+            }
+
         });
     </script>
 </Layout>

@@ -1,0 +1,178 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Navigation from "../components/Navigation.astro";
+import Footer from "../components/Footer.astro";
+---
+
+<Layout
+    title="Create Organization — Vulnera"
+    description="Create your organization account to manage team vulnerabilities."
+>
+    <!-- Guest Guard -->
+    <!-- <script>
+        import { isAuthenticated } from "../utils/api/auth-store";
+        if (isAuthenticated()) {
+            window.location.replace("/dashboard");
+        }
+    </script> -->
+
+    <Navigation />
+
+    <!-- Organization Signup Section -->
+    <section
+        id="main"
+        class="relative min-h-screen max-md:h-[145vh] flex items-center justify-center overflow-hidden bg-black"
+        aria-labelledby="org-signup-title"
+        transition:animate="fade"
+    >
+        <!-- Background Layers -->
+        <div class="absolute inset-0 z-0">
+            <div class="absolute inset-0 matrix-rain opacity-20"></div>
+            <div class="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-black/60"></div>
+            <div class="absolute inset-0 bg-gradient-to-b from-transparent via-matrix-900/20 to-black/80"></div>
+        </div>
+
+        <!-- Content -->
+        <div class="relative z-10 w-full max-w-lg px-4 sm:px-6">
+            <div class="mb-4 sm:mb-6 text-center">
+                <h1
+                    id="org-signup-title"
+                    class="text-2xl sm:text-3xl md:text-4xl font-bold text-white font-mono tracking-wider"
+                >
+                    <span class="text-cyber-400">&gt;</span> CREATE_ORGANIZATION
+                </h1>
+                <p class="text-matrix-300 mt-2 text-sm sm:text-base">
+                    Set up your organization to manage team security
+                </p>
+            </div>
+
+            <!-- Form Card -->
+            <div class="terminal-border bg-black/80 rounded-xl p-4 sm:p-6 shadow-xl auth-form">
+                <!-- Terminal Header Bar -->
+                <div class="flex items-center space-x-2 mb-4">
+                    <span class="w-3 h-3 rounded-full bg-red-500"></span>
+                    <span class="w-3 h-3 rounded-full bg-yellow-500"></span>
+                    <span class="w-3 h-3 rounded-full bg-green-500"></span>
+                    <span class="ml-3 text-xs text-gray-400">vulnera@org-setup:~</span>
+                </div>
+
+                <div
+                    id="error-message"
+                    class="hidden mb-2 p-3 bg-red-900/20 border border-red-500/40 rounded text-red-300 text-sm"
+                ></div>
+
+                <div
+                    id="success-message"
+                    class="hidden mb-2 p-3 bg-green-900/20 border border-green-500/40 rounded text-green-300 text-sm"
+                ></div>
+
+                <form
+                    id="org-signup-form"
+                    class="space-y-3 sm:space-y-4"
+                    autocomplete="on"
+                    action="#"
+                    method="post"
+                    novalidate
+                >
+                    <!-- Organization Info -->
+                    <div class="border-b border-cyber-500/20 pb-3 mb-3">
+                        <p class="text-xs text-cyber-400 mb-3">ORGANIZATION_DETAILS</p>
+                        <div>
+                            <label for="orgName" class="block text-xs sm:text-sm text-cyber-300 mb-1">ORG_NAME</label>
+                            <input
+                                id="orgName"
+                                name="orgName"
+                                type="text"
+                                required
+                                class="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg bg-black/60 border border-cyber-400/30 focus:border-cyber-400 focus:ring-2 focus:ring-cyber-400 text-white placeholder-gray-500 text-sm sm:text-base"
+                                placeholder="Acme Corporation"
+                            />
+                        </div>
+                        <div class="mt-3">
+                            <label for="description" class="block text-xs sm:text-sm text-cyber-300 mb-1">ORG_DESCRIPTION</label>
+                            <input
+                                id="description"
+                                name="description"
+                                type="text"
+                                class="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg bg-black/60 border border-cyber-400/30 focus:border-cyber-400 focus:ring-2 focus:ring-cyber-400 text-white placeholder-gray-500 text-sm sm:text-base"
+                                placeholder="Leading provider of innovative solutions."
+                            />
+                        </div>
+                    </div>
+
+                    <!-- Terms -->
+                    <div class="flex items-start gap-2 text-xs sm:text-sm text-matrix-300">
+                        <input
+                            id="terms"
+                            name="terms"
+                            type="checkbox"
+                            class="mt-0.5 sm:mt-1 accent-cyber-400"
+                            required
+                        />
+                        <label for="terms"
+                            >I agree to the <a href="#" class="text-cyber-400 hover:text-cyber-300">Terms</a> and <a href="#" class="text-cyber-400 hover:text-cyber-300">Privacy Policy</a>.</label
+                        >
+                    </div>
+
+                    <button
+                        id="submit-btn"
+                        type="submit"
+                        class="w-full inline-flex items-center justify-center bg-gradient-to-r from-cyber-600 to-matrix-600 hover:from-cyber-500 hover:to-matrix-500 text-black px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg font-bold font-mono transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyber-400 text-sm sm:text-base"
+                    >
+                        <span class="mr-2">&gt;</span> CREATE_ORG
+                    </button>
+                </form>
+
+                <div class="text-center mt-3 sm:mt-4 text-xs sm:text-sm text-matrix-300">
+                    Already have an account? <a
+                        href="/login"
+                        class="auth-link text-cyber-400 hover:text-cyber-300 transition-colors duration-200 font-semibold"
+                        data-astro-prefetch>Log in</a
+                    >
+                </div>
+            </div>
+
+            <p class="mt-6 text-center text-xs text-gray-500">
+                Protected by enterprise-grade security.
+            </p>
+        </div>
+    </section>
+
+    <Footer />
+    <script>
+        // import { isAuthenticated } from "../utils/api/auth-store";
+        import { OrgSignupOrgData } from "../modules/orgData";
+
+        // if (isAuthenticated()) {
+        //     window.location.replace("/orgdashboard");
+        // }
+
+        const form = document.getElementById("org-signup-form") as HTMLFormElement;
+
+        
+        
+        const orgDataHandler = new OrgSignupOrgData(
+            {
+                orgName: "",
+                orgDescription: "",
+            },
+            document.getElementById("success-message") as HTMLDivElement,
+            document.getElementById("error-message") as HTMLDivElement,
+            document.getElementById("submit-btn") as HTMLButtonElement,
+        );
+        
+        form.addEventListener("submit", async (e: Event) => {
+            e.preventDefault();
+
+            orgDataHandler.formData =  {
+                orgName: (document.getElementById("orgName") as HTMLInputElement).value.trim(),
+                orgDescription: (document.getElementById("description") as HTMLInputElement).value.trim(),
+            };
+
+            let isValid = orgDataHandler.validateInputs();
+            if (isValid) {
+                await orgDataHandler.sendSignupOrgRequest();
+            }
+        });
+    </script>
+</Layout>
