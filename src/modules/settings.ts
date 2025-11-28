@@ -62,7 +62,7 @@ export class Settings {
                 break;
 
             default:
-                if (!req.success) {
+                if (!req.ok) {
                     window.alert("Failed to invite member.");
                 }
         }

@@ -359,7 +359,8 @@ import Footer from "../components/Footer.astro";
             });
 
             if (!res.ok) {
-                showError(res.data?.message || "Registration failed.");
+                const errorData = res.data as any;
+                showError(errorData?.message || "Registration failed.");
                 submitBtn.disabled = false;
                 submitBtn.innerHTML =
                     "<span class='mr-2'>&gt;</span> INIT_SIGNUP";

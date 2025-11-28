@@ -13,6 +13,7 @@ export interface OrgDataInit {
     members_count: number;
     tier: string;
     isOrganization: boolean;
+    signOrg: boolean;
 }
 
 export class OrgData {
@@ -36,6 +37,16 @@ export class OrgData {
         this.isOrganization = false;
         localStorage.removeItem('isOrganization');
         logger.debug('isOrganization set to false');
+    }
+    trueSignOrganization() {
+        this.signOrg = true;
+        localStorage.setItem('signOrg', 'true');
+        console.log(this.signOrg);
+    }
+    falseSignOrganization() {
+        this.signOrg = false;
+        localStorage.removeItem('signOrg');
+        console.log(this.signOrg);
     }
 
     constructor(data: OrgDataInit) {
