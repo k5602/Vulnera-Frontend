@@ -121,7 +121,7 @@ import Logo from "./Logo.astro";
 
 <script>
     import { authService } from "../utils/api/index";
-
+    import { organization } from "../modules/orgData";
     // Mobile sidebar toggle
     const toggleBtn = document.getElementById("menu-toggle");
 
@@ -156,6 +156,8 @@ import Logo from "./Logo.astro";
     // Logout handler
     async function handleLogout() {
         await authService.logout();
+        organization.falseIsOrganization();
+        organization.falseSignOrganization();
         window.location.href = "/login";
     }
 

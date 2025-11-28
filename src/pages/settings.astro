@@ -307,7 +307,7 @@ import Footer from "../components/Footer.astro";
                       type="text"
                       class="w-full px-4 py-3 rounded-lg bg-black/60 border border-cyber-400/30 focus:border-cyber-400 focus:ring-2 focus:ring-cyber-400 text-white placeholder-gray-500"
                       id="invite-member-input"
-                      placeholder="Enter Member ID"
+                      placeholder="Enter Member Email"
                     />
                     <button
                       id="invite-member"
@@ -1327,23 +1327,23 @@ import Footer from "../components/Footer.astro";
               logger.debug("Toggling API key", { keyId, shouldActivate });
 
               // Try the activate/deactivate endpoint first
-              let response = await apiClient.post(
+              let response = (await apiClient.post(
                 `${API_ENDPOINTS.AUTH.REVOKE_API_KEY.replace(":key_id", keyId)}/${shouldActivate ? "activate" : "deactivate"}`,
                 {},
-              );
+              )) as any;
 
-              if (!response.success && response.status === 404) {
+              if (!response.ok && response.status === 404) {
                 logger.warn(
                   "Toggle endpoint not implemented, trying PATCH method",
                 );
                 // Try PATCH method as fallback
-                response = await apiClient.patch(
+                response = (await apiClient.patch(
                   API_ENDPOINTS.AUTH.REVOKE_API_KEY.replace(":key_id", keyId),
                   { is_active: shouldActivate },
-                );
+                )) as any;
               }
 
-              if (!response.success) {
+              if (!response.ok) {
                 const errorMsg =
                   response.error ||
                   `Failed to ${shouldActivate ? "enable" : "disable"} API key`;
