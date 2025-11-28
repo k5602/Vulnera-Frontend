@@ -4,8 +4,8 @@
  */
 
 // ========== API Response Types ==========
-// These match the ApiResponse interface used throughout the codebase
-export interface ApiResponse<T = any> {
+// Canonical ApiResponse interface - single source of truth
+export interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
   error?: string;
@@ -16,14 +16,14 @@ export interface ApiResponse<T = any> {
 export interface ApiError {
   message: string;
   status: number;
-  details?: any;
+  details?: Record<string, unknown>;
 }
 
 // ========== UI State Types ==========
 export interface LoadingState {
   isLoading: boolean;
   error?: string;
-  data?: any;
+  data?: unknown;
 }
 
 export interface NotificationData {

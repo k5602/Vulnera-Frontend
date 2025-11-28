@@ -12,7 +12,11 @@ export const ApiResponseSchema = z.object({
   status: z.number().optional(),
 });
 
-export type ApiResponse = z.infer<typeof ApiResponseSchema>;
+/** Zod-inferred type for runtime validation. Use ApiResponse from types/index.ts for general typing. */
+export type ZodApiResponse = z.infer<typeof ApiResponseSchema>;
+
+// Re-export canonical ApiResponse for convenience
+export type { ApiResponse } from './index';
 
 /**
  * TokenResponseSchema matches the TokenResponse schema from OpenAPI

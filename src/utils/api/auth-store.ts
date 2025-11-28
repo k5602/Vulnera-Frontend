@@ -1,5 +1,6 @@
 //  store CSRF & User in-memory and in localStorage for persistence
 import { API_CONFIG } from "../../config/api";
+import { logger } from "../logger";
 
 export interface CurrentUser {
     id: number | string;
@@ -39,7 +40,7 @@ function initializeFromStorage(): void {
             currentUserStore = JSON.parse(userStored);
         }
     } catch (e) {
-        console.warn("Failed to restore auth from localStorage", e);
+        logger.warn("Failed to restore auth from localStorage", e);
     }
 }
 
@@ -48,7 +49,6 @@ export function getCsrfToken(): string {
     if (!csrfTokenStore && !initialized) {
         initializeFromStorage();
     }
-    console.log("Retrieved CSRF Token:", csrfTokenStore);
     return csrfTokenStore;
 }
 
@@ -58,7 +58,7 @@ export function setCsrfToken(token: string): void {
         try {
             localStorage.setItem(CSRF_STORAGE_KEY, token);
         } catch (e) {
-            console.warn("Failed to persist CSRF token to localStorage", e);
+            logger.warn("Failed to persist CSRF token to localStorage", e);
             // Continue anyway - in-memory store still works
         }
     }
@@ -82,7 +82,7 @@ export function setCurrentUser(user: CurrentUser | null): void {
                 localStorage.removeItem(USER_STORAGE_KEY);
             }
         } catch (e) {
-            console.warn("Failed to persist user to localStorage", e);
+            logger.warn("Failed to persist user to localStorage", e);
             // Continue anyway - in-memory store still works
         }
     }
@@ -97,7 +97,7 @@ export function clearAuth(): void {
             localStorage.removeItem(CSRF_STORAGE_KEY);
             localStorage.removeItem(USER_STORAGE_KEY);
         } catch (e) {
-            console.warn("Failed to clear auth from localStorage", e);
+            logger.warn("Failed to clear auth from localStorage", e);
         }
     }
 }
@@ -143,7 +143,7 @@ export async function refreshAuth(): Promise<boolean> {
             if (!res.ok) {
                 // Don't clear auth on 429 (Rate Limit) or 5xx (Server Error)
                 if (res.status === 429 || res.status >= 500) {
-                    console.warn(`Token refresh failed with status ${res.status}, keeping current session`);
+                    logger.warn(`Token refresh failed with status ${res.status}, keeping current session`);
                     return false;
                 }
 
@@ -170,7 +170,7 @@ export async function refreshAuth(): Promise<boolean> {
 
             return true;
         } catch (error) {
-            console.error("Token refresh failed:", error);
+            logger.error("Token refresh failed:", error);
             // Don't clear auth on network errors (offline, etc)
             return false;
         } finally {
@@ -186,4 +186,14 @@ export async function refreshAuth(): Promise<boolean> {
 // but better to switch usages to refreshAuth)
 export async function initAuth(): Promise<void> {
     await refreshAuth();
+}
+
+/**
+ * @internal Test helper - resets storage initialization flag for testing
+ * DO NOT use in production code
+ */
+export function __resetStorageInitFlag(): void {
+    initialized = false;
+    csrfTokenStore = "";
+    currentUserStore = null;
 }

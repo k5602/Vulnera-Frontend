@@ -4,6 +4,7 @@ import { detectEcosystem } from "../utils/scan-handler";
 import { apiClient } from "../utils/api/client";
 import { API_ENDPOINTS } from "../config/api";
 import { isAuthenticated } from "../utils/api/auth-store";
+import { normalizeSeverity } from "../utils/severity";
 
 
 
@@ -257,18 +258,8 @@ export class ScanHandler {
           const packageName = affectedPackage?.name || vuln.package_name || vuln.name || "unknown";
           const packageVersion = affectedPackage?.version || vuln.current_version || vuln.version || "unknown";
 
-          // Get severity - check multiple possible locations
-          let severity = "UNKNOWN";
-          if (vuln.severity) {
-            severity = vuln.severity.toUpperCase();
-          } else if (scanResult.metadata?.severity_breakdown) {
-            // If individual vuln doesn't have severity, try to infer from overall breakdown
-            const breakdown = scanResult.metadata.severity_breakdown;
-            if (breakdown.critical > 0) severity = "CRITICAL";
-            else if (breakdown.high > 0) severity = "HIGH";
-            else if (breakdown.medium > 0) severity = "MEDIUM";
-            else if (breakdown.low > 0) severity = "LOW";
-          }
+          // Get severity using centralized utility
+          const severity = normalizeSeverity(vuln.severity);
 
           const depvuln = {
             id: vuln.id || `dep-${Date.now()}-${Math.random()}`,
@@ -300,7 +291,7 @@ export class ScanHandler {
             const depvuln = {
               id: vuln.id,
               type: "dependency",
-              severity: vuln.severity?.toUpperCase() || "UNKNOWN",
+              severity: normalizeSeverity(vuln.severity),
               package: depen.package_name || "unknown",
               version: depen.current_version || "unknown",
               title: vuln.description || "Vulnerable dependency",
@@ -326,7 +317,7 @@ export class ScanHandler {
           id: sastFind.id,
           type: "sast",
           confidence: sastFind.confidence || "Not Sure",
-          severity: sastFind.severity?.toUpperCase() || "UNDECIDED",
+          severity: normalizeSeverity(sastFind.severity),
           title: sastFind.rule_id || "SAST issue detected",
           description: sastFind.description,
           package: sastFind.location.path.split('/').pop(), // Show filename as package
@@ -564,7 +555,7 @@ export class ScanHandler {
         }))
       };
 
-      console.log(">>> Sending payload:", payload);
+      logger.debug("Sending scan payload", { fileCount: filesPayload.length });
 
       // -------------------------------------------
       // 3) Send request to backend

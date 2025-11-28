@@ -1,5 +1,7 @@
 import { apiClient } from '../utils/index.js';
 import { organization, loadUserOrganization } from './orgData.js';
+import { logger } from '../utils/logger';
+import { getSeverityTextColor } from '../utils/severity';
 export class OrgDashboardHandler {
   criticalElement: HTMLElement;
   highElement: HTMLElement;
@@ -31,13 +33,7 @@ export class OrgDashboardHandler {
   }
 
   sevClass(s: string) {
-    switch (s) {
-      case 'critical': return 'text-red-400';
-      case 'high': return 'text-red-300';
-      case 'medium': return 'text-yellow-300';
-      case 'low': return 'text-matrix-300';
-      default: return 'text-gray-400';
-    }
+    return getSeverityTextColor(s);
   }
 
 
@@ -138,10 +134,20 @@ export class OrgDashboardHandler {
     let mediumFindings = 0;
     let lowFindings = 0;
 
-    try {
-      const res = await apiClient.get(`/api/v1/organizations/${organization.orgId}/stats`);
+    interface OrgStats {
+      total_scans: number;
+      total_findings: number;
+      api_calls_this_month: number;
+      critical_findings: number;
+      high_findings: number;
+      medium_findings: number;
+      low_findings: number;
+    }
 
-      if (res.ok) {
+    try {
+      const res = await apiClient.get<OrgStats>(`/api/v1/organizations/${organization.orgId}/stats`);
+
+      if (res.ok && res.data) {
         const data = res.data;
         totalScan = data.total_scans;
         totalVuln = data.total_findings;
@@ -152,7 +158,7 @@ export class OrgDashboardHandler {
         lowFindings = data.low_findings;
       }
     } catch (e) {
-      console.error("Failed to load organization stats:", e);
+      logger.error("Failed to load organization stats:", e);
     }
     // Calculate overview stats
 

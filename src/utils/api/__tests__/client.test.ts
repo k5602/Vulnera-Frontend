@@ -158,7 +158,7 @@ describe('API Client', () => {
     it('should redirect to login on refresh failure', async () => {
       const originalLocation = window.location;
       delete (window as any).location;
-      window.location = { replace: vi.fn() } as any;
+      window.location = { replace: vi.fn(), pathname: '/dashboard' } as any;
 
       global.fetch = vi.fn().mockResolvedValue({
         ok: false,
