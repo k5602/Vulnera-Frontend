@@ -60,6 +60,11 @@ export class Settings {
             case 404:
                 window.alert("Organization or user not found.");
                 break;
+
+            default:
+                if (!req.success) {
+                    window.alert("Failed to invite member.");
+                }
         }
     }
 
