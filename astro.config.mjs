@@ -18,7 +18,6 @@ const getProxyConfig = () => {
         return undefined;
     }
 
-    console.log(`[Astro Config] Configuring proxy to: ${backendUrl}`);
 
     return {
         '/api': {
