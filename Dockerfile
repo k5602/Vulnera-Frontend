@@ -4,17 +4,10 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Configure npm with registry mirror and increased timeout for reliability
-RUN npm config set registry https://registry.npm.taobao.org && \
-    npm config set fetch-timeout 120000 && \
-    npm config set fetch-retry-mintimeout 20000 && \
-    npm config set fetch-retry-maxtimeout 120000 && \
-    npm config set fetch-retries 5
-
 COPY package.json package-lock.json ./
 
-# Install dependencies with BuildKit cache mount for faster rebuilds
-RUN --mount=type=cache,target=/root/.npm npm ci
+# Install dependencies with retries for network resilience
+RUN npm ci || npm ci || npm ci
 
 COPY . .
 
@@ -28,18 +21,11 @@ RUN apk add --no-cache nodejs npm curl
 
 WORKDIR /app
 
-# Configure npm with registry mirror and increased timeout for reliability
-RUN npm config set registry https://registry.npm.taobao.org && \
-    npm config set fetch-timeout 120000 && \
-    npm config set fetch-retry-mintimeout 20000 && \
-    npm config set fetch-retry-maxtimeout 120000 && \
-    npm config set fetch-retries 5
-
 # Copy package files from builder
 COPY --from=builder /app/package.json /app/package-lock.json ./
 
-# Install only production dependencies with BuildKit cache mount
-RUN --mount=type=cache,target=/root/.npm npm ci --omit=dev
+# Install only production dependencies with retries
+RUN npm ci --omit=dev || npm ci --omit=dev || npm ci --omit=dev
 
 # Copy built Astro app from builder
 COPY --from=builder /app/dist ./dist
@@ -62,8 +48,8 @@ ENV PUBLIC_API_BASE=http://localhost:8000
 # Set Astro internal port (nginx proxies to this)
 ENV PORT=3000
 
-# Health check on nginx port - increased start-period to 60s for cold starts
-HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
+# Health check on nginx port - increased start-period to 90s for cold starts
+HEALTHCHECK --interval=30s --timeout=5s --start-period=90s --retries=3 \
     CMD curl -sf http://localhost:5173/ || exit 1
 
 # Start via entrypoint script

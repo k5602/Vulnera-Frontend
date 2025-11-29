@@ -32,54 +32,73 @@ sed -e "s|\${BACKEND_URL_HOST}|$BACKEND_URL_HOST|g" \
     -e "s|\${BACKEND_URL_PORT}|$BACKEND_URL_PORT|g" \
     /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
 
+echo "[docker-entrypoint] Nginx config created"
+
+# Verify Astro entry point exists
+if [ ! -f "/app/dist/server/entry.mjs" ]; then
+    echo "[docker-entrypoint] ERROR: Astro build output not found at /app/dist/server/entry.mjs"
+    echo "[docker-entrypoint] Available files in /app/dist:"
+    ls -la /app/dist 2>/dev/null || echo "  (dist directory not found)"
+    exit 1
+fi
+
 echo "[docker-entrypoint] Starting Astro server on port 3000..."
-# Start Astro app in background
-node /app/dist/server/entry.mjs &
+# Create a log file to capture Astro output
+ASTRO_LOG="/tmp/astro-server.log"
+: > "$ASTRO_LOG"
+
+# Start Astro app in background and capture output
+node /app/dist/server/entry.mjs > "$ASTRO_LOG" 2>&1 &
 ASTRO_PID=$!
 echo "[docker-entrypoint] Astro server started (PID: $ASTRO_PID)"
 
-# Wait for Astro to be ready (max 60 seconds with exponential backoff)
-echo "[docker-entrypoint] Waiting for Astro to be ready..."
-MAX_RETRIES=60
+# Give Astro initial time to start
+sleep 3
+
+# Check if process is still alive
+if ! kill -0 $ASTRO_PID 2>/dev/null; then
+    echo "[docker-entrypoint] ERROR: Astro process exited immediately"
+    echo "[docker-entrypoint] Astro output:"
+    cat "$ASTRO_LOG"
+    exit 1
+fi
+
+# Wait for Astro to be ready (max 90 seconds)
+echo "[docker-entrypoint] Waiting for Astro to be ready (max 90 seconds)..."
+MAX_RETRIES=90
 RETRY=0
-WAIT_TIME=1
 
 while [ $RETRY -lt $MAX_RETRIES ]; do
     # Check if Astro process is still running
     if ! kill -0 $ASTRO_PID 2>/dev/null; then
         echo "[docker-entrypoint] ERROR: Astro process died unexpectedly (PID: $ASTRO_PID)"
-        # Print last 50 lines of logs for debugging
-        echo "[docker-entrypoint] Last output before crash:"
-        sleep 2
+        echo "[docker-entrypoint] Astro output:"
+        cat "$ASTRO_LOG" | tail -30
         exit 1
     fi
 
-    # Try to connect to Astro with curl (more robust than wget)
+    # Try to connect to Astro with curl
     if curl -sf http://localhost:3000/ >/dev/null 2>&1; then
         echo "[docker-entrypoint] ✓ Astro is ready!"
         break
     fi
 
     RETRY=$((RETRY + 1))
-    if [ $((RETRY % 10)) -eq 0 ]; then
-        echo "[docker-entrypoint] Retry $RETRY/$MAX_RETRIES - waiting for Astro to initialize..."
+    if [ $((RETRY % 15)) -eq 0 ]; then
+        echo "[docker-entrypoint] Still waiting... ($RETRY/$MAX_RETRIES seconds)"
     fi
 
-    sleep $WAIT_TIME
+    sleep 1
 done
 
 if [ $RETRY -eq $MAX_RETRIES ]; then
-    echo "[docker-entrypoint] ERROR: Astro server failed to start within $((MAX_RETRIES * WAIT_TIME)) seconds"
-    echo "[docker-entrypoint] Checking if Astro process is still alive..."
-    if kill -0 $ASTRO_PID 2>/dev/null; then
-        echo "[docker-entrypoint] Astro process is running but not responding to HTTP requests"
-        echo "[docker-entrypoint] Trying to get process info..."
-        ps aux | grep -i astro || true
-    fi
+    echo "[docker-entrypoint] ERROR: Astro server failed to start within $MAX_RETRIES seconds"
+    echo "[docker-entrypoint] Astro output:"
+    cat "$ASTRO_LOG" | tail -50
     exit 1
 fi
 
-echo "[docker-entrypoint] Astro is ready!"
+echo "[docker-entrypoint] Astro server ready after $RETRY seconds"
 echo "[docker-entrypoint] Starting nginx on port 5173..."
 # Start nginx in foreground to keep container running
 exec nginx -g "daemon off;"
