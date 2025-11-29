@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { usePagination } from '../../hooks/usePagination';
 import { apiClient } from '../../utils/api/client';
 import { enrichService, type EnrichedFinding } from '../../utils/api/enrich-service';
-import { fixService, type FixResponse } from '../../utils/api/fix-service';
+import { llmService, type FixResponse } from '../../utils/api/llm-service';
 import { getSeverityClasses, SEVERITY_ORDER, type SeverityLevel } from '../../utils/severity';
 import { API_ENDPOINTS } from '../../config/api';
 
@@ -151,7 +151,7 @@ export default function ScanReport({ data }: { data: ScanReportData }) {
         }
       }
 
-      const response = await fixService.generateFix({
+      const response = await llmService.fix({
         context: finding.affectedFiles?.[0] || finding.package,
         language: language,
         vulnerability_id: finding.id,

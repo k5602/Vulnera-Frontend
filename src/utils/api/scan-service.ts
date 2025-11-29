@@ -10,19 +10,34 @@ import { API_ENDPOINTS } from '../../config/api';
 import { apiClient, type ApiResponse } from './client';
 
 export type AnalysisSourceType = 'git' | 'directory' | 'file_upload' | 's3_bucket';
-export type AnalysisDepth = 'minimal' | 'standard' | 'full';
-export type AnalysisJobStatus = 'queued' | 'running' | 'completed' | 'failed' | 'cancelled';
+export type AnalysisDepth = 'minimal' | 'standard' | 'full' | 'dependencies_only' | 'fast_scan';
+export type AnalysisJobStatus = 'queued' | 'running' | 'completed' | 'failed' | 'cancelled' | 'pending' | 'processing' | 'succeeded';
+
+/** File content for file_upload source type */
+export interface FileUploadContent {
+  filename: string;
+  ecosystem?: string;
+  content: string;
+}
 
 /**
  * AnalyzeJobRequest matches AnalysisRequest from OpenAPI
  * Required: source_type, source_uri, analysis_depth
- * Optional: callback_url
+ * Optional: callback_url, files (for file_upload), github_token, is_private
  */
 export interface AnalyzeJobRequest {
   source_type: AnalysisSourceType;
   source_uri: string;
   analysis_depth: AnalysisDepth;
   callback_url?: string | null;
+  /** Files for file_upload source type */
+  files?: FileUploadContent[];
+  /** GitHub token for private repositories */
+  github_token?: string;
+  /** AWS credentials for S3 buckets */
+  aws_credentials?: string;
+  /** Whether the repository is private */
+  is_private?: boolean;
   filename?: string;
   fileContent?: string;
   ecosystem?: string;
@@ -30,6 +45,12 @@ export interface AnalyzeJobRequest {
   modules?: string[];
   options?: Record<string, unknown>;
   metadata?: Record<string, unknown>;
+}
+
+/** Options for submitting analysis job */
+export interface SubmitAnalysisOptions {
+  /** Custom headers (e.g., for GitHub token) */
+  headers?: Record<string, string>;
 }
 
 /**
@@ -111,6 +132,12 @@ export interface AnalysisJobStatusData {
   submitted_at?: string;
   queued_at?: string;
   errors?: AnalysisJobError[];
+  /** Raw results array for report transformation */
+  results?: unknown[];
+  /** Legacy findings format */
+  findings_by_type?: unknown;
+  /** Job metadata */
+  metadata?: Record<string, unknown>;
 }
 
 export interface PollAnalysisJobOptions {
@@ -130,11 +157,14 @@ class ScanService {
    * - source_uri (required): string
    * - analysis_depth (required): 'minimal' | 'standard' | 'full'
    * - callback_url (optional): string | null
+   * - files (optional): array of file contents for file_upload
+   * - github_token (optional): for private repos
    * 
    * Returns FinalReportResponse per OpenAPI spec (may be synchronous or async depending on backend)
    */
   async submitAnalysisJob(
-    payload: AnalyzeJobRequest
+    payload: AnalyzeJobRequest,
+    options: SubmitAnalysisOptions = {}
   ): Promise<ApiResponse<FinalReportResponse | AnalyzeJobResponseData>> {
     // Build normalized payload matching OpenAPI schema
     const normalizedPayload: Record<string, unknown> = {
@@ -142,14 +172,28 @@ class ScanService {
       source_uri: payload.source_uri,
       analysis_depth: payload.analysis_depth,
     };
-    
+
+    // Optional fields
     if (payload.callback_url !== undefined) {
       normalizedPayload.callback_url = payload.callback_url;
     }
-    
+    if (payload.files !== undefined) {
+      normalizedPayload.files = payload.files;
+    }
+    if (payload.github_token !== undefined) {
+      normalizedPayload.github_token = payload.github_token;
+    }
+    if (payload.aws_credentials !== undefined) {
+      normalizedPayload.aws_credentials = payload.aws_credentials;
+    }
+    if (payload.is_private !== undefined) {
+      normalizedPayload.is_private = payload.is_private;
+    }
+
     return apiClient.post<FinalReportResponse | AnalyzeJobResponseData>(
       API_ENDPOINTS.ANALYSIS.ANALYZE,
-      normalizedPayload
+      normalizedPayload,
+      options.headers ? { headers: options.headers } : undefined
     );
   }
 
@@ -158,7 +202,7 @@ class ScanService {
    */
   async getAnalysisJob(jobId: string): Promise<ApiResponse<AnalysisJobStatusData>> {
     const endpoint = apiClient.replacePath(API_ENDPOINTS.ANALYSIS.GET_JOB, {
-      job_id: jobId,
+      id: jobId,
     });
 
     return apiClient.get<AnalysisJobStatusData>(endpoint);

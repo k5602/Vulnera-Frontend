@@ -4,17 +4,13 @@ import { requestDebouncer } from "../utils/api/request-debounce";
 
 export class Settings {
     orgData: OrgData = organization;
-    private debouncedRequest = {
-        pending: false,
-        lastKey: ""
-    };
 
     async getOrgData() {
         const id = this.orgData.orgId;
         const requestKey = `org-data-${id}`;
 
         // Debounce with 2 second delay to prevent rapid repeated requests
-        const result = await requestDebouncer.debounce(
+        await requestDebouncer.debounce(
             requestKey,
             async () => {
                 const req = await apiClient.get(`api/v1/organizations/${id}`);
@@ -82,7 +78,7 @@ export class Settings {
             case 409:
                 window.alert("User is already a member of the organization.");
                 break;
-            
+
             case 401:
                 window.alert("You are not authorized to invite members.");
                 break;
@@ -152,7 +148,7 @@ export class Settings {
 
         const req = await apiClient.delete(`api/v1/organizations/${id}/members/${member_id}`);
         console.log(req.data);
-        
+
 
         if (req.ok) {
             await this.getOrgData();

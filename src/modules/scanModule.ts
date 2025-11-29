@@ -4,7 +4,12 @@ import { detectEcosystem } from "../utils/scan-handler";
 import { apiClient } from "../utils/api/client";
 import { API_ENDPOINTS } from "../config/api";
 import { isAuthenticated } from "../utils/api/auth-store";
-import { normalizeSeverity } from "../utils/severity";
+import {
+  transformScanResult,
+  createScanHistoryRecord,
+  type RawScanResult,
+  type TransformedReport,
+} from "../utils/report-transformer";
 
 
 
@@ -253,253 +258,61 @@ export class ScanHandler {
     return mapping[detailLevel] || "fast_scan"; // default to fast_scan
   }
 
-  getReportData(result: any) {
-    const allVulnerabilities: any[] = [];
-    const allFindings = {
-      dependencies: [] as any[],
-      sast: [] as any[],
-      secrets: [] as any[],
-      api: [] as any[],
-    };
-
-    // Handle new response format with results array
-    const resultsArray = result.results || [];
-
-    // Process each result (e.g., package.json, requirements.txt, etc.)
-    resultsArray.forEach((scanResult: any) => {
-      // Process dependency vulnerabilities from this result
-      if (scanResult.vulnerabilities && Array.isArray(scanResult.vulnerabilities)) {
-        scanResult.vulnerabilities.forEach((vuln: any) => {
-          // Extract package info from affected_packages if available
-          const affectedPackage = vuln.affected_packages?.[0];
-          const packageName = affectedPackage?.name || vuln.package_name || vuln.name || "unknown";
-          const packageVersion = affectedPackage?.version || vuln.current_version || vuln.version || "unknown";
-
-          // Get severity using centralized utility
-          const severity = normalizeSeverity(vuln.severity);
-
-          const depvuln = {
-            id: vuln.id || `dep-${Date.now()}-${Math.random()}`,
-            type: "dependency",
-            severity: severity,
-            package: packageName,
-            version: packageVersion,
-            title: vuln.summary || vuln.description || vuln.title || "Vulnerable dependency",
-            cve: vuln.id || vuln.cve_id,
-            affectedFiles: [scanResult.filename || "unknown"],
-            cvss: vuln.cvss_score || null,
-            recommendation: affectedPackage?.fixed_versions?.[0]
-              ? `Upgrade to ${affectedPackage.fixed_versions[0]}`
-              : vuln.recommendation || (vuln.recommendations?.latest_safe
-                ? `Upgrade to ${vuln.recommendations.latest_safe}`
-                : "No fix available"),
-          };
-          allVulnerabilities.push(depvuln);
-          allFindings.dependencies.push(depvuln);
-        });
-      }
-    });
-
-    // Also support legacy findings_by_type format for backward compatibility
-    if (result.findings_by_type?.dependencies) {
-      Object.values(result.findings_by_type.dependencies).forEach((depen: any) => {
-        if (depen.cves && Array.isArray(depen.cves)) {
-          depen.cves.forEach((vuln: any) => {
-            const depvuln = {
-              id: vuln.id,
-              type: "dependency",
-              severity: normalizeSeverity(vuln.severity),
-              package: depen.package_name || "unknown",
-              version: depen.current_version || "unknown",
-              title: vuln.description || "Vulnerable dependency",
-              cve: vuln.id,
-              affectedFiles: [this.pickedFiles.map(f => f.name).join(", ")],
-              cvss: vuln.cvss_score,
-              recommendation: depen.recommendations.latest_safe ?
-                `Upgrade to ${depen.recommendations.latest_safe}`
-                : "No fix available",
-            };
-            allVulnerabilities.push(depvuln);
-            allFindings.dependencies.push(depvuln);
-          });
-        }
-      });
-    }
-
-    // Process SAST findings
-    if (result.findings_by_type?.sast) {
-      result.findings_by_type.sast.forEach((sastFind: any) => {
-        if (!sastFind.id) return;
-        const sastFinding = {
-          id: sastFind.id,
-          type: "sast",
-          confidence: sastFind.confidence || "Not Sure",
-          severity: normalizeSeverity(sastFind.severity),
-          title: sastFind.rule_id || "SAST issue detected",
-          description: sastFind.description,
-          package: sastFind.location.path.split('/').pop(), // Show filename as package
-          version: `Line ${sastFind.location.line}`, // Show line number as version
-          affected_file_location: sastFind.location.path,
-          start_line: sastFind.location.line,
-          end_line: sastFind.location.end_line,
-          start_col: sastFind.location.column,
-          end_col: sastFind.location.end_column,
-          recommendation: sastFind.recommendation,
-        };
-        allVulnerabilities.push(sastFinding);
-        allFindings.sast.push(sastFinding);
-
-      });
-    }
-
-    // Process Secrets findings
-    if (result.findings_by_type?.secrets) {
-      result.findings_by_type.secrets.forEach((secret: any) => {
-        if (!secret.id) return;
-        const secretFinding = {
-          id: secret.id,
-          secretType: secret.type,
-          confidence: secret.confidence || "Not Sure",
-          severity: secret.severity?.toUpperCase() || "UNDECIDED",
-          title: secret.rule_id || "Secret Vulnerability",
-          description: secret.description,
-          package: secret.location.path.split('/').pop(), // Show filename as package
-          version: `Line ${secret.location.line}`, // Show line number as version
-          affected_file_location: secret.location.path,
-          start_line: secret.location.line,
-          end_line: secret.location.end_line,
-          start_col: secret.location.column,
-          end_col: secret.location.end_column,
-          recommendation: secret.recommendation,
-        };
-        allVulnerabilities.push(secretFinding);
-        allFindings.secrets.push(secretFinding);
-      });
-    }
-
-    // Process API Security findings (to be implemented)
-    //   if (result.findings_by_type?.api) {
-    //     result.findings_by_type.api.forEach((finding: any) => {
-    //       const apiFinding = {
-    //         id: finding.id || `api-${Date.now()}-${Math.random()}`,
-    //         type: "api",
-    //         severity: finding.severity?.toUpperCase() || "MEDIUM",
-    //         title: finding.title || "API security issue",
-    //         description: finding.description,
-    //         endpoint: finding.endpoint,
-    //         method: finding.method,
-    //         affected_file_location: finding.location.path,
-    //         start_line: finding.location.line,
-    //         end_line: finding.location.end_line,
-    //         start_col: finding.location.column,
-    //         end_col: finding.location.end_column,
-    //         recommendation: finding.recommendation,
-    //       };
-    //       allVulnerabilities.push(apiFinding);
-    //       allFindings.api.push(apiFinding);
-    //     });
-    //   }
-
-    // Build consolidated report with detail level
-    // Support both new and legacy response formats
-
-    // Calculate severity breakdown from actual vulnerabilities
-    const severityBreakdown = {
-      critical: 0,
-      high: 0,
-      medium: 0,
-      low: 0,
-      info: 0
-    };
-
-    allVulnerabilities.forEach((v: any) => {
-      const sev = v.severity?.toLowerCase() || 'info';
-      if (sev === 'critical') severityBreakdown.critical++;
-      else if (sev === 'high') severityBreakdown.high++;
-      else if (sev === 'medium') severityBreakdown.medium++;
-      else if (sev === 'low') severityBreakdown.low++;
-      else severityBreakdown.info++;
-    });
-
-    const summary = result.summary || {
-      total_findings: result.total_vulnerabilities || allVulnerabilities.length,
-      by_severity: severityBreakdown,
-      by_type: {
-        sast: 0,
-        secrets: 0,
-        dependencies: allFindings.dependencies.length,
-        api: 0
-      },
-      modules_completed: result.metadata?.successful || result.successful || 0,
-      modules_failed: result.metadata?.failed || result.failed || 0
-    };
-
-    const report = {
-      scanId: result.project_id || result.scan_id || `scan-${Date.now()}`,
-      jobId: result.job_id || result.scan_id || undefined, // Only set if available, undefined otherwise
-      startedAt: result.started_at || new Date().toISOString(),
-      finishedAt: result.completed_at || result.finished_at || new Date().toISOString(),
-      durationMs: result.metadata?.duration_ms || 0,
+  /**
+   * Process scan results and dispatch report
+   * Uses report-transformer for data transformation
+   * Accepts unknown data and safely casts to RawScanResult
+   */
+  getReportData(result: unknown) {
+    // Use the centralized transformer for data processing
+    // The transformer handles unknown input safely
+    const report = transformScanResult(result as RawScanResult, {
       detailLevel: this.selectedDetailLevel,
-      summary: {
-        files: result.metadata?.total_files || this.pickedFiles.length,
-        dependencies: result.metadata?.total_packages || 0,
-        vulnerabilities: summary.total_findings || allVulnerabilities.length,
-        critical: summary.by_severity?.critical || 0,
-        high: summary.by_severity?.high || 0,
-        medium: summary.by_severity?.medium || 0,
-        low: summary.by_severity?.low || 0,
-      },
-      files: resultsArray.map((r: any) => ({
-        file: r.filename || "unknown",
-        ecosystem: r.ecosystem || "unknown",
-        dependencies: r.metadata?.total_packages || r.packages?.length || 0,
-        vulnerable: r.metadata?.vulnerable_packages || 0
-      })),
-      vulnerabilities: allVulnerabilities,
-    };
+      scannedFiles: this.pickedFiles,
+    });
 
     logger.info("Scan completed successfully", {
       reportId: report.startedAt,
+      vulnerabilities: report.vulnerabilities.length,
     });
 
     // Save scan result to localStorage for dashboard
+    this.saveScanToHistory(report);
+
+    // Dispatch report event for UI consumption
+    this.dispatchReport(report);
+
+    // Reset UI state
+    this.pickedFiles = [];
+    this.renderFiles();
+  }
+
+  /**
+   * Save scan report to localStorage history
+   */
+  private saveScanToHistory(report: TransformedReport) {
     try {
       const scanHistory = JSON.parse(
         localStorage.getItem("scan_history") || "[]"
       );
-      const scanRecord = {
-        id: report.scanId,
-        timestamp: report.finishedAt,
-        filesCount: this.pickedFiles.length,
-        vulnerabilities: allVulnerabilities.length,
-        critical: report.summary.critical,
-        high: report.summary.high,
-        medium: report.summary.medium,
-        low: report.summary.low,
-        files: this.pickedFiles.map((f) => f.name),
-        ecosystems: [...new Set(this.pickedFiles.map((f) => detectEcosystem(f.name)))],
-        report: report,
-      };
-      scanHistory.unshift(scanRecord); // Add to beginning
+
+      const ecosystems = this.pickedFiles.map((f) => detectEcosystem(f.name));
+      const scanRecord = createScanHistoryRecord(report, this.pickedFiles, ecosystems);
+
+      scanHistory.unshift(scanRecord);
       // Keep only last 50 scans
       if (scanHistory.length > 50) scanHistory.length = 50;
       localStorage.setItem("scan_history", JSON.stringify(scanHistory));
     } catch (e) {
       logger.error("Failed to save scan to history", e);
     }
-
-    this.dispatchReport(report);
-
-    this.pickedFiles = [];
-    this.renderFiles();
   }
 
+  /**
+   * Process repository scan results
+   */
   getRepoReportData(result: unknown, repoInfo: { owner: string; repo: string }, durationMs: number, _jobId: string) {
-    // Similar to getReportData but tailored for repo scans
-    // _jobId reserved for future use (e.g., linking to job details page)
-    // We can reuse getReportData logic for now, but wrap it to inject repo info
-    const data = result as { metadata?: { duration_ms?: number } };
+    const data = result as RawScanResult;
 
     // Construct a synthetic file object for the repo
     const repoFile = {
@@ -508,8 +321,7 @@ export class ScanHandler {
       type: "git-repo"
     };
 
-    // Hack: Add to pickedFiles so getReportData processes it correctly
-    // In a real refactor, we should separate data processing from UI state
+    // Set pickedFiles for history record
     this.pickedFiles = [repoFile as unknown as File];
 
     // Inject duration if missing

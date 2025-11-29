@@ -233,10 +233,9 @@ import Footer from "../components/Footer.astro";
 
   <Footer />
   <script>
-    import { apiClient } from "../utils/api/client";
+    import { authService } from "../utils/api/auth-service";
     import { isAuthenticated, refreshAuth } from "../utils/api/auth-store";
     import { organization } from "../modules/orgData";
-    import { API_ENDPOINTS } from "../config/api";
 
     if (isAuthenticated()) {
       window.location.replace("/dashboard");
@@ -338,20 +337,19 @@ import Footer from "../components/Footer.astro";
         return;
       }
 
-      // ----- REQUEST -----
+      // ----- REQUEST using authService -----
       submitBtn.disabled = true;
       submitBtn.textContent = "REGISTERING...";
 
-      const res = await apiClient.post(API_ENDPOINTS.AUTH.REGISTER, {
+      const result = await authService.register({
         first_name: firstName,
         last_name: lastName,
         email,
         password: pass,
       });
 
-      if (!res.ok) {
-        const errorData = res.data as any;
-        showError(errorData?.message || "Registration failed.");
+      if (!result.success) {
+        showError(result.error || "Registration failed.");
         submitBtn.disabled = false;
         submitBtn.innerHTML = "<span class='mr-2'>&gt;</span> INIT_SIGNUP";
         return;
@@ -365,12 +363,12 @@ import Footer from "../components/Footer.astro";
 
       // Refresh auth state to get CSRF token and user data (if backend creates session)
       try {
-        // refreshAuth may be a no-op if backend doesn't auto-login on registerf
+        // refreshAuth may be a no-op if backend doesn't auto-login on register
         const success = await refreshAuth();
         if (success) {
           localStorage.setItem("last_token_refresh", Date.now().toString());
         }
-      } catch (e) {
+      } catch {
         // ignore refresh errors here; we still redirect
       }
 
@@ -382,7 +380,6 @@ import Footer from "../components/Footer.astro";
         setTimeout(() => {
           window.location.replace("/dashboard");
         }, 800);
-        // }
       }
     });
   </script>

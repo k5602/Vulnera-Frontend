@@ -104,13 +104,37 @@ export const API_ENDPOINTS = {
     ORGANIZATIONS: {
         LIST: "/api/v1/organizations",
         CREATE: "/api/v1/organizations",
-        GET: "/api/v1/organizations/:org_id",
+        GET: "/api/v1/organizations/:id",
+        UPDATE: "/api/v1/organizations/:id",
+        DELETE: "/api/v1/organizations/:id",
+        LEAVE: "/api/v1/organizations/:id/leave",
+        TRANSFER: "/api/v1/organizations/:id/transfer",
+        STATS: "/api/v1/organizations/:id/stats",
+        // Members
+        LIST_MEMBERS: "/api/v1/organizations/:id/members",
+        INVITE_MEMBER: "/api/v1/organizations/:id/members",
+        REMOVE_MEMBER: "/api/v1/organizations/:id/members/:user_id",
+        // Analytics
+        DASHBOARD: "/api/v1/organizations/:id/analytics/dashboard",
+        QUOTA: "/api/v1/organizations/:id/analytics/quota",
+        USAGE: "/api/v1/organizations/:id/analytics/usage",
+    },
+
+    // Personal Analytics endpoints
+    ME: {
+        DASHBOARD: "/api/v1/me/analytics/dashboard",
+        USAGE: "/api/v1/me/analytics/usage",
     },
 
     // Analysis endpoints
     ANALYSIS: {
         ANALYZE: "/api/v1/analyze/job",
-        GET_JOB: "/api/v1/jobs/:job_id",
+        GET_JOB: "/api/v1/jobs/:id",
+    },
+
+    // Dependencies endpoints (for extensions)
+    DEPENDENCIES: {
+        ANALYZE: "/api/v1/dependencies/analyze",
     },
 
     // LLM endpoints

@@ -1,7 +1,7 @@
 import { message } from './message';
-import { apiClient } from '../utils';
+import { organizationService } from '../utils/api/organization-service';
 import { logger } from '../utils/logger';
-import { API_ENDPOINTS } from '../config/api';
+import { getCurrentUser } from '../utils/api/auth-store';
 
 /** Type definition for OrgData constructor parameter */
 export interface OrgDataInit {
@@ -99,16 +99,16 @@ async function loadOrgData(orgId: string | null) {
         return;
     }
 
-    const req = await apiClient.get(`api/v1/organizations/${orgId}`);
-    if (req.ok) {
-        const data = await req.data as any;
+    const result = await organizationService.get(orgId);
+    if (result.success && result.data) {
+        const data = result.data;
         organization.orgName = data.name;
-        organization.orgDescription = data.description;
+        organization.orgDescription = data.description || '';
         organization.createdAt = formatDate(data.created_at.toString());
         organization.updatedAt = formatDate(data.updated_at.toString());
         organization.ownerId = data.owner_id;
-        organization.membersCount = data.member_count;
-        organization.tier = data.tier;
+        organization.membersCount = data.member_count || 0;
+        organization.tier = 'free'; // Default tier, not in Organization type
         organization.orgId = data.id;
 
         organization.trueIsOrganization();
@@ -148,26 +148,23 @@ export class OrgSignupOrgData {
             this.successDiv
         );
 
-        const orgRes = await apiClient.post(API_ENDPOINTS.ORGANIZATIONS.CREATE, {
+        const result = await organizationService.create({
             name: this.formData.orgName,
             description: this.formData.orgDescription
         });
 
-        const orgResData = orgRes.data as OrgDataInit | undefined;
+        logger.debug('Organization creation response', { success: result.success, status: result.status });
 
-        logger.debug('Organization creation response', { status: orgRes.status, ok: orgRes.ok });
-
-        if (!orgRes.ok) {
-            const errorData = orgResData as { message?: string } | undefined;
-            messageHandler.showError(errorData?.message || "Organization creation failed.");
+        if (!result.success) {
+            messageHandler.showError(result.error || "Organization creation failed.");
             this.submitBtn.disabled = false;
             this.submitBtn.textContent = "CREATE_ORG";
             return;
         }
 
-        if (orgResData) {
-            setId(orgResData.id);
-            loadOrgData(orgResData.id);
+        if (result.data) {
+            setId(result.data.id);
+            loadOrgData(result.data.id);
         }
 
         messageHandler.showSuccess("Organization created! Redirecting...");
@@ -193,21 +190,13 @@ export class OrgSignupOrgData {
 }
 
 
-import { getCurrentUser } from '../utils/api/auth-store';
-
-/** Type for the organizations API response */
-interface OrganizationsResponse {
-    organizations: OrgDataInit[];
-}
-
 export async function loadUserOrganization() {
     try {
-        const res = await apiClient.get<OrganizationsResponse>("/api/v1/organizations");
-        const data = res.data;
-        logger.debug('loadUserOrganization response', { ok: res.ok, status: res.status, data });
+        const result = await organizationService.list();
+        logger.debug('loadUserOrganization response', { success: result.success, status: result.status, data: result.data });
 
-        if (res.ok && data?.organizations && data.organizations.length > 0) {
-            const orgList = data.organizations;
+        if (result.success && result.data && result.data.length > 0) {
+            const orgList = result.data;
             const currentUser = getCurrentUser();
             logger.debug('Current user for org matching', { currentUser });
 
@@ -225,12 +214,17 @@ export async function loadUserOrganization() {
             }
 
             // Update the existing organization object's properties
-            // We need to map API response to OrgData constructor expected format if needed
-            // Assuming API response matches mostly, but let's be safe with isOrganization
-
             const orgData: OrgDataInit = {
-                ...targetOrg,
-                isOrganization: true
+                id: targetOrg.id,
+                name: targetOrg.name,
+                description: targetOrg.description || '',
+                created_at: targetOrg.created_at,
+                updated_at: targetOrg.updated_at,
+                owner_id: targetOrg.owner_id,
+                members_count: targetOrg.member_count || 0,
+                tier: 'free', // Default tier
+                isOrganization: true,
+                signOrg: false,
             };
 
             const newOrgData = new OrgData(orgData);
