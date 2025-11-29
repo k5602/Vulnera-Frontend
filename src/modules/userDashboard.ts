@@ -13,6 +13,10 @@ export class OrgDashboardHandler {
   chartSvg: HTMLElement;
   currentReportsFiltered: any[] = [];
   ecoSelect: HTMLSelectElement;
+  scansCompletedElement: HTMLElement;
+  scansFailedElement: HTMLElement;
+  apiCallsElement: HTMLElement;
+  totalVulnElement: HTMLElement;
 
 
   renderOverview(data: any) {
@@ -20,6 +24,10 @@ export class OrgDashboardHandler {
     if (this.highElement) this.highElement.textContent = String(data.mHighFindings ?? 0);
     if (this.medElement) this.medElement.textContent = String(data.mMediumFindings ?? 0);
     if (this.lowElement) this.lowElement.textContent = String(data.mLowFindings ?? 0);
+    if (this.scansCompletedElement) this.scansCompletedElement.textContent = String(data.scansCompleted ?? 0);
+    if (this.scansFailedElement) this.scansFailedElement.textContent = String(data.scansFailed ?? 0);
+    if (this.apiCallsElement) this.apiCallsElement.textContent = String(data.apiCalls ?? 0);
+    if (this.totalVulnElement) this.totalVulnElement.textContent = String(data.totalVuln ?? 0);
   }
 
   renderMonthActivity(list: any[]) {
@@ -135,7 +143,8 @@ export class OrgDashboardHandler {
       this.changeDashboard('organization');
     }
 
-    let totalScan = 0;
+    let scansCompleated = 0;
+    let scansFailed = 0;
     let totalVuln = 0;
     let apiCallsMth = 0;
     let criticalFindings = 0;
@@ -199,7 +208,8 @@ export class OrgDashboardHandler {
 
       if (res.ok && res.data) {
         const data = res.data.months[0];
-        totalScan = data.scans_completed;
+        scansCompleated = data.scans_completed;
+        scansFailed = data.scans_failed;
         totalVuln = data.total_findings;
         apiCallsMth = data.api_calls;
         mCriticalFindings = data.critical_findings;
@@ -226,7 +236,11 @@ export class OrgDashboardHandler {
       mCriticalFindings,
       mHighFindings,
       mMediumFindings,
-      mLowFindings
+      mLowFindings,
+      totalVuln,
+      scansCompleated,
+      scansFailed,
+      apiCallsMth
     }
     console.log("Overview Status:", overviewStatus);
     console.log("month", overviewMonth);
@@ -333,7 +347,11 @@ export class OrgDashboardHandler {
     reportBody: HTMLElement,
     projectGrid: HTMLElement,
     chartSvg: HTMLElement,
-    ecoSelect: HTMLSelectElement) {
+    ecoSelect: HTMLSelectElement,
+    scansCompletedElement: HTMLElement,
+    scansFailedElement: HTMLElement,
+    apiCallsElement: HTMLElement,
+    totalVulnElement: HTMLElement) {
     this.criticalElement = criticalElement;
     this.highElement = highElement;
     this.medElement = medElement;
@@ -343,6 +361,10 @@ export class OrgDashboardHandler {
     this.projectGrid = projectGrid;
     this.chartSvg = chartSvg;
     this.ecoSelect = ecoSelect;
+    this.scansCompletedElement = scansCompletedElement;
+    this.scansFailedElement = scansFailedElement;
+    this.apiCallsElement = apiCallsElement;
+    this.totalVulnElement = totalVulnElement;
   }
 
 }   

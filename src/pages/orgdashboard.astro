@@ -8,13 +8,12 @@ export const prerender = false;
 <Layout title="Dashboard — Vulnera" description="Overview of reports, projects, and recent activity.">
   <script>
     import { setupAuthGuard } from '../utils/auth-guard';
-    import { loadOrgData, organization } from '../modules/orgData.js';
+    import { organization } from '../modules/orgData.js';
     setupAuthGuard({ requireAuth: true });
     const subtitleEl = document.getElementById('dash-subtitle') as HTMLElement;
-    await loadOrgData(localStorage.getItem('orgId')!);
-    subtitleEl.innerHTML = `ORGANIZATION_NAME: ${organization.orgName || 'N/A' } ||
-                            DESCRIPTION: ${organization.orgDescription || 'N/A'} ||
-                            TIER: ${organization.tier || 'N/A'} ||
+    subtitleEl.innerHTML = `ORGANIZATION_NAME: ${organization.orgName || 'NONE' } ||
+                            DESCRIPTION: ${organization.orgDescription || 'NONE'} ||
+                            TIER: ${organization.tier || 'NONE'} ||
                             CREATED_AT: ${organization.createdAt.toString() || 'N/A'} ||
                             MEMBERS_COUNT: ${organization.membersCount.toString() || 'N/A'} ||
                             Role: ${(organization.ownerId === JSON.parse(localStorage.getItem('__vulnera_current_user')!).id)? 'Owner' : 'Member'}`;
@@ -80,6 +79,22 @@ export const prerender = false;
         <div class="terminal-border bg-black/60 rounded-lg p-4 sm:p-6">
           <div class="text-cyber-400 text-xs sm:text-sm mb-1">LOW_FINDINGS</div>
           <div id="lowFindings" class="text-2xl sm:text-3xl lg:text-4xl text-matrix-400 font-mono">--</div>
+        </div>
+        <div class="terminal-border bg-black/60 rounded-lg p-4 sm:p-6">
+          <div class="text-cyber-400 text-xs sm:text-sm mb-1">TOTAL_API_CALLS</div>
+          <div id="totalApiCalls" class="text-2xl sm:text-3xl lg:text-4xl text-matrix-400 font-mono">--</div>
+        </div>
+        <div class="terminal-border bg-black/60 rounded-lg p-4 sm:p-6">
+          <div class="text-cyber-400 text-xs sm:text-sm mb-1">TOTAL_FINDINGS</div>
+          <div id="totalFindings" class="text-2xl sm:text-3xl lg:text-4xl text-matrix-400 font-mono">--</div>
+        </div>
+        <div class="terminal-border bg-black/60 rounded-lg p-4 sm:p-6">
+          <div class="text-cyber-400 text-xs sm:text-sm mb-1">SCANS_COMPLEATED</div>
+          <div id="scansCompleted" class="text-2xl sm:text-3xl lg:text-4xl text-matrix-400 font-mono">--</div>
+        </div>
+        <div class="terminal-border bg-black/60 rounded-lg p-4 sm:p-6">
+          <div class="text-cyber-400 text-xs sm:text-sm mb-1">SCANS_FAILED</div>
+          <div id="scansFailed" class="text-2xl sm:text-3xl lg:text-4xl text-matrix-400 font-mono">--</div>
         </div>
       </div>
 
@@ -164,11 +179,15 @@ export const prerender = false;
       document.getElementById('reports-tbody')!,
       document.getElementById('projects-grid')!,
       document.getElementById('trend-svg')!,
-      document.getElementById('filter-ecosystem')! as HTMLSelectElement
+      document.getElementById('filter-ecosystem')! as HTMLSelectElement,
+      document.getElementById('scans-completed')!,
+      document.getElementById('scans-failed')!,
+      document.getElementById('api-calls')!,
+      document.getElementById('total-vuln')!,
     );
 
 
-  dashboardHandler.loadReportsAndProjects();
+  await dashboardHandler.loadReportsAndProjects();
 
     // Defer binding and initial load until idle to free up the main thread on first paint
     const scheduleIdle = (cb: any) => {
@@ -180,7 +199,10 @@ export const prerender = false;
     };
 
     scheduleIdle(() => {
-      document.getElementById('btn-refresh')?.addEventListener('click', () => dashboardHandler.loadReportsAndProjects());
+      document.getElementById('btn-refresh')?.addEventListener('click', () => {
+        dashboardHandler.loadReportsAndProjects();
+        window.location.reload();
+      });
       document.getElementById('filter-ecosystem')?.addEventListener('change', () => dashboardHandler.loadReportsAndProjects());
       document.getElementById('filter-severity')?.addEventListener('change', () => dashboardHandler.loadReportsAndProjects());
       document.getElementById('filter-view')?.addEventListener('change', (selection) => {
