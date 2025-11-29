@@ -100,6 +100,13 @@ export const API_ENDPOINTS = {
         REVOKE_API_KEY: "/api/v1/auth/api-keys/:key_id",
     },
 
+    // Organization endpoints
+    ORGANIZATIONS: {
+        LIST: "/api/v1/organizations",
+        CREATE: "/api/v1/organizations",
+        GET: "/api/v1/organizations/:org_id",
+    },
+
     // Analysis endpoints
     ANALYSIS: {
         ANALYZE: "/api/v1/analyze/job",

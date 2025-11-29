@@ -1,6 +1,7 @@
 import { message } from './message';
 import { apiClient } from '../utils';
 import { logger } from '../utils/logger';
+import { API_ENDPOINTS } from '../config/api';
 
 /** Type definition for OrgData constructor parameter */
 export interface OrgDataInit {
@@ -48,7 +49,7 @@ export class OrgData {
         localStorage.removeItem('signOrg');
         console.log(this.signOrg);
     }
-    
+
     constructor(data: OrgDataInit) {
         this.orgId = data.id;
         this.orgName = data.name;
@@ -82,12 +83,12 @@ let organization: OrgData = new OrgData({
 
 function formatDate(dateString: string) {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-          year: 'numeric', 
-          month: 'long', 
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
+    return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
     });
 };
 
@@ -147,7 +148,7 @@ export class OrgSignupOrgData {
             this.successDiv
         );
 
-        const orgRes = await apiClient.post("/api/v1/organizations", {
+        const orgRes = await apiClient.post(API_ENDPOINTS.ORGANIZATIONS.CREATE, {
             name: this.formData.orgName,
             description: this.formData.orgDescription
         });
@@ -251,4 +252,4 @@ if (storedOrgId) {
     loadOrgData(storedOrgId);
 }
 
-export { organization , loadOrgData , setId};
+export { organization, loadOrgData, setId };

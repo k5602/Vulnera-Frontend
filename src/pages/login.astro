@@ -142,8 +142,8 @@ export const prerender = false;
       setCsrfToken,
       setCurrentUser,
     } from "../utils/api/auth-store";
-  import { organization, setId } from "../modules/orgData";
-  // import { loadOrgData } from "../modules/orgData";
+    import { organization, setId } from "../modules/orgData";
+    import { API_ENDPOINTS } from "../config/api";
 
     // Redirect if already logged in
     if (isAuthenticated()) {
@@ -156,17 +156,17 @@ export const prerender = false;
     // Safe element getters (TS safe)
     // ----------------------------
     const form = document.getElementById(
-      "login-form",
+      "login-form"
     ) as HTMLFormElement | null;
     const submitBtn = document.getElementById(
-      "submit-btn",
+      "submit-btn"
     ) as HTMLButtonElement | null;
 
     const errorDiv = document.getElementById(
-      "error-message",
+      "error-message"
     ) as HTMLDivElement | null;
     const successDiv = document.getElementById(
-      "success-message",
+      "success-message"
     ) as HTMLDivElement | null;
 
     function showError(msg: string): void {
@@ -191,10 +191,10 @@ export const prerender = false;
         e.preventDefault();
 
         const emailEl = document.getElementById(
-          "email",
+          "email"
         ) as HTMLInputElement | null;
         const passwordEl = document.getElementById(
-          "password",
+          "password"
         ) as HTMLInputElement | null;
 
         if (!emailEl || !passwordEl) {
@@ -208,7 +208,7 @@ export const prerender = false;
         submitBtn.disabled = true;
         submitBtn.textContent = "> AUTHENTICATING...";
 
-        const res = await apiClient.post("/api/v1/auth/login", {
+        const res = await apiClient.post(API_ENDPOINTS.AUTH.LOGIN, {
           email,
           password,
         });
@@ -235,17 +235,19 @@ export const prerender = false;
           localStorage.setItem("last_token_refresh", Date.now().toString());
         }
 
-        const organizations = await apiClient.get("api/v1/organizations");
+        const organizations = await apiClient.get(
+          API_ENDPOINTS.ORGANIZATIONS.LIST
+        );
         console.log(organizations.data);
-        
+
         let isInOrg = false;
 
         if (organizations.ok) {
           const orgData = organizations.data as any;
           const orgList = orgData.organizations;
 
-            if (orgList.length > 0 && orgData.total > 0) {
-              isInOrg = true;
+          if (orgList.length > 0 && orgData.total > 0) {
+            isInOrg = true;
           }
         }
 
@@ -259,7 +261,7 @@ export const prerender = false;
           console.log(organization);
           next =
             new URLSearchParams(window.location.search).get("next") ||
-            "/dashboard";          
+            "/dashboard";
         } else {
           next =
             new URLSearchParams(window.location.search).get("next") ||
@@ -271,7 +273,7 @@ export const prerender = false;
 
     // Clear session button
     const clearBtn = document.getElementById(
-      "clear-session-btn",
+      "clear-session-btn"
     ) as HTMLButtonElement | null;
     if (clearBtn) {
       clearBtn.addEventListener("click", () => {

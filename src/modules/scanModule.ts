@@ -1,4 +1,4 @@
-import { getCookie } from "../utils/cookies";
+import { getCookie, setCookie } from "../utils/cookies";
 import { logger } from "../utils/logger";
 import { detectEcosystem } from "../utils/scan-handler";
 import { apiClient } from "../utils/api/client";
@@ -721,16 +721,8 @@ export class ScanHandler {
       } else {
         requestBody.aws_credentials = token || undefined;
       }
-
-      // Removed fetchOptions to always include credentials
-      // If manual token is provided, we might need to pass it in headers or body
-      // Assuming backend handles 'github_token' in body for now, or we rely on cookie if manual token is not supported by backend yet.
-      // If backend only checks cookie, we might need to set a temporary cookie or update the backend.
-      // For now, let's assume we can pass it in the body or the backend checks the cookie we might set.
-
-      // Ideally, we should set the cookie if manual token is provided so the backend middleware picks it up
       if (manualToken && this.currentSourceType === 'git') {
-        document.cookie = `github_token=${manualToken}; path=/; max-age=3600; SameSite=Strict`;
+        setCookie("github_token", manualToken, { days: 1 / 24, sameSite: "Strict", secure: true });
       }
 
       const headers: Record<string, string> = {};
@@ -755,13 +747,13 @@ export class ScanHandler {
           if (!isPrivateChecked && this.currentSourceType === 'git') {
             const errorData = apiResponse.data as { error?: string; message?: string; detail?: string } | null;
             const errorMsg = errorData?.error || errorData?.message || errorData?.detail || '';
-            const isPrivateRepoError = 
+            const isPrivateRepoError =
               errorMsg.toLowerCase().includes('private') ||
               errorMsg.toLowerCase().includes('not found') ||
               errorMsg.toLowerCase().includes('authentication') ||
               errorMsg.toLowerCase().includes('unauthorized') ||
               apiResponse.status === 404;
-            
+
             if (isPrivateRepoError) {
               alert(
                 "🔒 Repository Access Denied\n\n" +
@@ -792,7 +784,7 @@ export class ScanHandler {
             return;
           }
         }
-        
+
         // Handle other errors
         const errorMsg = typeof apiResponse.error === 'string' ? apiResponse.error : `HTTP ${apiResponse.status}`;
         throw new Error(errorMsg);

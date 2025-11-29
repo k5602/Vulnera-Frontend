@@ -5,399 +5,385 @@ import Footer from "../components/Footer.astro";
 ---
 
 <Layout
-    title="Sign Up — Vulnera"
-    description="Create your Vulnera account to start scanning and reporting vulnerabilities."
+  title="Sign Up — Vulnera"
+  description="Create your Vulnera account to start scanning and reporting vulnerabilities."
 >
-    <!-- Guest Guard - Redirect to dashboard if already authenticated -->
-    <script>
-        import { isAuthenticated } from "../utils/api/auth-store";
-        if (isAuthenticated()) {
-            window.location.replace("/dashboard");
-        }
-    </script>
+  <!-- Guest Guard - Redirect to dashboard if already authenticated -->
+  <script>
+    import { isAuthenticated } from "../utils/api/auth-store";
+    if (isAuthenticated()) {
+      window.location.replace("/dashboard");
+    }
+  </script>
 
-    <Navigation />
+  <Navigation />
 
-    <!-- Signup Section -->
-    <section
-        id="main"
-        class="relative min-h-screen flex items-center justify-center overflow-hidden bg-black"
-        aria-labelledby="signup-title"
-        transition:animate="fade"
-    >
-        <!-- Background Layers (inspired by home) -->
-        <div class="absolute inset-0 z-0">
-            <div class="absolute inset-0 matrix-rain opacity-20"></div>
-            <div
-                class="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-black/60"
-            >
-            </div>
-            <div
-                class="absolute inset-0 bg-gradient-to-b from-transparent via-matrix-900/20 to-black/80"
-            >
-            </div>
+  <!-- Signup Section -->
+  <section
+    id="main"
+    class="relative min-h-screen flex items-center justify-center overflow-hidden bg-black"
+    aria-labelledby="signup-title"
+    transition:animate="fade"
+  >
+    <!-- Background Layers (inspired by home) -->
+    <div class="absolute inset-0 z-0">
+      <div class="absolute inset-0 matrix-rain opacity-20"></div>
+      <div
+        class="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-black/60"
+      >
+      </div>
+      <div
+        class="absolute inset-0 bg-gradient-to-b from-transparent via-matrix-900/20 to-black/80"
+      >
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="relative z-10 w-full max-w-lg px-4 sm:px-6">
+      <div class="mb-4 sm:mb-6 text-center">
+        <h1
+          id="signup-title"
+          class="text-2xl sm:text-3xl md:text-4xl font-bold text-white font-mono tracking-wider"
+        >
+          <span class="text-cyber-400">&gt;</span> SIGN_UP
+        </h1>
+        <p class="text-matrix-300 mt-2 text-sm sm:text-base">
+          Create an account to access the platform
+        </p>
+      </div>
+
+      <!-- Form Card -->
+      <div
+        class="terminal-border bg-black/80 rounded-xl p-4 sm:p-6 shadow-xl auth-form"
+      >
+        <!-- Terminal Header Bar -->
+        <div class="flex items-center space-x-2 mb-4">
+          <span class="w-3 h-3 rounded-full bg-red-500"></span>
+          <span class="w-3 h-3 rounded-full bg-yellow-500"></span>
+          <span class="w-3 h-3 rounded-full bg-green-500"></span>
+          <span class="ml-3 text-xs text-gray-400">vulnera@signup:~</span>
         </div>
 
-        <!-- Content -->
-        <div class="relative z-10 w-full max-w-lg px-4 sm:px-6">
-            <div class="mb-4 sm:mb-6 text-center">
-                <h1
-                    id="signup-title"
-                    class="text-2xl sm:text-3xl md:text-4xl font-bold text-white font-mono tracking-wider"
-                >
-                    <span class="text-cyber-400">&gt;</span> SIGN_UP
-                </h1>
-                <p class="text-matrix-300 mt-2 text-sm sm:text-base">
-                    Create an account to access the platform
-                </p>
-            </div>
-
-            <!-- Form Card -->
-            <div
-                class="terminal-border bg-black/80 rounded-xl p-4 sm:p-6 shadow-xl auth-form"
-            >
-                <!-- Terminal Header Bar -->
-                <div class="flex items-center space-x-2 mb-4">
-                    <span class="w-3 h-3 rounded-full bg-red-500"></span>
-                    <span class="w-3 h-3 rounded-full bg-yellow-500"></span>
-                    <span class="w-3 h-3 rounded-full bg-green-500"></span>
-                    <span class="ml-3 text-xs text-gray-400"
-                        >vulnera@signup:~</span
-                    >
-                </div>
-
-                <div
-                    id="error-message"
-                    class="hidden mb-2 p-3 bg-red-900/20 border border-red-500/40 rounded text-red-300 text-sm"
-                >
-                </div>
-
-                <div
-                    id="success-message"
-                    class="hidden mb-2 p-3 bg-green-900/20 border border-green-500/40 rounded text-green-300 text-sm"
-                >
-                </div>
-
-                <form
-                    id="signup-form"
-                    class="space-y-3 sm:space-y-4"
-                    autocomplete="on"
-                    action="#"
-                    method="post"
-                    novalidate
-                >
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                        <div>
-                            <label
-                                for="firstName"
-                                class="block text-xs sm:text-sm text-cyber-300 mb-1"
-                                >FIRST_NAME</label
-                            >
-                            <input
-                                id="firstName"
-                                name="firstName"
-                                type="text"
-                                required
-                                class="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg bg-black/60 border border-cyber-400/30 focus:border-cyber-400 focus:ring-2 focus:ring-cyber-400 text-white placeholder-gray-500 text-sm sm:text-base"
-                                placeholder="Ada"
-                            />
-                        </div>
-                        <div>
-                            <label
-                                for="lastName"
-                                class="block text-xs sm:text-sm text-cyber-300 mb-1"
-                                >LAST_NAME</label
-                            >
-                            <input
-                                id="lastName"
-                                name="lastName"
-                                type="text"
-                                required
-                                class="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg bg-black/60 border border-cyber-400/30 focus:border-cyber-400 focus:ring-2 focus:ring-cyber-400 text-white placeholder-gray-500 text-sm sm:text-base"
-                                placeholder="Lovelace"
-                            />
-                        </div>
-                    </div>
-
-                    <div>
-                        <label
-                            for="email"
-                            class="block text-xs sm:text-sm text-cyber-300 mb-1"
-                            >EMAIL</label
-                        >
-                        <input
-                            id="email"
-                            name="email"
-                            type="email"
-                            required
-                            class="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg bg-black/60 border border-cyber-400/30 focus:border-cyber-400 focus:ring-2 focus:ring-cyber-400 text-white placeholder-gray-500 text-sm sm:text-base"
-                            placeholder="you@example.com"
-                        />
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                        <div>
-                            <div class="flex items-center justify-between mb-1">
-                                <label
-                                    for="password"
-                                    class="block text-xs sm:text-sm text-cyber-300"
-                                    >PASSWORD</label
-                                >
-                                <button
-                                    type="button"
-                                    id="toggle-password"
-                                    class="text-xs text-cyber-400 hover:text-cyber-300"
-                                    >[SHOW]</button
-                                >
-                            </div>
-                            <input
-                                id="password"
-                                name="password"
-                                type="password"
-                                required
-                                minlength="8"
-                                class="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg bg-black/60 border border-cyber-400/30 focus:border-cyber-400 focus:ring-2 focus:ring-cyber-400 text-white placeholder-gray-500 text-sm sm:text-base"
-                                placeholder="********"
-                            />
-                        </div>
-                        <div>
-                            <div class="flex items-center justify-between mb-1">
-                                <label
-                                    for="confirm"
-                                    class="block text-xs sm:text-sm text-cyber-300"
-                                    >CONFIRM_PASSWORD</label
-                                >
-                                <button
-                                        type="button"
-                                        id="toggle-confirmPassword"
-                                        class="text-xs text-cyber-400 hover:text-cyber-300"
-                                        >[SHOW]</button
-                                >
-                            </div>
-                            <input
-                                id="confirm"
-                                name="confirm"
-                                type="password"
-                                required
-                                minlength="8"
-                                class="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg bg-black/60 border border-cyber-400/30 focus:border-cyber-400 focus:ring-2 focus:ring-cyber-400 text-white placeholder-gray-500 text-sm sm:text-base"
-                                placeholder="********"
-                            />
-                        </div>
-                    </div>
-
-                    <div
-                        class="flex items-start gap-2 text-xs sm:text-sm text-matrix-300"
-                    >
-                        <input
-                            id="terms"
-                            name="terms"
-                            type="checkbox"
-                            class="mt-0.5 sm:mt-1 accent-cyber-400"
-                            required
-                        />
-                        <label for="terms"
-                            >I agree to the <a
-                                href="#"
-                                class="text-cyber-400 hover:text-cyber-300"
-                                >Terms</a
-                            > and <a
-                                href="#"
-                                class="text-cyber-400 hover:text-cyber-300"
-                                >Privacy Policy</a
-                            >.</label
-                        >
-                    </div>
-
-                    <button
-                        id="submit-btn"
-                        type="submit"
-                        class="w-full inline-flex items-center justify-center bg-gradient-to-r from-cyber-600 to-matrix-600 hover:from-cyber-500 hover:to-matrix-500 text-black px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg font-bold font-mono transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyber-400 text-sm sm:text-base"
-                    >
-                        <span class="mr-2">&gt;</span> INIT_SIGNUP
-                    </button>
-                </form>
-
-                <div
-                    class="text-center mt-3 sm:mt-4 text-xs sm:text-sm text-matrix-300"
-                >
-                    Already have an account? <a
-                        id="login-link"
-                        href="/login"
-                        class="auth-link text-cyber-400 hover:text-cyber-300 transition-colors duration-200 font-semibold"
-                        data-astro-prefetch>Log in</a
-                    >
-                </div>
-            </div>
-
-            <!-- Footer hint -->
-            <p class="mt-6 text-center text-xs text-gray-500">
-                Protected by enterprise-grade security.
-            </p>
+        <div
+          id="error-message"
+          class="hidden mb-2 p-3 bg-red-900/20 border border-red-500/40 rounded text-red-300 text-sm"
+        >
         </div>
-    </section>
 
-    <Footer />
-    <script>
-        import { apiClient } from "../utils/api/client";
-        import { isAuthenticated, refreshAuth } from "../utils/api/auth-store";
-        import { organization } from "../modules/orgData";
+        <div
+          id="success-message"
+          class="hidden mb-2 p-3 bg-green-900/20 border border-green-500/40 rounded text-green-300 text-sm"
+        >
+        </div>
 
-        if (isAuthenticated()) {
-            window.location.replace("/dashboard");
+        <form
+          id="signup-form"
+          class="space-y-3 sm:space-y-4"
+          autocomplete="on"
+          action="#"
+          method="post"
+          novalidate
+        >
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            <div>
+              <label
+                for="firstName"
+                class="block text-xs sm:text-sm text-cyber-300 mb-1"
+                >FIRST_NAME</label
+              >
+              <input
+                id="firstName"
+                name="firstName"
+                type="text"
+                required
+                class="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg bg-black/60 border border-cyber-400/30 focus:border-cyber-400 focus:ring-2 focus:ring-cyber-400 text-white placeholder-gray-500 text-sm sm:text-base"
+                placeholder="Ada"
+              />
+            </div>
+            <div>
+              <label
+                for="lastName"
+                class="block text-xs sm:text-sm text-cyber-300 mb-1"
+                >LAST_NAME</label
+              >
+              <input
+                id="lastName"
+                name="lastName"
+                type="text"
+                required
+                class="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg bg-black/60 border border-cyber-400/30 focus:border-cyber-400 focus:ring-2 focus:ring-cyber-400 text-white placeholder-gray-500 text-sm sm:text-base"
+                placeholder="Lovelace"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label
+              for="email"
+              class="block text-xs sm:text-sm text-cyber-300 mb-1">EMAIL</label
+            >
+            <input
+              id="email"
+              name="email"
+              type="email"
+              required
+              class="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg bg-black/60 border border-cyber-400/30 focus:border-cyber-400 focus:ring-2 focus:ring-cyber-400 text-white placeholder-gray-500 text-sm sm:text-base"
+              placeholder="you@example.com"
+            />
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <label
+                  for="password"
+                  class="block text-xs sm:text-sm text-cyber-300"
+                  >PASSWORD</label
+                >
+                <button
+                  type="button"
+                  id="toggle-password"
+                  class="text-xs text-cyber-400 hover:text-cyber-300"
+                  >[SHOW]</button
+                >
+              </div>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                required
+                minlength="8"
+                class="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg bg-black/60 border border-cyber-400/30 focus:border-cyber-400 focus:ring-2 focus:ring-cyber-400 text-white placeholder-gray-500 text-sm sm:text-base"
+                placeholder="********"
+              />
+            </div>
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <label
+                  for="confirm"
+                  class="block text-xs sm:text-sm text-cyber-300"
+                  >CONFIRM_PASSWORD</label
+                >
+                <button
+                  type="button"
+                  id="toggle-confirmPassword"
+                  class="text-xs text-cyber-400 hover:text-cyber-300"
+                  >[SHOW]</button
+                >
+              </div>
+              <input
+                id="confirm"
+                name="confirm"
+                type="password"
+                required
+                minlength="8"
+                class="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg bg-black/60 border border-cyber-400/30 focus:border-cyber-400 focus:ring-2 focus:ring-cyber-400 text-white placeholder-gray-500 text-sm sm:text-base"
+                placeholder="********"
+              />
+            </div>
+          </div>
+
+          <div
+            class="flex items-start gap-2 text-xs sm:text-sm text-matrix-300"
+          >
+            <input
+              id="terms"
+              name="terms"
+              type="checkbox"
+              class="mt-0.5 sm:mt-1 accent-cyber-400"
+              required
+            />
+            <label for="terms"
+              >I agree to the <a
+                href="#"
+                class="text-cyber-400 hover:text-cyber-300">Terms</a
+              > and <a href="#" class="text-cyber-400 hover:text-cyber-300"
+                >Privacy Policy</a
+              >.</label
+            >
+          </div>
+
+          <button
+            id="submit-btn"
+            type="submit"
+            class="w-full inline-flex items-center justify-center bg-gradient-to-r from-cyber-600 to-matrix-600 hover:from-cyber-500 hover:to-matrix-500 text-black px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg font-bold font-mono transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyber-400 text-sm sm:text-base"
+          >
+            <span class="mr-2">&gt;</span> INIT_SIGNUP
+          </button>
+        </form>
+
+        <div
+          class="text-center mt-3 sm:mt-4 text-xs sm:text-sm text-matrix-300"
+        >
+          Already have an account? <a
+            id="login-link"
+            href="/login"
+            class="auth-link text-cyber-400 hover:text-cyber-300 transition-colors duration-200 font-semibold"
+            data-astro-prefetch>Log in</a
+          >
+        </div>
+      </div>
+
+      <!-- Footer hint -->
+      <p class="mt-6 text-center text-xs text-gray-500">
+        Protected by enterprise-grade security.
+      </p>
+    </div>
+  </section>
+
+  <Footer />
+  <script>
+    import { apiClient } from "../utils/api/client";
+    import { isAuthenticated, refreshAuth } from "../utils/api/auth-store";
+    import { organization } from "../modules/orgData";
+    import { API_ENDPOINTS } from "../config/api";
+
+    if (isAuthenticated()) {
+      window.location.replace("/dashboard");
+    }
+
+    // ---- FIX: Strong typing ----
+    const form = document.getElementById("signup-form") as HTMLFormElement;
+    const submitBtn = document.getElementById(
+      "submit-btn"
+    ) as HTMLButtonElement;
+
+    const errorDiv = document.getElementById("error-message") as HTMLDivElement;
+    const successDiv = document.getElementById(
+      "success-message"
+    ) as HTMLDivElement;
+
+    // ---- FIX: Add parameter type ----
+    function showError(msg: string): void {
+      errorDiv.textContent = msg;
+      errorDiv.classList.remove("hidden");
+      successDiv.classList.add("hidden");
+    }
+
+    function showSuccess(msg: string): void {
+      successDiv.textContent = msg;
+      successDiv.classList.remove("hidden");
+      errorDiv.classList.add("hidden");
+    }
+
+    const togglePasswordBtn = document.getElementById(
+      "toggle-password"
+    ) as HTMLButtonElement;
+    const toggleConfirmPasswordBtn = document.getElementById(
+      "toggle-confirmPassword"
+    ) as HTMLButtonElement;
+
+    togglePasswordBtn.addEventListener("click", () => {
+      const passwordInput = document.getElementById(
+        "password"
+      ) as HTMLInputElement;
+      if (passwordInput.type === "password") {
+        passwordInput.type = "text";
+        togglePasswordBtn.textContent = "[HIDE]";
+      } else {
+        passwordInput.type = "password";
+        togglePasswordBtn.textContent = "[SHOW]";
+      }
+    });
+    toggleConfirmPasswordBtn.addEventListener("click", () => {
+      const passwordInput = document.getElementById(
+        "confirm"
+      ) as HTMLInputElement;
+      if (passwordInput.type === "password") {
+        passwordInput.type = "text";
+        toggleConfirmPasswordBtn.textContent = "[HIDE]";
+      } else {
+        passwordInput.type = "password";
+        toggleConfirmPasswordBtn.textContent = "[SHOW]";
+      }
+    });
+
+    form.addEventListener("submit", async (e: Event) => {
+      e.preventDefault();
+
+      const firstName = (
+        document.getElementById("firstName") as HTMLInputElement
+      ).value.trim();
+      const lastName = (
+        document.getElementById("lastName") as HTMLInputElement
+      ).value.trim();
+      const email = (
+        document.getElementById("email") as HTMLInputElement
+      ).value.trim();
+      const pass = (document.getElementById("password") as HTMLInputElement)
+        .value;
+      const confirm = (document.getElementById("confirm") as HTMLInputElement)
+        .value;
+      const terms = (document.getElementById("terms") as HTMLInputElement)
+        .checked;
+
+      // ----- VALIDATION -----
+      if (!firstName || !lastName || !email || !pass) {
+        showError("Please fill out all fields.");
+        return;
+      }
+
+      if (!email.includes("@")) {
+        showError("Invalid email address.");
+        return;
+      }
+
+      if (pass !== confirm) {
+        showError("Passwords do not match.");
+        return;
+      }
+
+      if (!terms) {
+        showError("You must accept the terms.");
+        return;
+      }
+
+      // ----- REQUEST -----
+      submitBtn.disabled = true;
+      submitBtn.textContent = "REGISTERING...";
+
+      const res = await apiClient.post(API_ENDPOINTS.AUTH.REGISTER, {
+        first_name: firstName,
+        last_name: lastName,
+        email,
+        password: pass,
+      });
+
+      if (!res.ok) {
+        const errorData = res.data as any;
+        showError(errorData?.message || "Registration failed.");
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = "<span class='mr-2'>&gt;</span> INIT_SIGNUP";
+        return;
+      }
+
+      if (organization.signOrg) {
+        showSuccess("Account created! Redirecting to organization creation...");
+      } else {
+        showSuccess("Account created! Redirecting to dashboard...");
+      }
+
+      // Refresh auth state to get CSRF token and user data (if backend creates session)
+      try {
+        // refreshAuth may be a no-op if backend doesn't auto-login on registerf
+        const success = await refreshAuth();
+        if (success) {
+          localStorage.setItem("last_token_refresh", Date.now().toString());
         }
+      } catch (e) {
+        // ignore refresh errors here; we still redirect
+      }
 
-        // ---- FIX: Strong typing ----
-        const form = document.getElementById("signup-form") as HTMLFormElement;
-        const submitBtn = document.getElementById(
-            "submit-btn",
-        ) as HTMLButtonElement;
-
-        const errorDiv = document.getElementById(
-            "error-message",
-        ) as HTMLDivElement;
-        const successDiv = document.getElementById(
-            "success-message",
-        ) as HTMLDivElement;
-
-        // ---- FIX: Add parameter type ----
-        function showError(msg: string): void {
-            errorDiv.textContent = msg;
-            errorDiv.classList.remove("hidden");
-            successDiv.classList.add("hidden");
-        }
-
-        function showSuccess(msg: string): void {
-            successDiv.textContent = msg;
-            successDiv.classList.remove("hidden");
-            errorDiv.classList.add("hidden");
-        }
-
-        const togglePasswordBtn = document.getElementById(
-            "toggle-password",
-        ) as HTMLButtonElement;
-        const toggleConfirmPasswordBtn = document.getElementById(
-            "toggle-confirmPassword",
-        ) as HTMLButtonElement;
-
-        togglePasswordBtn.addEventListener("click", () => {
-            const passwordInput = document.getElementById(
-                "password",
-            ) as HTMLInputElement;
-            if (passwordInput.type === "password") {
-                passwordInput.type = "text";
-                togglePasswordBtn.textContent = "[HIDE]";
-            } else {
-                passwordInput.type = "password";
-                togglePasswordBtn.textContent = "[SHOW]";
-            }
-        });
-        toggleConfirmPasswordBtn.addEventListener("click", () => {
-            const passwordInput = document.getElementById(
-                "confirm",
-            ) as HTMLInputElement;
-            if (passwordInput.type === "password") {
-                passwordInput.type = "text";
-                toggleConfirmPasswordBtn.textContent = "[HIDE]";
-            } else {
-                passwordInput.type = "password";
-                toggleConfirmPasswordBtn.textContent = "[SHOW]";
-            }
-        });
-
-        form.addEventListener("submit", async (e: Event) => {
-            e.preventDefault();
-
-            const firstName = (
-                document.getElementById("firstName") as HTMLInputElement
-            ).value.trim();
-            const lastName = (
-                document.getElementById("lastName") as HTMLInputElement
-            ).value.trim();
-            const email = (
-                document.getElementById("email") as HTMLInputElement
-            ).value.trim();
-            const pass = (
-                document.getElementById("password") as HTMLInputElement
-            ).value;
-            const confirm = (
-                document.getElementById("confirm") as HTMLInputElement
-            ).value;
-            const terms = (document.getElementById("terms") as HTMLInputElement)
-                .checked;
-
-            // ----- VALIDATION -----
-            if (!firstName || !lastName || !email || !pass) {
-                showError("Please fill out all fields.");
-                return;
-            }
-
-            if (!email.includes("@")) {
-                showError("Invalid email address.");
-                return;
-            }
-
-            if (pass !== confirm) {
-                showError("Passwords do not match.");
-                return;
-            }
-
-            if (!terms) {
-                showError("You must accept the terms.");
-                return;
-            }
-
-            // ----- REQUEST -----
-            submitBtn.disabled = true;
-            submitBtn.textContent = "REGISTERING...";
-
-            const res = await apiClient.post("/api/v1/auth/register", {
-                first_name: firstName,
-                last_name: lastName,
-                email,
-                password: pass,
-            });
-
-            if (!res.ok) {
-                const errorData = res.data as any;
-                showError(errorData?.message || "Registration failed.");
-                submitBtn.disabled = false;
-                submitBtn.innerHTML =
-                    "<span class='mr-2'>&gt;</span> INIT_SIGNUP";
-                return;
-            }
-
-
-            if (organization.signOrg) {
-                showSuccess("Account created! Redirecting to organization creation...");
-            } else {
-                showSuccess("Account created! Redirecting to dashboard...");
-            }
-
-            // Refresh auth state to get CSRF token and user data (if backend creates session)
-            try {
-                // refreshAuth may be a no-op if backend doesn't auto-login on registerf
-                const success = await refreshAuth();
-                if (success) {
-                    localStorage.setItem(
-                        "last_token_refresh",
-                        Date.now().toString(),
-                    );
-                }
-            } catch (e) {
-                // ignore refresh errors here; we still redirect
-            }
-
-            if (organization.signOrg) {
-                setTimeout(() => {
-                    window.location.replace("/orgsignup");
-                }, 800);
-            } else {
-                setTimeout(() => {
-                    window.location.replace("/dashboard");
-                }, 800);
-            // }
-
-        }});
-    </script>
+      if (organization.signOrg) {
+        setTimeout(() => {
+          window.location.replace("/orgsignup");
+        }, 800);
+      } else {
+        setTimeout(() => {
+          window.location.replace("/dashboard");
+        }, 800);
+        // }
+      }
+    });
+  </script>
 </Layout>

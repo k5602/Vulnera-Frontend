@@ -9,7 +9,7 @@ import {
 } from "../api/auth-store";
 import { API_CONFIG } from "../../config/api";
 import { logger } from "../logger";
-import { getCookie } from "../cookies";
+import { getCookie, setCookie } from "../cookies";
 
 function normalizeHeaders(init?: HeadersInit): Record<string, string> {
     const normalized: Record<string, string> = {};
@@ -117,10 +117,13 @@ export async function apiFetch<T = unknown>(
             csrfToken = getCsrfToken();
         }
 
-        document.cookie = `csrf_token=${csrfToken}; path=/; SameSite=Lax`;
+        // Set CSRF cookie using centralized utility
+        if (typeof document !== "undefined" && csrfToken) {
+            setCookie("csrf_token", csrfToken, { days: 1, sameSite: "Lax", secure: false });
+        }
         if (csrfToken && !headers["X-CSRF-Token"]) {
             headers["X-CSRF-Token"] = csrfToken;
-            localStorage.setItem("__vulnera_csrf_token", csrfToken);
+            // setCsrfToken already handles localStorage persistence
         } else {
             logger.warn("Proceeding with mutating request without CSRF token");
         }
@@ -167,15 +170,16 @@ export async function apiFetch<T = unknown>(
         // Extract CSRF from response and set as cookie
         if (data?.csrf_token) {
             if (typeof document !== "undefined") {
-                document.cookie = `csrf_token=${data.csrf_token}; path=/; SameSite=Strict; Secure`;
+                setCookie("csrf_token", data.csrf_token, { days: 1, sameSite: "Strict", secure: true });
             }
             setCsrfToken(data.csrf_token);
         }
 
-        // Also check Set-Cookie header
+        // Also check Set-Cookie header (passthrough for backend-set cookies)
         const setCookieHeader = res.headers.get("set-cookie");
         if (setCookieHeader && typeof document !== "undefined") {
-            // Parse and set individual cookies
+            // Parse and set individual cookies - these come from backend
+            // and should be applied as-is (already formatted)
             const cookies = setCookieHeader.split(",");
             cookies.forEach(cookie => {
                 document.cookie = cookie.trim();

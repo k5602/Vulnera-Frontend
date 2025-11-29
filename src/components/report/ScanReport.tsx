@@ -4,6 +4,7 @@ import { apiClient } from '../../utils/api/client';
 import { enrichService, type EnrichedFinding } from '../../utils/api/enrich-service';
 import { fixService, type FixResponse } from '../../utils/api/fix-service';
 import { getSeverityClasses, SEVERITY_ORDER, type SeverityLevel } from '../../utils/severity';
+import { API_ENDPOINTS } from '../../config/api';
 
 // Explain API response type
 type ExplainResponse = {
@@ -86,7 +87,7 @@ export default function ScanReport({ data }: { data: ScanReportData }) {
   const handleExplain = async (finding: Vulnerability) => {
     setExplainingFindingId(finding.id);
     try {
-      const response = await apiClient.post<ExplainResponse>('/api/v1/llm/explain', {
+      const response = await apiClient.post<ExplainResponse>(API_ENDPOINTS.LLM.EXPLAIN, {
         vulnerability_id: finding.cve || finding.id,
         affected_component: finding.package + (finding.version ? `@${finding.version}` : ''),
         description: finding.title,

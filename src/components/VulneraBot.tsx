@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { isAuthenticated as isAuthenticatedStore } from '../utils/api/auth-store';
 import { apiClient } from '../utils/api/client';
 import { logger } from '../utils/logger';
+import { API_ENDPOINTS } from '../config/api';
 
 /** Extract error message from unknown error types */
 function extractErrorMessage(error: unknown, fallback = 'An unknown error occurred'): string {
@@ -89,7 +90,7 @@ export default function VulneraBot() {
 
         try {
             // Use apiClient to handle CSRF tokens automatically
-            const response = await apiClient.post<LLMResponse>('/api/v1/llm/query', {
+            const response = await apiClient.post<LLMResponse>(API_ENDPOINTS.LLM.QUERY, {
                 context: "User is asking via the web chat interface.",
                 query: userMessage.text
             });
