@@ -48,13 +48,11 @@ export type ScanReportData = {
   jobId?: string; // Added for enrichment
   detailLevel?: 'minimal' | 'standard' | 'full';
   summary: {
-    files: number;
-    dependencies: number;
-    vulnerabilities: number;
     critical: number;
     high: number;
     medium: number;
     low: number;
+    info: number;
   };
   files: FileAnalysis[];
   vulnerabilities: Vulnerability[];
@@ -385,16 +383,16 @@ export default function ScanReport({ data }: { data: ScanReportData }) {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
           <div className="bg-black/40 p-4 border border-green-500/20 hover:border-green-500/50 transition-colors group">
-            <div className="text-green-500/60 text-xs font-bold tracking-widest mb-1 group-hover:text-green-400">FILES_SCANNED</div>
-            <div className="text-green-400 text-2xl font-bold">{data.summary.files}</div>
+            <div className="text-green-500/60 text-xs font-bold tracking-widest mb-1 group-hover:text-green-400">Critical</div>
+            <div className="text-green-400 text-2xl font-bold">{data.summary.critical}</div>
           </div>
           <div className="bg-black/40 p-4 border border-green-500/20 hover:border-green-500/50 transition-colors group">
-            <div className="text-green-500/60 text-xs font-bold tracking-widest mb-1 group-hover:text-green-400">DEPENDENCIES</div>
-            <div className="text-green-400 text-2xl font-bold">{data.summary.dependencies}</div>
+            <div className="text-green-500/60 text-xs font-bold tracking-widest mb-1 group-hover:text-green-400">High</div>
+            <div className="text-green-400 text-2xl font-bold">{data.summary.high}</div>
           </div>
           <div className="bg-black/40 p-4 border border-green-500/20 hover:border-red-500/50 transition-colors group">
-            <div className="text-green-500/60 text-xs font-bold tracking-widest mb-1 group-hover:text-red-400">VULNERABILITIES</div>
-            <div className="text-red-500 text-2xl font-bold drop-shadow-[0_0_3px_rgba(220,38,38,0.5)]">{data.summary.vulnerabilities}</div>
+            <div className="text-green-500/60 text-xs font-bold tracking-widest mb-1 group-hover:text-red-400">Medium</div>
+            <div className="text-red-500 text-2xl font-bold drop-shadow-[0_0_3px_rgba(220,38,38,0.5)]">{data.summary.medium}</div>
           </div>
           <div className="bg-black/40 p-4 border border-green-500/20 hover:border-red-500/50 transition-colors group">
             <div className="text-green-500/60 text-xs font-bold tracking-widest mb-1 group-hover:text-red-400">CRITICAL_HIGH</div>
