@@ -47,7 +47,8 @@ export const onRequest = defineMiddleware(async (context, next) => {
             body: request.body,
             // Preserve credentials (cookies, auth)
             credentials: 'include',
-        });
+            duplex: 'half',
+        } as any);
 
         // Forward the request to the backend
         const response = await fetch(proxyRequest);
