@@ -5,6 +5,7 @@ import { apiClient } from "../utils/api/client";
 import { API_ENDPOINTS } from "../config/api";
 import { isAuthenticated } from "../utils/api/auth-store";
 import { normalizeSeverity } from "../utils/severity";
+import { organization } from "./orgData";
 
 
 
@@ -465,9 +466,14 @@ export class ScanHandler {
 
     // Save scan result to localStorage for dashboard
     try {
-      const scanHistory = JSON.parse(
-        localStorage.getItem("scan_history") || "[]"
-      );
+      let scanHistory;
+      if (organization.isOrganization) {
+        scanHistory = JSON.parse(
+        localStorage.getItem("org_scan_history") || "[]");
+      } else {
+        scanHistory = JSON.parse(
+        localStorage.getItem("scan_history") || "[]");
+      }
       const scanRecord = {
         id: report.scanId,
         timestamp: report.finishedAt,
@@ -484,7 +490,11 @@ export class ScanHandler {
       scanHistory.unshift(scanRecord); // Add to beginning
       // Keep only last 50 scans
       if (scanHistory.length > 50) scanHistory.length = 50;
-      localStorage.setItem("scan_history", JSON.stringify(scanHistory));
+      if (organization.isOrganization) {
+        localStorage.setItem("org_scan_history", JSON.stringify(scanHistory));
+      } else {
+        localStorage.setItem("scan_history", JSON.stringify(scanHistory));
+      }
     } catch (e) {
       logger.error("Failed to save scan to history", e);
     }

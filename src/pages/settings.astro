@@ -710,7 +710,12 @@ import Footer from "../components/Footer.astro";
 
           exportScansBtn?.addEventListener("click", () => {
             try {
-              const scanHistory = localStorage.getItem("scan_history") || "[]";
+              let scanHistory;
+              if (organization.isOrganization) {
+                scanHistory = localStorage.getItem("org_scan_history") || "[]";
+              } else {
+                scanHistory = localStorage.getItem("scan_history") || "[]";
+              }
               const data = JSON.parse(scanHistory);
 
               if (data.length === 0) {
@@ -770,9 +775,16 @@ import Footer from "../components/Footer.astro";
               }
 
               // Merge with existing data
-              const existing = JSON.parse(
-                localStorage.getItem("scan_history") || "[]",
-              );
+              let existing;
+              if (organization.isOrganization) {
+                existing = JSON.parse(
+                  localStorage.getItem("org_scan_history") || "[]",
+                );
+              } else {
+                existing = JSON.parse(
+                  localStorage.getItem("scan_history") || "[]",
+                );
+              }
               const merged = [...data, ...existing];
 
               // Remove duplicates by ID
@@ -783,8 +795,11 @@ import Footer from "../components/Footer.astro";
 
               // Keep only last 50
               if (unique.length > 50) unique.length = 50;
-
-              localStorage.setItem("scan_history", JSON.stringify(unique));
+              if (organization.isOrganization) {
+                localStorage.setItem("org_scan_history", JSON.stringify(unique));
+              } else {
+                localStorage.setItem("scan_history", JSON.stringify(unique));
+              }
 
               if (backupStatus) {
                 backupStatus.textContent = `✅ Imported successfully! Total scans: ${unique.length}`;

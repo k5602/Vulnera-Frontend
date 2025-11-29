@@ -172,6 +172,7 @@ export class Settings {
             organization.falseIsOrganization();
             organization.falseSignOrganization();
             window.alert("Left the organization successfully.");
+            localStorage.removeItem("org_scan_history");
             window.location.reload();
         }
 
@@ -202,6 +203,7 @@ export class Settings {
             organization.falseIsOrganization();
             organization.falseSignOrganization();
             window.alert("Organization deleted successfully.");
+            localStorage.removeItem("org_scan_history");
             window.location.reload();
         }
 

@@ -121,7 +121,7 @@ export class OrgDashboardHandler {
     // Load scan history from local storage
     let scanHistory: any[] = [];
     try {
-      const storedHistory = localStorage.getItem("scan_history");
+      const storedHistory = localStorage.getItem("org_scan_history");
       if (storedHistory) {
         scanHistory = JSON.parse(storedHistory);
       }
@@ -300,6 +300,7 @@ export class OrgDashboardHandler {
     ]);
     this.renderProjects(filteredProjects);
     this.renderChartData(trend);
+    this.renderReports(reports);
   }
 
   changeDashboard(selection: string) {
