@@ -1,8 +1,20 @@
 import { useMemo, useState } from 'react';
 import { usePagination } from '../../hooks/usePagination';
+import { apiClient } from '../../utils/api/client';
 import { enrichService, type EnrichedFinding } from '../../utils/api/enrich-service';
 import { fixService, type FixResponse } from '../../utils/api/fix-service';
 import { getSeverityClasses, SEVERITY_ORDER, type SeverityLevel } from '../../utils/severity';
+
+// Explain API response type
+type ExplainResponse = {
+  explanation?: string;
+  response?: string;
+  result?: string;
+  vulnerability_id?: string;
+  severity?: string;
+  remediation?: string;
+  references?: string[];
+};
 
 export type Vulnerability = {
   id: string;
@@ -65,6 +77,43 @@ export default function ScanReport({ data }: { data: ScanReportData }) {
 
   const [fixingFindingId, setFixingFindingId] = useState<string | null>(null);
   const [fixData, setFixData] = useState<Record<string, FixResponse & { error?: string }>>({});
+
+  // Explain feature state
+  const [explainingFindingId, setExplainingFindingId] = useState<string | null>(null);
+  const [explainData, setExplainData] = useState<Record<string, ExplainResponse & { error?: string }>>({});
+  
+  // Track which action mode is selected for each vulnerability (explain or fix)
+  const [actionMode, setActionMode] = useState<Record<string, 'explain' | 'fix'>>({});
+
+  const handleExplain = async (finding: Vulnerability) => {
+    setExplainingFindingId(finding.id);
+    try {
+      const response = await apiClient.post<ExplainResponse>('/api/v1/llm/explain', {
+        vulnerability_id: finding.cve || finding.id,
+        affected_component: finding.package + (finding.version ? `@${finding.version}` : ''),
+        description: finding.title,
+        audience: 'technical',
+      });
+
+      if (!response.ok) {
+        const errorData = response.error as { message?: string; error?: string } | undefined;
+        throw new Error(errorData?.message || errorData?.error || 'Failed to explain vulnerability');
+      }
+
+      setExplainData(prev => ({
+        ...prev,
+        [finding.id]: response.data!
+      }));
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to explain vulnerability. Please try again.';
+      setExplainData(prev => ({
+        ...prev,
+        [finding.id]: { error: errorMessage }
+      }));
+    } finally {
+      setExplainingFindingId(null);
+    }
+  };
 
   const handleFix = async (finding: Vulnerability) => {
     setFixingFindingId(finding.id);
@@ -428,7 +477,7 @@ export default function ScanReport({ data }: { data: ScanReportData }) {
           {displayedVulnerabilities.map((v) => (
             <li
               key={v.id}
-              className={`relative border bg-black/60 p-5 transition-all hover:bg-black/80 group ${v.severity === 'CRITICAL' ? 'border-red-500 shadow-[0_0_10px_rgba(220,38,38,0.2)]' :
+              className={`relative border bg-black/60 p-5 transition-all hover:bg-black/80 group overflow-hidden ${v.severity === 'CRITICAL' ? 'border-red-500 shadow-[0_0_10px_rgba(220,38,38,0.2)]' :
                 v.severity === 'HIGH' ? 'border-orange-500 shadow-[0_0_10px_rgba(234,88,12,0.2)]' :
                   v.severity === 'MEDIUM' ? 'border-yellow-500' :
                     'border-blue-500'
@@ -442,15 +491,15 @@ export default function ScanReport({ data }: { data: ScanReportData }) {
                 }`}></div>
 
               <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 relative">
-                <div className="space-y-2 flex-1">
+                <div className="space-y-2 flex-1 min-w-0 overflow-hidden">
                   <div className="flex flex-wrap items-center gap-3">
                     <SeverityBadge level={v.severity} />
-                    <span className="text-green-100 font-bold text-lg tracking-tight">{v.package}</span>
+                    <span className="text-green-100 font-bold text-lg tracking-tight break-all">{v.package}</span>
                     {v.version && v.version !== '-' && (
                       <span className="text-green-500/60 text-sm">v{v.version}</span>
                     )}
                   </div>
-                  <div className="text-green-400/80 font-medium leading-relaxed break-words min-w-0">{v.title}</div>
+                  <div className="text-green-400/80 font-medium leading-relaxed break-words overflow-wrap-anywhere">{v.title}</div>
 
                   {/* Metadata Row */}
                   {detailLevel !== 'minimal' && (
@@ -487,28 +536,74 @@ export default function ScanReport({ data }: { data: ScanReportData }) {
                   ) : null}
                 </div>
 
-                {/* Fix Button - Industrial/Terminal Style */}
+                {/* AI Actions - Toggle Slider + Execute Button */}
                 <div className="flex-shrink-0 pt-1 md:self-start self-end">
-                  {!fixData[v.id] && (
-                    <button
-                      onClick={() => handleFix(v)}
-                      disabled={fixingFindingId === v.id}
-                      className={`px-4 py-2 text-xs font-bold border transition-all duration-150 flex items-center gap-2 uppercase tracking-wider ${fixingFindingId === v.id
-                        ? 'border-green-500 text-green-400 bg-green-900/20 animate-pulse cursor-wait'
-                        : 'bg-green-900/10 text-green-400 border-green-500 hover:bg-green-500 hover:text-black hover:shadow-[0_0_10px_rgba(0,255,65,0.4)]'
+                  <div className="flex flex-col gap-2">
+                    {/* Toggle Slider */}
+                    <div className="flex items-center bg-black/60 border border-green-500/30 rounded-sm overflow-hidden">
+                      <button
+                        onClick={() => setActionMode(prev => ({ ...prev, [v.id]: 'explain' }))}
+                        className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all ${
+                          (actionMode[v.id] || 'explain') === 'explain'
+                            ? 'bg-cyan-500/20 text-cyan-400 border-r border-cyan-500/30'
+                            : 'text-green-500/50 hover:text-green-400 border-r border-green-500/20'
                         }`}
-                    >
-                      {fixingFindingId === v.id ? (
-                        <>
-                          <span>GENERATING...</span>
-                        </>
-                      ) : (
-                        <>
-                          <span>[ EXECUTE_FIX ]</span>
-                        </>
-                      )}
-                    </button>
-                  )}
+                      >
+                        EXPLAIN
+                      </button>
+                      <button
+                        onClick={() => setActionMode(prev => ({ ...prev, [v.id]: 'fix' }))}
+                        className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all ${
+                          actionMode[v.id] === 'fix'
+                            ? 'bg-green-500/20 text-green-400'
+                            : 'text-green-500/50 hover:text-green-400'
+                        }`}
+                      >
+                        FIX
+                      </button>
+                    </div>
+
+                    {/* Execute Button - Changes based on selected mode */}
+                    {(actionMode[v.id] || 'explain') === 'explain' ? (
+                      // Explain Button
+                      !explainData[v.id] && (
+                        <button
+                          onClick={() => handleExplain(v)}
+                          disabled={explainingFindingId === v.id}
+                          className={`px-4 py-2 text-xs font-bold border transition-all duration-150 flex items-center gap-2 uppercase tracking-wider ${
+                            explainingFindingId === v.id
+                              ? 'border-cyan-500 text-cyan-400 bg-cyan-900/20 animate-pulse cursor-wait'
+                              : 'bg-cyan-900/10 text-cyan-400 border-cyan-500 hover:bg-cyan-500 hover:text-black hover:shadow-[0_0_10px_rgba(6,182,212,0.4)]'
+                          }`}
+                        >
+                          {explainingFindingId === v.id ? (
+                            <span>ANALYZING...</span>
+                          ) : (
+                            <span>[ EXPLAIN_CVE ]</span>
+                          )}
+                        </button>
+                      )
+                    ) : (
+                      // Fix Button
+                      !fixData[v.id] && (
+                        <button
+                          onClick={() => handleFix(v)}
+                          disabled={fixingFindingId === v.id}
+                          className={`px-4 py-2 text-xs font-bold border transition-all duration-150 flex items-center gap-2 uppercase tracking-wider ${
+                            fixingFindingId === v.id
+                              ? 'border-green-500 text-green-400 bg-green-900/20 animate-pulse cursor-wait'
+                              : 'bg-green-900/10 text-green-400 border-green-500 hover:bg-green-500 hover:text-black hover:shadow-[0_0_10px_rgba(0,255,65,0.4)]'
+                          }`}
+                        >
+                          {fixingFindingId === v.id ? (
+                            <span>GENERATING...</span>
+                          ) : (
+                            <span>[ EXECUTE_FIX ]</span>
+                          )}
+                        </button>
+                      )
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -522,43 +617,112 @@ export default function ScanReport({ data }: { data: ScanReportData }) {
                 </div>
               )}
 
+              {/* AI Explain Results */}
+              {explainData[v.id] && (
+                <div className={`mt-4 border-2 overflow-hidden ${explainData[v.id].error ? 'border-red-500/50' : 'border-cyan-500/50'} bg-black/80`}>
+                  <div className={`px-4 py-2 border-b flex flex-wrap items-center justify-between gap-2 ${explainData[v.id].error ? 'bg-red-900/20 border-red-500/30' : 'bg-cyan-900/20 border-cyan-500/30'}`}>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className={`text-xs font-bold tracking-widest uppercase ${explainData[v.id].error ? 'text-red-500' : 'text-cyan-500'}`}>
+                        {explainData[v.id].error ? 'ERROR: EXPLAIN_FAILED' : 'VULNERABILITY_EXPLAINED'}
+                      </span>
+                    </div>
+                    {!explainData[v.id].error && explainData[v.id].severity && (
+                      <span className="text-[10px] text-cyan-500/60 flex-shrink-0">
+                        SEVERITY: {explainData[v.id].severity}
+                      </span>
+                    )}
+                  </div>
+                  <div className="p-4 space-y-3 overflow-x-auto">
+                    {explainData[v.id].error ? (
+                      <div className="text-sm text-red-400 font-mono break-words whitespace-pre-wrap">
+                        {explainData[v.id].error}
+                      </div>
+                    ) : (
+                      <>
+                        {/* Main Explanation */}
+                        {(explainData[v.id].explanation || explainData[v.id].response || explainData[v.id].result) && (
+                          <div className="text-sm text-cyan-300/80 leading-relaxed">
+                            <span className="text-cyan-500 font-bold text-xs uppercase tracking-wider block mb-1">Detailed Explanation</span>
+                            <div className="whitespace-pre-wrap break-words border-l-2 border-cyan-500/30 pl-3">
+                              {explainData[v.id].explanation || explainData[v.id].response || explainData[v.id].result}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Remediation */}
+                        {explainData[v.id].remediation && (
+                          <div className="mt-3 text-sm text-green-300/80 leading-relaxed">
+                            <span className="text-green-500 font-bold text-xs uppercase tracking-wider block mb-1">Remediation</span>
+                            <div className="whitespace-pre-wrap break-words bg-green-900/10 p-3 border border-green-500/20">
+                              {explainData[v.id].remediation}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* References */}
+                        {explainData[v.id].references && explainData[v.id].references!.length > 0 && (
+                          <div className="mt-3">
+                            <span className="text-cyan-500/60 font-bold text-[10px] uppercase tracking-wider block mb-2">References</span>
+                            <ul className="space-y-1 overflow-hidden">
+                              {explainData[v.id].references!.map((ref, idx) => (
+                                <li key={idx} className="truncate">
+                                  <a 
+                                    href={ref} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer" 
+                                    className="text-cyan-400 text-xs font-mono hover:underline hover:text-cyan-300 transition-colors break-all"
+                                    title={ref}
+                                  >
+                                    {ref}
+                                  </a>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* AI Fix Results */}
               {fixData[v.id] && (
-                <div className={`mt-4 border-2 ${fixData[v.id].error ? 'border-red-500/50' : 'border-green-500/50'} bg-black/80`}>
-                  <div className={`px-4 py-1 border-b flex items-center justify-between ${fixData[v.id].error ? 'bg-red-900/20 border-red-500/30' : 'bg-green-900/20 border-green-500/30'}`}>
-                    <div className="flex items-center gap-2">
+                <div className={`mt-4 border-2 overflow-hidden ${fixData[v.id].error ? 'border-red-500/50' : 'border-green-500/50'} bg-black/80`}>
+                  <div className={`px-4 py-2 border-b flex flex-wrap items-center justify-between gap-2 ${fixData[v.id].error ? 'bg-red-900/20 border-red-500/30' : 'bg-green-900/20 border-green-500/30'}`}>
+                    <div className="flex items-center gap-2 min-w-0">
                       <span className={`text-xs font-bold tracking-widest uppercase ${fixData[v.id].error ? 'text-red-500' : 'text-green-500'}`}>
                         {fixData[v.id].error ? 'ERROR: GENERATION_FAILED' : 'FIX_SUGGESTION_READY'}
                       </span>
                     </div>
                     {!fixData[v.id].error && (
-                      <span className="text-[10px] text-green-500/60">
+                      <span className="text-[10px] text-green-500/60 flex-shrink-0">
                         CONFIDENCE: {(fixData[v.id].confidence * 100).toFixed(0)}%
                       </span>
                     )}
                   </div>
-                  <div className="p-4 space-y-3">
+                  <div className="p-4 space-y-3 overflow-x-auto">
                     {fixData[v.id].error ? (
-                      <div className="text-sm text-red-400 font-mono">
+                      <div className="text-sm text-red-400 font-mono break-words whitespace-pre-wrap">
                         {fixData[v.id].error}
                       </div>
                     ) : (
                       <>
-                        <div className="text-sm text-green-300/80 leading-relaxed">
+                        <div className="text-sm text-green-300/80 leading-relaxed break-words">
                           <span className="text-green-500 font-bold text-xs uppercase tracking-wider block mb-1">Analysis</span>
                           {fixData[v.id].explanation}
                         </div>
                         <div className="mt-3">
-                          <div className="flex items-center justify-between mb-1">
+                          <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
                             <span className="text-green-500 font-bold text-xs uppercase tracking-wider">Patch Code</span>
                             <button
                               onClick={() => navigator.clipboard.writeText(fixData[v.id].fixed_code)}
-                              className="text-[10px] text-green-500/50 hover:text-green-400 transition-colors uppercase tracking-wider"
+                              className="text-[10px] text-green-500/50 hover:text-green-400 transition-colors uppercase tracking-wider flex-shrink-0"
                             >
                               [ COPY_CODE ]
                             </button>
                           </div>
-                          <pre className="bg-black p-3 border border-green-500/30 text-xs text-green-400 overflow-x-auto custom-scrollbar">
+                          <pre className="bg-black p-3 border border-green-500/30 text-xs text-green-400 overflow-x-auto custom-scrollbar whitespace-pre-wrap break-words">
                             {fixData[v.id].fixed_code}
                           </pre>
                         </div>

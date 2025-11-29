@@ -116,6 +116,7 @@ export const API_ENDPOINTS = {
     // LLM endpoints
     LLM: {
         QUERY: "/api/v1/llm/query",
+        EXPLAIN: "/api/v1/llm/explain",
         ENRICH: "/api/v1/jobs/:job_id/enrich",
         FIX: "/api/v1/llm/fix",
     },
