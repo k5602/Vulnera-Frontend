@@ -23,7 +23,7 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
   >
     <!-- Background Layers -->
     <div class="absolute inset-0 z-0 pointer-events-none">
-      <div class="absolute inset-0 bg-[url('/grid.png')] opacity-[0.03]"></div>
+      <div class="absolute inset-0 opacity-[0.03]" style="background-image: linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px); background-size: 20px 20px;"></div>
       <div
         class="absolute inset-0 bg-gradient-to-b from-black via-transparent to-black"
       >
@@ -31,121 +31,125 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
     </div>
 
     <!-- Content -->
-    <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
-      <header class="mb-12 border-b border-white/10 pb-8">
-        <div class="flex items-center gap-3 mb-4">
-          <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+    <div class="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
+      <header class="mb-16 border-b border-white/10 pb-10 text-center">
+        <div class="flex items-center justify-center gap-3 mb-6">
+          <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(34,197,94,0.5)]"></div>
           <div
-            class="text-green-500/60 font-mono text-xs tracking-widest uppercase"
+            class="text-green-500/80 font-mono text-sm tracking-widest uppercase mt-10"
           >
             System_Ready
           </div>
         </div>
         <h1
           id="scan-title"
-          class="text-3xl sm:text-4xl font-bold text-white font-mono tracking-tight"
+          class="text-4xl sm:text-5xl lg:text-6xl font-bold text-white font-mono tracking-tight mt-8 mb-6"
         >
           VULNERABILITY_SCANNER
         </h1>
-        <p class="text-gray-400 mt-3 font-mono text-sm max-w-2xl">
+        <p class="text-gray-400 mt-4 font-mono text-base sm:text-lg max-w-3xl mx-auto leading-relaxed">
           Initiate deep analysis of dependency manifests or remote repositories.
           Our engine detects vulnerabilities, secrets, and compliance issues.
         </p>
       </header>
 
       <!-- AI Features Description -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
         <div
-          class="bg-white/5 border border-white/10 rounded-sm p-6 hover:border-blue-500/30 transition-colors group"
+          class="bg-white/5 border border-white/10 rounded-lg p-8 hover:border-blue-500/50 hover:shadow-[0_0_30px_rgba(59,130,246,0.15)] transition-all duration-300 group"
         >
-          <div class="flex items-center gap-3 mb-3">
-            <svg
-              class="w-5 h-5 text-blue-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-            </svg>
+          <div class="flex items-center gap-4 mb-4">
+            <div class="p-3 bg-blue-500/10 rounded-lg group-hover:bg-blue-500/20 transition-colors">
+              <svg
+                class="w-7 h-7 text-blue-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+              </svg>
+            </div>
             <h3
-              class="text-blue-400 font-mono text-sm font-bold tracking-wider uppercase"
+              class="text-blue-400 font-mono text-base font-bold tracking-wider uppercase"
             >
               AI_Enrichment
             </h3>
           </div>
-          <p class="text-gray-500 text-xs leading-relaxed font-mono">
+          <p class="text-gray-400 text-sm leading-relaxed font-mono">
             Context-aware vulnerability analysis providing impact assessment and
             false positive reduction.
           </p>
         </div>
 
         <div
-          class="bg-white/5 border border-white/10 rounded-sm p-6 hover:border-purple-500/30 transition-colors group"
+          class="bg-white/5 border border-white/10 rounded-lg p-8 hover:border-purple-500/50 hover:shadow-[0_0_30px_rgba(168,85,247,0.15)] transition-all duration-300 group"
         >
-          <div class="flex items-center gap-3 mb-3">
-            <svg
-              class="w-5 h-5 text-purple-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
-            </svg>
+          <div class="flex items-center gap-4 mb-4">
+            <div class="p-3 bg-purple-500/10 rounded-lg group-hover:bg-purple-500/20 transition-colors">
+              <svg
+                class="w-7 h-7 text-purple-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+              </svg>
+            </div>
             <h3
-              class="text-purple-400 font-mono text-sm font-bold tracking-wider uppercase"
+              class="text-purple-400 font-mono text-base font-bold tracking-wider uppercase"
             >
               Auto_Fix
             </h3>
           </div>
-          <p class="text-gray-500 text-xs leading-relaxed font-mono">
+          <p class="text-gray-400 text-sm leading-relaxed font-mono">
             Automated patch generation for identified vulnerabilities using
             advanced LLM capabilities.
           </p>
         </div>
       </div>
 
-      <!-- Tabbed Interface -->
+      <!-- Tabbed Interface - MAIN SCAN BOX -->
       <div
-        class="border border-white/10 bg-black/50 backdrop-blur-sm rounded-lg overflow-hidden"
+        class="border-2 border-white/20 bg-black/70 backdrop-blur-md rounded-xl overflow-hidden shadow-[0_0_60px_rgba(139,92,246,0.1)] hover:shadow-[0_0_80px_rgba(139,92,246,0.15)] transition-shadow duration-500"
       >
         <!-- Tabs Header -->
-        <div class="flex border-b border-white/10">
+        <div class="flex border-b border-white/10 bg-black/50">
           <button
             id="tab-import"
-            class="flex-1 py-4 text-sm font-mono font-bold uppercase tracking-wider transition-all border-b-2 border-purple-500 text-purple-400 bg-purple-500/5"
+            class="flex-1 py-5 text-base font-mono font-bold uppercase tracking-wider transition-all border-b-2 border-purple-500 text-purple-400 bg-purple-500/5"
           >
             Import_GitHub_Repo
           </button>
           <button
             id="tab-upload"
-            class="flex-1 py-4 text-sm font-mono font-bold uppercase tracking-wider transition-all border-b-2 border-transparent text-gray-500 hover:text-gray-300 hover:bg-white/5"
+            class="flex-1 py-5 text-base font-mono font-bold uppercase tracking-wider transition-all border-b-2 border-transparent text-gray-500 hover:text-gray-300 hover:bg-white/5"
           >
             Upload_Files
           </button>
         </div>
 
         <!-- Tab Content: Import -->
-        <div id="content-import" class="p-8 sm:p-10">
-          <div class="max-w-3xl mx-auto">
-            <div class="flex flex-col gap-6">
+        <div id="content-import" class="p-10 sm:p-12 lg:p-16">
+          <div class="max-w-4xl mx-auto">
+            <div class="flex flex-col gap-8">
               <div class="relative group/input">
                 <input
                   id="repo-url"
                   type="url"
                   placeholder="https://github.com/owner/repo"
-                  class="w-full px-6 py-4 bg-black border border-white/10 text-white placeholder-gray-600 font-mono text-base focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500/50 transition-all rounded-md"
+                  class="w-full px-8 py-5 bg-black border-2 border-white/15 text-white placeholder-gray-600 font-mono text-lg focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:shadow-[0_0_30px_rgba(168,85,247,0.2)] transition-all rounded-lg"
                 />
                 <div
                   id="source-type-toggle"
-                  class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-purple-400 cursor-pointer text-xs font-bold tracking-wider border border-white/10 hover:border-purple-500/50 bg-white/5 hover:bg-purple-500/10 px-2 py-1 rounded transition-all select-none"
+                  class="absolute right-5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-purple-400 cursor-pointer text-sm font-bold tracking-wider border border-white/10 hover:border-purple-500/50 bg-white/5 hover:bg-purple-500/10 px-3 py-1.5 rounded-md transition-all select-none"
                   title="Click to switch source"
                 >
                   GIT
@@ -153,9 +157,9 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
               </div>
 
               <!-- Private Repo & Token Input -->
-              <div class="bg-white/5 border border-white/10 rounded-md p-4">
+              <div class="bg-white/5 border border-white/10 rounded-lg p-6">
                 <label
-                  class="flex items-center gap-3 cursor-pointer group/check select-none mb-0"
+                  class="flex items-center gap-4 cursor-pointer group/check select-none mb-0"
                 >
                   <div class="relative">
                     <input
@@ -164,11 +168,11 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
                       class="peer sr-only"
                     />
                     <div
-                      class="w-5 h-5 border border-gray-600 rounded bg-black peer-checked:bg-purple-600 peer-checked:border-purple-500 transition-all"
+                      class="w-6 h-6 border-2 border-gray-600 rounded-md bg-black peer-checked:bg-purple-600 peer-checked:border-purple-500 transition-all"
                     >
                     </div>
                     <svg
-                      class="absolute inset-0 w-5 h-5 text-white opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none p-0.5"
+                      class="absolute inset-0 w-6 h-6 text-white opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none p-1"
                       viewBox="0 0 20 20"
                       fill="currentColor"
                     >
@@ -179,56 +183,56 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
                     </svg>
                   </div>
                   <span
-                    class="text-sm text-gray-300 font-mono group-hover/check:text-white transition-colors"
+                    class="text-base text-gray-300 font-mono group-hover/check:text-white transition-colors"
                     >Private Repository</span
                   >
                 </label>
 
                 <div
                   id="token-input-container"
-                  class="hidden mt-4 pt-4 border-t border-white/10 animate-fade-in"
+                  class="hidden mt-6 pt-6 border-t border-white/10 animate-fade-in"
                 >
                   <label
                     id="auth-token-label"
                     for="github-token-input"
-                    class="block text-xs text-purple-400 font-mono mb-2 uppercase tracking-wider"
+                    class="block text-sm text-purple-400 font-mono mb-3 uppercase tracking-wider"
                     >GitHub Token (PAT)</label
                   >
                   <input
                     id="github-token-input"
                     type="password"
                     placeholder="ghp_..."
-                    class="w-full px-4 py-3 bg-black border border-purple-500/30 text-white placeholder-gray-700 font-mono text-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500/50 transition-all rounded-md"
+                    class="w-full px-5 py-4 bg-black border-2 border-purple-500/30 text-white placeholder-gray-700 font-mono text-base focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/30 transition-all rounded-lg"
                   />
-                  <p class="text-[10px] text-gray-500 mt-2 font-mono">
+                  <p class="text-xs text-gray-500 mt-3 font-mono">
                     Token is used only for this scan and not stored.
                   </p>
                 </div>
               </div>
 
-              <div class="flex flex-col sm:flex-row items-center gap-6 mt-2">
+              <div class="flex flex-col sm:flex-row items-center gap-8 mt-4">
                 <!-- Analysis Depth Selection -->
-                <div class="flex flex-col gap-2 flex-1 w-full">
+                <div class="flex flex-col gap-3 flex-1 w-full">
                   <span
-                    class="text-[10px] text-gray-500 font-mono uppercase tracking-widest font-bold"
+                    class="text-xs text-gray-500 font-mono uppercase tracking-widest font-bold"
                     >Analysis Depth</span
                   >
-                  <div class="grid grid-cols-3 gap-2">
+                  <div class="grid grid-cols-3 gap-3">
                     <button
                       data-analysis-depth="minimal"
-                      class="analysis-depth-btn border border-white/10 bg-black text-gray-500 py-2.5 font-mono text-[10px] font-bold hover:bg-white/5 hover:text-gray-300 transition-all uppercase rounded-md"
+                      class="analysis-depth-btn border border-white/10 bg-black text-gray-500 py-3.5 font-mono text-xs font-bold hover:bg-white/5 hover:text-gray-300 transition-all uppercase rounded-lg"
                     >
                       MINIMAL
                     </button>
                     <button
                       data-analysis-depth="standard"
-                      class="analysis-depth-btn active border border-purple-500/50 bg-purple-500/10 text-purple-400 py-2.5 font-mono text-[10px] font-bold transition-all uppercase rounded-md"
+                      class="analysis-depth-btn active border-2 border-purple-500/50 bg-purple-500/10 text-purple-400 py-3.5 font-mono text-xs font-bold transition-all uppercase rounded-lg"
                     >
                       STANDARD
                     </button>
                     <button
                       data-analysis-depth="full"
-                      class="analysis-depth-btn border border-white/10 bg-black text-gray-500 py-2.5 font-mono text-[10px] font-bold hover:bg-white/5 hover:text-gray-300 transition-all uppercase rounded-md"
+                      class="analysis-depth-btn border border-white/10 bg-black text-gray-500 py-3.5 font-mono text-xs font-bold hover:bg-white/5 hover:text-gray-300 transition-all uppercase rounded-lg"
                     >
                       FULL
                     </button>
@@ -237,9 +241,9 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
 
                 <button
                   id="btn-import"
-                  class="w-full sm:w-auto px-8 bg-purple-600 hover:bg-purple-500 text-black font-bold py-3 font-mono text-sm transition-all uppercase tracking-wider flex items-center justify-center gap-2 rounded-md h-[42px] mt-auto"
+                  class="w-full sm:w-auto px-12 bg-purple-600 hover:bg-purple-500 text-black font-bold py-4 font-mono text-base transition-all uppercase tracking-wider flex items-center justify-center gap-3 rounded-lg h-[54px] mt-auto shadow-[0_0_20px_rgba(168,85,247,0.3)] hover:shadow-[0_0_40px_rgba(168,85,247,0.5)]"
                 >
-                  <span class="text-lg">🚀</span>
+                  <span class="text-xl">🚀</span>
                   <span>IMPORT_AND_SCAN</span>
                 </button>
               </div>
@@ -248,18 +252,18 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
         </div>
 
         <!-- Tab Content: Upload -->
-        <div id="content-upload" class="hidden p-8 sm:p-10">
-          <div class="max-w-3xl mx-auto">
+        <div id="content-upload" class="hidden p-10 sm:p-12 lg:p-16">
+          <div class="max-w-4xl mx-auto">
             <!-- Dropzone -->
             <div
               id="dropzone"
-              class="relative border-2 border-dashed border-white/10 bg-black/30 hover:bg-white/5 hover:border-cyan-500/30 transition-all group/drop cursor-pointer flex flex-col items-center justify-center p-12 rounded-lg"
+              class="relative border-2 border-dashed border-white/15 bg-black/30 hover:bg-white/5 hover:border-cyan-500/50 transition-all group/drop cursor-pointer flex flex-col items-center justify-center p-16 rounded-xl"
             >
               <div
-                class="text-gray-600 mb-4 group-hover/drop:text-cyan-500 transition-colors transform group-hover/drop:scale-110 duration-300"
+                class="text-gray-600 mb-6 group-hover/drop:text-cyan-500 transition-colors transform group-hover/drop:scale-110 duration-300"
               >
                 <svg
-                  class="w-16 h-16"
+                  class="w-20 h-20"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -272,10 +276,10 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
                   ></path>
                 </svg>
               </div>
-              <p class="text-gray-300 text-base font-mono mb-2 font-bold">
+              <p class="text-gray-300 text-lg font-mono mb-3 font-bold">
                 Drag & drop manifests here
               </p>
-              <p class="text-gray-600 text-xs font-mono mb-6">
+              <p class="text-gray-600 text-sm font-mono mb-8">
                 package.json, requirements.txt, pom.xml
               </p>
 
@@ -283,54 +287,54 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
               <label
                 for="file-input"
                 id="btn-select"
-                class="cursor-pointer bg-white/5 border border-white/10 text-cyan-400 px-6 py-2.5 rounded-md font-mono text-xs font-bold hover:bg-cyan-500/10 hover:border-cyan-500 transition-all uppercase"
+                class="cursor-pointer bg-white/5 border-2 border-white/15 text-cyan-400 px-8 py-3.5 rounded-lg font-mono text-sm font-bold hover:bg-cyan-500/10 hover:border-cyan-500 transition-all uppercase"
               >
                 BROWSE_FILES
               </label>
             </div>
 
             <!-- File List -->
-            <div class="mt-6 min-h-[20px]">
+            <div class="mt-8 min-h-[20px]">
               <ul
                 id="file-list"
-                class="text-gray-400 text-xs font-mono space-y-2 max-h-48 overflow-y-auto custom-scrollbar"
+                class="text-gray-400 text-sm font-mono space-y-3 max-h-56 overflow-y-auto custom-scrollbar"
               >
               </ul>
             </div>
 
-            <div class="mt-8 flex flex-col sm:flex-row items-center gap-6">
+            <div class="mt-10 flex flex-col sm:flex-row items-center gap-8">
               <!-- Analysis Depth Selection -->
-              <div class="flex flex-col gap-2 flex-1 w-full">
+              <div class="flex flex-col gap-3 flex-1 w-full">
                 <span
-                  class="text-[10px] text-gray-500 font-mono uppercase tracking-widest font-bold"
+                  class="text-xs text-gray-500 font-mono uppercase tracking-widest font-bold"
                   >Analysis Depth</span
                 >
-                <div class="grid grid-cols-3 gap-2">
+                <div class="grid grid-cols-3 gap-3">
                   <button
                     data-analysis-depth="minimal"
-                    class="analysis-depth-btn border border-white/10 bg-black text-gray-500 py-2.5 font-mono text-[10px] font-bold hover:bg-white/5 hover:text-gray-300 transition-all uppercase rounded-md"
+                    class="analysis-depth-btn border border-white/10 bg-black text-gray-500 py-3.5 font-mono text-xs font-bold hover:bg-white/5 hover:text-gray-300 transition-all uppercase rounded-lg"
                   >
                     MINIMAL
                   </button>
                   <button
                     data-analysis-depth="standard"
-                    class="analysis-depth-btn active border border-cyan-500/50 bg-cyan-500/10 text-cyan-400 py-2.5 font-mono text-[10px] font-bold transition-all uppercase rounded-md"
+                    class="analysis-depth-btn active border-2 border-cyan-500/50 bg-cyan-500/10 text-cyan-400 py-3.5 font-mono text-xs font-bold transition-all uppercase rounded-lg"
                   >
                     STANDARD
                   </button>
                   <button
                     data-analysis-depth="full"
-                    class="analysis-depth-btn border border-white/10 bg-black text-gray-500 py-2.5 font-mono text-[10px] font-bold hover:bg-white/5 hover:text-gray-300 transition-all uppercase rounded-md"
+                    class="analysis-depth-btn border border-white/10 bg-black text-gray-500 py-3.5 font-mono text-xs font-bold hover:bg-white/5 hover:text-gray-300 transition-all uppercase rounded-lg"
                   >
                     FULL
                   </button>
                 </div>
               </div>
 
-              <div class="flex gap-3 w-full sm:w-auto mt-auto">
+              <div class="flex gap-4 w-full sm:w-auto mt-auto">
                 <button
                   id="btn-reset-files"
-                  class="px-4 py-3 border border-red-500/30 text-red-500 hover:bg-red-500/10 font-mono text-xs font-bold transition-all uppercase rounded-md"
+                  class="px-5 py-4 border-2 border-red-500/30 text-red-500 hover:bg-red-500/10 font-mono text-sm font-bold transition-all uppercase rounded-lg"
                   title="Clear Files"
                 >
                   CLR
@@ -338,7 +342,7 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
 
                 <button
                   id="btn-scan"
-                  class="flex-1 sm:flex-none px-8 bg-cyan-600 hover:bg-cyan-500 text-black font-bold py-3 font-mono text-sm transition-all uppercase tracking-wider flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed rounded-md"
+                  class="flex-1 sm:flex-none px-12 bg-cyan-600 hover:bg-cyan-500 text-black font-bold py-4 font-mono text-base transition-all uppercase tracking-wider flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_40px_rgba(6,182,212,0.5)]"
                 >
                   <span>SCAN_FILES</span>
                 </button>

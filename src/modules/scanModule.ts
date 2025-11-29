@@ -748,7 +748,55 @@ export class ScanHandler {
         { headers }
       );
 
-
+      // Check for authentication/authorization errors that indicate private repo
+      if (!apiResponse.ok) {
+        if (apiResponse.status === 401 || apiResponse.status === 403 || apiResponse.status === 404) {
+          // Check if this might be a private repo issue
+          if (!isPrivateChecked && this.currentSourceType === 'git') {
+            const errorData = apiResponse.data as { error?: string; message?: string; detail?: string } | null;
+            const errorMsg = errorData?.error || errorData?.message || errorData?.detail || '';
+            const isPrivateRepoError = 
+              errorMsg.toLowerCase().includes('private') ||
+              errorMsg.toLowerCase().includes('not found') ||
+              errorMsg.toLowerCase().includes('authentication') ||
+              errorMsg.toLowerCase().includes('unauthorized') ||
+              apiResponse.status === 404;
+            
+            if (isPrivateRepoError) {
+              alert(
+                "🔒 Repository Access Denied\n\n" +
+                "This repository may be private or require authentication.\n\n" +
+                "Please:\n" +
+                "1. Check the 'Private Repository' checkbox\n" +
+                "2. Enter your GitHub Personal Access Token (PAT)\n\n" +
+                "You can generate a token at:\n" +
+                "https://github.com/settings/tokens/new?scopes=repo"
+              );
+              this.btnImport.disabled = false;
+              this.btnImport.textContent = "🚀 IMPORT_AND_SCAN";
+              return;
+            }
+          }
+          // If private was checked but still failed, show different message
+          if (isPrivateChecked) {
+            alert(
+              "🔒 Authentication Failed\n\n" +
+              "Could not access the repository with the provided token.\n\n" +
+              "Please verify:\n" +
+              "• The token has 'repo' scope for private repositories\n" +
+              "• The token is not expired\n" +
+              "• You have access to this repository"
+            );
+            this.btnImport.disabled = false;
+            this.btnImport.textContent = "🚀 IMPORT_AND_SCAN";
+            return;
+          }
+        }
+        
+        // Handle other errors
+        const errorMsg = typeof apiResponse.error === 'string' ? apiResponse.error : `HTTP ${apiResponse.status}`;
+        throw new Error(errorMsg);
+      }
 
       const result = apiResponse.data as {
         job_id?: string;

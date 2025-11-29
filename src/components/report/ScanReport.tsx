@@ -264,7 +264,7 @@ export default function ScanReport({ data }: { data: ScanReportData }) {
     <section id="scan-report-root" className="mt-8 sm:mt-10 space-y-6 font-mono text-green-500">
       {/* Header */}
       <div className="bg-black/80 backdrop-blur-sm p-6 border border-green-500/30 shadow-[0_0_15px_rgba(0,255,65,0.1)] relative overflow-hidden group">
-        <div className="absolute inset-0 bg-[url('/grid.png')] opacity-10 pointer-events-none"></div>
+        <div className="absolute inset-0 opacity-10 pointer-events-none" style={{backgroundImage: 'linear-gradient(rgba(0,255,65,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,65,0.1) 1px, transparent 1px)', backgroundSize: '20px 20px'}}></div>
         <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-green-500"></div>
         <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-green-500"></div>
         <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-green-500"></div>
@@ -589,24 +589,47 @@ export default function ScanReport({ data }: { data: ScanReportData }) {
                         );
                       }
 
+                      // Parse explanation if it's a JSON string containing structured data
+                      let parsedInsights: { explanation?: string; remediation?: string; risk_summary?: string } | null = null;
+                      if (enriched.explanation && typeof enriched.explanation === 'string') {
+                        try {
+                          // Check if it's JSON (starts with { or contains typical JSON patterns)
+                          const trimmed = enriched.explanation.trim();
+                          if (trimmed.startsWith('{') || trimmed.startsWith('```json')) {
+                            // Extract JSON from markdown code block if present
+                            const jsonMatch = trimmed.match(/```json\s*([\s\S]*?)\s*```/);
+                            const jsonStr = jsonMatch ? jsonMatch[1] : trimmed;
+                            parsedInsights = JSON.parse(jsonStr);
+                          }
+                        } catch {
+                          // Not JSON, use as plain text
+                          parsedInsights = null;
+                        }
+                      }
+
+                      // Use parsed insights if available, otherwise use original fields
+                      const riskSummary = parsedInsights?.risk_summary || enriched.risk_summary;
+                      const explanation = parsedInsights?.explanation || (parsedInsights ? null : enriched.explanation);
+                      const remediation = parsedInsights?.remediation || enriched.remediation_suggestion;
+
                       return (
                         <>
-                          {enriched.risk_summary && (
+                          {riskSummary && (
                             <div className="text-sm text-green-300/90">
                               <span className="text-green-500 font-bold text-xs uppercase tracking-wider block mb-1">Risk Assessment</span>
-                              {enriched.risk_summary}
+                              {riskSummary}
                             </div>
                           )}
-                          {enriched.explanation && (
+                          {explanation && (
                             <div className="text-sm text-green-300/80 mt-3">
                               <span className="text-green-500 font-bold text-xs uppercase tracking-wider block mb-1">Technical Detail</span>
-                              {enriched.explanation}
+                              {explanation}
                             </div>
                           )}
-                          {enriched.remediation_suggestion && (
+                          {remediation && (
                             <div className="text-sm text-green-300/80 mt-3 border-l-2 border-green-500/30 pl-3">
                               <span className="text-green-500 font-bold text-xs uppercase tracking-wider block mb-1">Remediation Strategy</span>
-                              {enriched.remediation_suggestion}
+                              <div className="whitespace-pre-wrap">{remediation}</div>
                             </div>
                           )}
                         </>
