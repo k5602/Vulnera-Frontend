@@ -140,7 +140,7 @@ export default function VulneraBot() {
                 onClick={() => setIsOpen(!isOpen)}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
-                aria-label="Toggle VulneraAI Chat"
+                aria-label="Toggle Vulnero bot Chat"
             >
                 {isOpen ? (
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -170,7 +170,7 @@ export default function VulneraBot() {
                         className="fixed bottom-8 right-24 z-40 bg-black/80 backdrop-blur border border-cyber-500/50 text-cyber-400 text-xs font-mono py-1 px-3 rounded pointer-events-none hidden md:block"
                     >
                         <div className="absolute top-1/2 -right-1 w-2 h-2 bg-black border-t border-r border-cyber-500/50 transform rotate-45 -translate-y-1/2"></div>
-                        VULNERA_AI
+                        VULNERO_BOT
                     </motion.div>
                 )}
             </AnimatePresence>
