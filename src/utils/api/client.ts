@@ -121,7 +121,7 @@ export async function apiFetch<T = unknown>(
         document.cookie = `csrf_token=${csrfToken}; path=/; SameSite=Lax`;
         if (csrfToken && !headers["X-CSRF-Token"]) {
             headers["X-CSRF-Token"] = csrfToken;
-            localStorage.setItem("CSRF_STORAGE_KEY", csrfToken);
+            localStorage.setItem("__vulnera_csrf_token", csrfToken);
         } else {
             logger.warn("Proceeding with mutating request without CSRF token");
         }
