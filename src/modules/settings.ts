@@ -1,26 +1,40 @@
 import { apiClient } from "../utils";
 import { organization, OrgData } from "./orgData";
+import { requestDebouncer } from "../utils/api/request-debounce";
 
 export class Settings {
     orgData: OrgData = organization;
+    private debouncedRequest = {
+        pending: false,
+        lastKey: ""
+    };
 
     async getOrgData() {
         const id = this.orgData.orgId;
+        const requestKey = `org-data-${id}`;
 
-        const req = await apiClient.get(`api/v1/organizations/${id}`);
-        if (req.ok) {
-            const data = await req.data as any;
-            this.orgData.orgName = data.name;
-            this.orgData.ownerId = data.owner_id;
-            this.orgData.membersCount = data.members_count;
-            this.orgData.orgDescription = data.description;
-            this.orgData.tier = data.tier;
-            this.orgData.updatedAt = data.updated_at;
-            this.orgData.createdAt = data.created_at;
-            this.orgData.orgId = data.id;
+        // Debounce with 2 second delay to prevent rapid repeated requests
+        const result = await requestDebouncer.debounce(
+            requestKey,
+            async () => {
+                const req = await apiClient.get(`api/v1/organizations/${id}`);
+                if (req.ok) {
+                    const data = await req.data as any;
+                    this.orgData.orgName = data.name;
+                    this.orgData.ownerId = data.owner_id;
+                    this.orgData.membersCount = data.members_count;
+                    this.orgData.orgDescription = data.description;
+                    this.orgData.tier = data.tier;
+                    this.orgData.updatedAt = data.updated_at;
+                    this.orgData.createdAt = data.created_at;
+                    this.orgData.orgId = data.id;
 
-            alert("Organization data updated successfully.");
-        }
+                    alert("Organization data updated successfully.");
+                }
+                return req;
+            },
+            { delay: 2000 }
+        );
     }
 
     async changeOrgName(newName: string) {
