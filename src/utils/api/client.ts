@@ -143,12 +143,12 @@ export async function apiFetch<T = unknown>(
 
     try {
         logger.debug("API Request", { url: fullUrl, method });
-        
+
         // First request attempt
         let res = await fetch(fullUrl, {
             ...opts,
             headers,
-            credentials: "include",
+            credentials: opts.credentials || "include",
         });
 
         // Parse response body once
@@ -165,7 +165,7 @@ export async function apiFetch<T = unknown>(
             }
         }
 
-                // Extract CSRF from response and set as cookie
+        // Extract CSRF from response and set as cookie
         if (data?.csrf_token) {
             if (typeof document !== "undefined") {
                 document.cookie = `csrf_token=${data.csrf_token}; path=/; SameSite=Strict; Secure`;
@@ -227,7 +227,7 @@ export async function apiFetch<T = unknown>(
             res = await fetch(fullUrl, {
                 ...opts,
                 headers,
-                credentials: "include",
+                credentials: opts.credentials || "include",
             });
 
             // Parse retry response
@@ -268,25 +268,28 @@ export async function apiFetch<T = unknown>(
 }
 
 export const apiClient = {
-    get: <T = unknown>(url: string) => apiFetch<T>(url),
-    post: <T = unknown>(url: string, body?: unknown) =>
+    get: <T = unknown>(url: string, opts?: RequestInit) => apiFetch<T>(url, opts),
+    post: <T = unknown>(url: string, body?: unknown, opts?: RequestInit) =>
         apiFetch<T>(url, {
+            ...opts,
             method: "POST",
             body: JSON.stringify(body || {}),
         }),
 
-    put: <T = unknown>(url: string, body?: unknown) =>
+    put: <T = unknown>(url: string, body?: unknown, opts?: RequestInit) =>
         apiFetch<T>(url, {
+            ...opts,
             method: "PUT",
             body: JSON.stringify(body || {}),
         }),
-    delete: <T = unknown>(url: string) => apiFetch<T>(url, { method: "DELETE" }),
-    patch: <T = unknown>(url: string, body?: unknown) =>
+    delete: <T = unknown>(url: string, opts?: RequestInit) => apiFetch<T>(url, { ...opts, method: "DELETE" }),
+    patch: <T = unknown>(url: string, body?: unknown, opts?: RequestInit) =>
         apiFetch<T>(url, {
+            ...opts,
             method: "PATCH",
             body: JSON.stringify(body || {}),
         }),
-    
+
     /**
      * Replace path parameters in a URL template
      * @param template - URL template with :param placeholders (e.g., '/api/jobs/:job_id')

@@ -167,6 +167,12 @@ import Footer from "../components/Footer.astro";
                                     class="block text-xs sm:text-sm text-cyber-300"
                                     >CONFIRM_PASSWORD</label
                                 >
+                                <button
+                                        type="button"
+                                        id="toggle-confirmPassword"
+                                        class="text-xs text-cyber-400 hover:text-cyber-300"
+                                        >[SHOW]</button
+                                >
                             </div>
                             <input
                                 id="confirm"
@@ -267,6 +273,38 @@ import Footer from "../components/Footer.astro";
             errorDiv.classList.add("hidden");
         }
 
+        const togglePasswordBtn = document.getElementById(
+            "toggle-password",
+        ) as HTMLButtonElement;
+        const toggleConfirmPasswordBtn = document.getElementById(
+            "toggle-confirmPassword",
+        ) as HTMLButtonElement;
+
+        togglePasswordBtn.addEventListener("click", () => {
+            const passwordInput = document.getElementById(
+                "password",
+            ) as HTMLInputElement;
+            if (passwordInput.type === "password") {
+                passwordInput.type = "text";
+                togglePasswordBtn.textContent = "[HIDE]";
+            } else {
+                passwordInput.type = "password";
+                togglePasswordBtn.textContent = "[SHOW]";
+            }
+        });
+        toggleConfirmPasswordBtn.addEventListener("click", () => {
+            const passwordInput = document.getElementById(
+                "confirm",
+            ) as HTMLInputElement;
+            if (passwordInput.type === "password") {
+                passwordInput.type = "text";
+                toggleConfirmPasswordBtn.textContent = "[HIDE]";
+            } else {
+                passwordInput.type = "password";
+                toggleConfirmPasswordBtn.textContent = "[SHOW]";
+            }
+        });
+
         form.addEventListener("submit", async (e: Event) => {
             e.preventDefault();
 
@@ -321,7 +359,8 @@ import Footer from "../components/Footer.astro";
             });
 
             if (!res.ok) {
-                showError(res.data?.message || "Registration failed.");
+                const errorData = res.data as any;
+                showError(errorData?.message || "Registration failed.");
                 submitBtn.disabled = false;
                 submitBtn.innerHTML =
                     "<span class='mr-2'>&gt;</span> INIT_SIGNUP";
@@ -329,7 +368,7 @@ import Footer from "../components/Footer.astro";
             }
 
 
-            if (organization.isOrganization) {
+            if (organization.signOrg) {
                 showSuccess("Account created! Redirecting to organization creation...");
             } else {
                 showSuccess("Account created! Redirecting to dashboard...");
@@ -349,7 +388,7 @@ import Footer from "../components/Footer.astro";
                 // ignore refresh errors here; we still redirect
             }
 
-            if (organization.isOrganization) {
+            if (organization.signOrg) {
                 setTimeout(() => {
                     window.location.replace("/orgsignup");
                 }, 800);
@@ -357,8 +396,8 @@ import Footer from "../components/Footer.astro";
                 setTimeout(() => {
                     window.location.replace("/dashboard");
                 }, 800);
-            }
+            // }
 
-        });
+        }});
     </script>
 </Layout>

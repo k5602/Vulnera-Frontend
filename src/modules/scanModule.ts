@@ -17,6 +17,11 @@ export class ScanHandler {
   btnImport: HTMLButtonElement;
   btnReset: HTMLElement;
   repoUrl: HTMLInputElement;
+  chkPrivateRepo: HTMLInputElement;
+  githubTokenInput: HTMLInputElement;
+  authTokenLabel: HTMLElement;
+  sourceTypeToggle: HTMLElement;
+  currentSourceType: 'git' | 's3' = 'git';
   detailLevelBtns: NodeListOf<HTMLElement>;
   analysisDepthBtns: NodeListOf<HTMLElement>;
   selectedDetailLevel: string = "standard"; // Default
@@ -52,18 +57,7 @@ export class ScanHandler {
   }
 
   checkGithubToken() {
-    const token = getCookie("github_token");
-    const notice = document.getElementById("github-token-notice");
-
-    if (!token) {
-      // No token - show notice and disable controls
-      notice?.classList.remove("hidden");
-    } else {
-      // Token exists - hide notice and enable controls
-      notice?.classList.add("hidden");
-    }
-
-    return token;
+    return getCookie("github_token");
   }
 
   removeActiveBTNDetailClass() {
@@ -116,21 +110,44 @@ export class ScanHandler {
   addActiveBTNAnalysisClass() {
     this.analysisDepthBtns.forEach((btn) => {
       btn.addEventListener("click", () => {
-        // Remove active class from all buttons
-        this.removeActiveBTNAnalysisClass();
-        // Add active class to clicked button
-        btn.classList.add(
-          "active",
-          "border-cyber-400/60",
-          "bg-cyber-400/10",
-          "text-cyber-300"
-        );
-        btn.classList.remove("border-gray-600/40", "text-gray-400");
-
         // Update selected analysis depth
         const depthValue = btn.getAttribute("data-analysis-depth");
         this.selectedAnalysisDepth = depthValue || "standard";
         logger.debug("Analysis depth selected:", this.selectedAnalysisDepth);
+
+        // Update UI for ALL buttons to match the selected depth
+        this.analysisDepthBtns.forEach((b) => {
+          const bDepth = b.getAttribute("data-analysis-depth");
+          if (bDepth === this.selectedAnalysisDepth) {
+            // Add active class
+            b.classList.add("active");
+            b.classList.remove("border-gray-600/40", "text-gray-400", "border-transparent");
+
+            // Check if it's in the upload section (cyan) or github section (purple)
+            // This is a bit hacky, but we can check the parent or just apply generic active styles
+            // For now, let's try to preserve the specific color if possible, or just use a neutral active color
+            // Or better: check if the button contains specific classes or is in a specific container.
+            // Simpler: Just re-apply the classes that were there initially for "active" state.
+            // But the initial HTML has different colors (purple vs cyan).
+
+            if (b.closest('#github-import-section')) {
+              b.classList.add("border-purple-500/30", "bg-purple-500/10", "text-purple-300");
+              b.classList.remove("text-gray-500");
+            } else {
+              // Upload section (Cyan)
+              b.classList.add("border-cyan-500/30", "bg-cyan-500/10", "text-cyan-300");
+              b.classList.remove("text-gray-500");
+            }
+          } else {
+            // Remove active class
+            b.classList.remove(
+              "active",
+              "border-purple-500/30", "bg-purple-500/10", "text-purple-300",
+              "border-cyan-500/30", "bg-cyan-500/10", "text-cyan-300"
+            );
+            b.classList.add("border-transparent", "text-gray-500");
+          }
+        });
       });
     });
   }
@@ -636,6 +653,16 @@ export class ScanHandler {
       return;
     }
 
+    // Check for private repo checkbox and token input
+    const isPrivateChecked = this.chkPrivateRepo?.checked;
+    const manualToken = this.githubTokenInput?.value;
+
+    // Use manual token if provided, otherwise fallback to cookie
+    const token = manualToken || this.checkGithubToken();
+    const isPrivate = !!token || isPrivateChecked;
+
+    logger.debug("Importing repository", { url, isPrivate, hasToken: !!token, manualToken: !!manualToken });
+
     try {
       this.btnImport.disabled = true;
       this.btnImport.textContent = "> IMPORTING...";
@@ -644,14 +671,40 @@ export class ScanHandler {
         alert("⚠️ Session expired. Please log in again.");
         return;
       }
+      let owner, repo;
+      if (this.currentSourceType === 'git') {
+        const urlObj = new URL(url);
+        const parts = urlObj.pathname.split("/").filter((p) => p);
+        if (parts.length < 2) {
+          alert("⚠️ Invalid GitHub URL. Format: https://github.com/owner/repo");
+          this.btnImport.disabled = false;
+          this.btnImport.textContent = "🚀 IMPORT_AND_SCAN";
+          return;
+        }
+        owner = parts[0];
+        repo = parts[1]?.replace(/\.git$/, "");
+      } else {
+        // For S3, we might not need owner/repo parsing in the same way, or we parse bucket/key
+        // For now, let's just use the URL as is or do basic validation
+        if (!url.startsWith('s3://') && !url.startsWith('https://')) {
+          // Basic check, though https s3 urls exist too
+        }
+        // For S3, owner/repo might not be directly applicable, or we can derive bucket/key
+        // For now, we'll leave them undefined or set to empty strings if not used.
+        owner = "";
+        repo = "";
+      }
 
-      const urlObj = new URL(url);
-      const parts = urlObj.pathname.split("/").filter((p) => p);
-      const owner = parts[0];
-      const repo = parts[1]?.replace(/\.git$/, "");
-
-      if (!owner || !repo) {
+      if (!owner && this.currentSourceType === 'git' || !repo && this.currentSourceType === 'git') {
         throw new Error("Invalid GitHub URL format.");
+      }
+
+      // If private checked but no token
+      if (isPrivateChecked && !token) {
+        alert("⚠️ Please enter a GitHub token for private repositories.");
+        this.btnImport.disabled = false;
+        this.btnImport.textContent = "🚀 IMPORT_AND_SCAN";
+        return;
       }
 
       // For git repositories, source_uri is the GitHub URL
@@ -687,21 +740,56 @@ export class ScanHandler {
 
       const apiResponse = await apiClient.post(
         API_ENDPOINTS.ANALYSIS.ANALYZE,
-        requestBody
+        requestBody,
+        { headers }
       );
 
+      // Check for authentication/authorization errors that indicate private repo
       if (!apiResponse.ok) {
-        if (apiResponse.status === 401) {
-          throw new Error("Session expired. Please log in again.");
+        if (apiResponse.status === 401 || apiResponse.status === 403 || apiResponse.status === 404) {
+          // Check if this might be a private repo issue
+          if (!isPrivateChecked && this.currentSourceType === 'git') {
+            const errorData = apiResponse.data as { error?: string; message?: string; detail?: string } | null;
+            const errorMsg = errorData?.error || errorData?.message || errorData?.detail || '';
+            const isPrivateRepoError = 
+              errorMsg.toLowerCase().includes('private') ||
+              errorMsg.toLowerCase().includes('not found') ||
+              errorMsg.toLowerCase().includes('authentication') ||
+              errorMsg.toLowerCase().includes('unauthorized') ||
+              apiResponse.status === 404;
+            
+            if (isPrivateRepoError) {
+              alert(
+                "🔒 Repository Access Denied\n\n" +
+                "This repository may be private or require authentication.\n\n" +
+                "Please:\n" +
+                "1. Check the 'Private Repository' checkbox\n" +
+                "2. Enter your GitHub Personal Access Token (PAT)\n\n" +
+                "You can generate a token at:\n" +
+                "https://github.com/settings/tokens/new?scopes=repo"
+              );
+              this.btnImport.disabled = false;
+              this.btnImport.textContent = "🚀 IMPORT_AND_SCAN";
+              return;
+            }
+          }
+          // If private was checked but still failed, show different message
+          if (isPrivateChecked) {
+            alert(
+              "🔒 Authentication Failed\n\n" +
+              "Could not access the repository with the provided token.\n\n" +
+              "Please verify:\n" +
+              "• The token has 'repo' scope for private repositories\n" +
+              "• The token is not expired\n" +
+              "• You have access to this repository"
+            );
+            this.btnImport.disabled = false;
+            this.btnImport.textContent = "🚀 IMPORT_AND_SCAN";
+            return;
+          }
         }
-        if (apiResponse.status === 404) {
-          throw new Error(
-            "Backend /api/v1/analyze/job endpoint not implemented."
-          );
-        }
-        if (apiResponse.status === 429) {
-          throw new Error("Rate limit exceeded. Try again later.");
-        }
+        
+        // Handle other errors
         const errorMsg = typeof apiResponse.error === 'string' ? apiResponse.error : `HTTP ${apiResponse.status}`;
         throw new Error(errorMsg);
       }
@@ -925,7 +1013,21 @@ export class ScanHandler {
   }
 
 
-  constructor(dropzone: HTMLElement, input: HTMLInputElement, list: HTMLElement, btnScan: HTMLButtonElement, btnImport: HTMLButtonElement, btnReset: HTMLButtonElement, repoUrl: HTMLInputElement, detailLevelBtns: NodeListOf<HTMLButtonElement>, analysisDepthBtns: NodeListOf<HTMLButtonElement>) {
+  constructor(
+    dropzone: HTMLElement,
+    input: HTMLInputElement,
+    list: HTMLElement,
+    btnScan: HTMLButtonElement,
+    btnImport: HTMLButtonElement,
+    btnReset: HTMLButtonElement,
+    repoUrl: HTMLInputElement,
+    chkPrivateRepo: HTMLInputElement,
+    githubTokenInput: HTMLInputElement,
+    authTokenLabel: HTMLElement,
+    sourceTypeToggle: HTMLElement,
+    detailLevelBtns: NodeListOf<HTMLElement>,
+    analysisDepthBtns: NodeListOf<HTMLElement>
+  ) {
     this.dropzone = dropzone;
     this.input = input;
     this.list = list;
@@ -933,7 +1035,43 @@ export class ScanHandler {
     this.btnImport = btnImport;
     this.btnReset = btnReset;
     this.repoUrl = repoUrl;
+    this.chkPrivateRepo = chkPrivateRepo;
+    this.githubTokenInput = githubTokenInput;
+    this.authTokenLabel = authTokenLabel;
+    this.sourceTypeToggle = sourceTypeToggle;
     this.detailLevelBtns = detailLevelBtns;
     this.analysisDepthBtns = analysisDepthBtns;
+
+    // Initialize checkbox listener
+    this.chkPrivateRepo?.addEventListener('change', () => {
+      const tokenContainer = document.getElementById('token-input-container');
+      if (this.chkPrivateRepo.checked) {
+        tokenContainer?.classList.remove('hidden');
+      } else {
+        tokenContainer?.classList.add('hidden');
+      }
+    });
+
+    // Initialize source type toggle listener
+    this.sourceTypeToggle?.addEventListener('click', () => {
+      if (this.currentSourceType === 'git') {
+        this.currentSourceType = 's3';
+        this.sourceTypeToggle.textContent = 'AWS S3';
+        this.sourceTypeToggle.classList.add('text-orange-400', 'border-orange-500/50', 'bg-orange-500/10');
+        this.sourceTypeToggle.classList.remove('text-gray-500', 'border-white/10', 'bg-white/5');
+        this.repoUrl.placeholder = 's3://bucket-name/path/to/repo';
+        this.authTokenLabel.textContent = 'AWS Credentials';
+        this.githubTokenInput.placeholder = 'Access Key:Secret Key';
+      } else {
+        this.currentSourceType = 'git';
+        this.sourceTypeToggle.textContent = 'GIT';
+        this.sourceTypeToggle.classList.remove('text-orange-400', 'border-orange-500/50', 'bg-orange-500/10');
+        this.sourceTypeToggle.classList.add('text-gray-500', 'border-white/10', 'bg-white/5');
+        this.repoUrl.placeholder = 'https://github.com/owner/repo';
+        this.authTokenLabel.textContent = 'GitHub Token (PAT)';
+        this.githubTokenInput.placeholder = 'ghp_...';
+      }
+      logger.debug("Source type switched to:", this.currentSourceType);
+    });
   }
 }

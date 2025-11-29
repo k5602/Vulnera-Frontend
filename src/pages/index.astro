@@ -626,9 +626,19 @@ const ecosystems = [
     <Footer />
     <script>
         import { organization } from "../modules/orgData";
+        import { isAuthenticated } from "../utils/api/auth-store";
+        if (isAuthenticated()) {
+            if (organization.isOrganization) {
+                window.location.href = "/orgdashboard";
+            }else {
+                window.location.href = "/dashboard";
+            }
+        }
+        organization.falseSignOrganization();
+        organization.falseIsOrganization();
         const createOrgBtn = document.getElementById('create-organization') as HTMLAnchorElement;
         createOrgBtn.addEventListener('click', () => {
-            organization.trueIsOrganization();
+            organization.trueSignOrganization();
         });
     </script>
 </Layout>

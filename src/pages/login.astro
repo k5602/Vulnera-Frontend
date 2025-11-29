@@ -142,6 +142,7 @@ export const prerender = false;
       setCsrfToken,
       setCurrentUser,
     } from "../utils/api/auth-store";
+import { organization } from "../modules/orgData";
 
     // Redirect if already logged in
     if (isAuthenticated()) {
@@ -220,12 +221,13 @@ export const prerender = false;
 
         // Save authentication details
         if (res.data) {
-          if (res.data.csrf_token) setCsrfToken(res.data.csrf_token);
+          const loginData = res.data as any;
+          if (loginData.csrf_token) setCsrfToken(loginData.csrf_token);
 
           setCurrentUser({
-            id: res.data.user_id,
-            email: res.data.email,
-            roles: res.data.roles,
+            id: loginData.user_id,
+            email: loginData.email,
+            roles: loginData.roles,
           });
 
           // Update last refresh timestamp to prevent immediate refresh on dashboard load
@@ -236,12 +238,15 @@ export const prerender = false;
         let isInOrg = false;
 
         if (organizations.ok) {
-          const orgList = organizations.data.organizations;
+          const orgData = organizations.data as any;
+          const orgList = orgData.organizations;
 
           for (let i in orgList) {
             const ownerId = orgList[i].owner_id;
-            if (ownerId == res.data.user_id) {
+            const loginData = res.data as any;
+            if (ownerId == loginData.user_id) {
               isInOrg = true;
+              organization.trueIsOrganization();
               break;
             }
             
