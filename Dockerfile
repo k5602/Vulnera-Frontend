@@ -3,9 +3,17 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+# Configure npm with registry mirror and increased timeout for reliability
+RUN npm config set registry https://registry.npm.taobao.org && \
+    npm config set fetch-timeout 120000 && \
+    npm config set fetch-retry-mintimeout 20000 && \
+    npm config set fetch-retry-maxtimeout 120000 && \
+    npm config set fetch-retries 5
+
 COPY package.json package-lock.json ./
 
-RUN npm ci
+# Install dependencies with BuildKit cache mount for faster rebuilds
+RUN --mount=type=cache,target=/root/.npm npm ci
 
 COPY . .
 
@@ -19,11 +27,18 @@ RUN apk add --no-cache nodejs npm
 
 WORKDIR /app
 
+# Configure npm with registry mirror and increased timeout for reliability
+RUN npm config set registry https://registry.npm.taobao.org && \
+    npm config set fetch-timeout 120000 && \
+    npm config set fetch-retry-mintimeout 20000 && \
+    npm config set fetch-retry-maxtimeout 120000 && \
+    npm config set fetch-retries 5
+
 # Copy package files from builder
 COPY --from=builder /app/package.json /app/package-lock.json ./
 
-# Install only production dependencies
-RUN npm ci --only=production
+# Install only production dependencies with BuildKit cache mount
+RUN --mount=type=cache,target=/root/.npm npm ci --omit=dev
 
 # Copy built Astro app from builder
 COPY --from=builder /app/dist ./dist
@@ -52,4 +67,3 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 
 # Start via entrypoint script
 ENTRYPOINT ["/entrypoint.sh"]
-
