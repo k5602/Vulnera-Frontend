@@ -235,12 +235,17 @@ export const prerender = false;
           localStorage.setItem("last_token_refresh", Date.now().toString());
         }
 
-        const organizations = await apiClient.get("api/v1/organizations");
-        console.log(organizations.data);
+        let organizations;
+
+        try {
+        organizations = await apiClient.get("api/v1/organizations");
+        } catch (error) {
+          showError("Failed to fetch organizations.");
+        }
         
         let isInOrg = false;
 
-        if (organizations.ok) {
+        if (organizations && organizations.ok) {
           const orgData = organizations.data as any;
           const orgList = orgData.organizations;
 
@@ -254,7 +259,7 @@ export const prerender = false;
         let next;
 
         if (isInOrg) {
-          const id = (organizations.data as any).organizations[0].id as string;
+          const id = (organizations!.data as any).organizations[0].id as string;
           setId(id);
           console.log(organization);
           next =
