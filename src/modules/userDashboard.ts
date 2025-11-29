@@ -2,6 +2,64 @@ import { apiClient } from '../utils/index.js';
 import { logger } from '../utils/logger.js';
 import { getSeverityTextColor } from '../utils/severity.js';
 import { organization, loadUserOrganization } from './orgData.js';
+
+/**
+ * Debounce utility to delay execution and prevent duplicate requests
+ */
+class DebouncedRequest {
+  private timeoutId: NodeJS.Timeout | null = null;
+  private lastRequestKey: string | null = null;
+  private isLoading: boolean = false;
+
+  /**
+   * Execute a function with debounce and duplicate prevention
+   * @param key Unique key to identify duplicate requests
+   * @param fn Function to execute
+   * @param delay Delay in milliseconds (default: 2000ms)
+   */
+  async execute<T>(key: string, fn: () => Promise<T>, delay: number = 2000): Promise<T | null> {
+    // If same request is already in flight, skip
+    if (this.isLoading && this.lastRequestKey === key) {
+      logger.debug("Duplicate request detected, skipping", { key });
+      return null;
+    }
+
+    // Clear existing timeout
+    if (this.timeoutId) {
+      clearTimeout(this.timeoutId);
+    }
+
+    this.lastRequestKey = key;
+
+    return new Promise((resolve) => {
+      this.timeoutId = setTimeout(async () => {
+        try {
+          this.isLoading = true;
+          logger.debug("Executing debounced request after 2 second delay", { key });
+          const result = await fn();
+          resolve(result);
+        } catch (error) {
+          logger.error("Debounced request failed", { key, error });
+          resolve(null as any);
+        } finally {
+          this.isLoading = false;
+          this.timeoutId = null;
+        }
+      }, delay);
+    });
+  }
+
+  /**
+   * Cancel any pending request
+   */
+  cancel(): void {
+    if (this.timeoutId) {
+      clearTimeout(this.timeoutId);
+      this.timeoutId = null;
+    }
+  }
+}
+
 export class OrgDashboardHandler {
   criticalElement: HTMLElement;
   highElement: HTMLElement;
@@ -13,6 +71,7 @@ export class OrgDashboardHandler {
   chartSvg: HTMLElement;
   currentReportsFiltered: any[] = [];
   ecoSelect: HTMLSelectElement;
+  private debouncedRequest: DebouncedRequest = new DebouncedRequest();
 
 
   renderOverview(data: any) {
@@ -118,6 +177,16 @@ export class OrgDashboardHandler {
   }
 
   async loadReportsAndProjects() {
+    // Use debounced request with 2 second delay to avoid rate limiting
+    // Key includes orgId to prevent duplicates when requesting same org
+    const requestKey = `org-dashboard-${organization.orgId || 'default'}`;
+    
+    await this.debouncedRequest.execute(requestKey, async () => {
+      await this._performLoadReportsAndProjects();
+    });
+  }
+
+  private async _performLoadReportsAndProjects() {
     // Load scan history from local storage
     let scanHistory: any[] = [];
     try {
@@ -363,6 +432,7 @@ export class DashboardHandler {
   chartSvg: HTMLElement;
   currentReportsFiltered: any[] = [];
   ecoSelect: HTMLSelectElement;
+  private debouncedRequest: DebouncedRequest = new DebouncedRequest();
 
 
   renderOverview(data: any) {
@@ -468,6 +538,15 @@ export class DashboardHandler {
   }
 
   async loadReportsAndProjects() {
+    // Use debounced request with 2 second delay to avoid rate limiting
+    const requestKey = 'user-dashboard-analytics';
+    
+    await this.debouncedRequest.execute(requestKey, async () => {
+      await this._performLoadReportsAndProjects();
+    });
+  }
+
+  private async _performLoadReportsAndProjects() {
     // Load scan history from local storage
     let scanHistory: any[] = [];
     try {

@@ -148,8 +148,12 @@ export default function VulneraBot() {
                     </svg>
                 ) : (
                     <div className="relative">
+                        {/* Robot icon */}
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            <rect x="3" y="7" width="18" height="10" rx="2" ry="2" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11h.01M16 11h.01" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 17v2" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 4v2M15 4v2" />
                         </svg>
                         <span className="absolute -top-1 -right-1 flex h-3 w-3">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyber-400 opacity-75"></span>
