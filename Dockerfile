@@ -1,6 +1,8 @@
 # syntax=docker/dockerfile:1.4
 # Builder stage
 FROM node:20-alpine AS builder
+ARG PORT=3000
+ENV PORT=${PORT}
 
 WORKDIR /app
 
@@ -42,11 +44,12 @@ RUN chmod +x /entrypoint.sh
 # Expose port 5173 (nginx reverse proxy)
 EXPOSE 5173
 
-# Set default backend URL (can be overridden at runtime with -e PUBLIC_API_BASE=...)
-ENV PUBLIC_API_BASE=http://localhost:8000
+# Set default backend URL
+ENV PUBLIC_API_BASE=https://api.vulnera.studio
 
 # Set Astro internal port (nginx proxies to this)
-ENV PORT=3000
+ARG PORT=3000
+ENV PORT=${PORT}
 
 # Health check on nginx port - increased start-period to 90s for cold starts
 HEALTHCHECK --interval=30s --timeout=5s --start-period=90s --retries=3 \

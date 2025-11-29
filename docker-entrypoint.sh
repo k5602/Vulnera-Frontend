@@ -1,6 +1,11 @@
 #!/bin/sh
 set -e
 
+# Default internal port for Astro (Dockerfile provides ENV PORT=3000 in production)
+PORT=${PORT:-3000}
+# ASTRO_PORT used in nginx template (defaults to PORT)
+ASTRO_PORT=${ASTRO_PORT:-$PORT}
+
 # Get backend URL from environment (fallback to localhost:8000 if not set)
 BACKEND_URL="${PUBLIC_API_BASE:-http://localhost:8000}"
 
@@ -30,9 +35,11 @@ echo "[docker-entrypoint] Backend host: $BACKEND_URL_HOST, port: $BACKEND_URL_PO
 # Create nginx config from template using sed (more reliable than envsubst)
 sed -e "s|\${BACKEND_URL_HOST}|$BACKEND_URL_HOST|g" \
     -e "s|\${BACKEND_URL_PORT}|$BACKEND_URL_PORT|g" \
+    -e "s|\${ASTRO_PORT}|$ASTRO_PORT|g" \
     /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
 
 echo "[docker-entrypoint] Nginx config created"
+echo "[docker-entrypoint] Using ASTRO_PORT: $ASTRO_PORT (internal) PORT env: $PORT"
 
 # Verify Astro entry point exists
 if [ ! -f "/app/dist/server/entry.mjs" ]; then
@@ -42,13 +49,13 @@ if [ ! -f "/app/dist/server/entry.mjs" ]; then
     exit 1
 fi
 
-echo "[docker-entrypoint] Starting Astro server on port 3000..."
+echo "[docker-entrypoint] Starting Astro server on port $PORT..."
 # Create a log file to capture Astro output
 ASTRO_LOG="/tmp/astro-server.log"
 : > "$ASTRO_LOG"
 
 # Start Astro app in background and capture output
-node /app/dist/server/entry.mjs > "$ASTRO_LOG" 2>&1 &
+PORT=$PORT node /app/dist/server/entry.mjs > "$ASTRO_LOG" 2>&1 &
 ASTRO_PID=$!
 echo "[docker-entrypoint] Astro server started (PID: $ASTRO_PID)"
 
@@ -78,7 +85,7 @@ while [ $RETRY -lt $MAX_RETRIES ]; do
     fi
 
     # Try to connect to Astro with curl
-    if curl -sf http://localhost:3000/ >/dev/null 2>&1; then
+    if curl -sf http://localhost:$PORT/ >/dev/null 2>&1; then
         echo "[docker-entrypoint] ✓ Astro is ready!"
         break
     fi
