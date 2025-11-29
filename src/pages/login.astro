@@ -142,7 +142,8 @@ export const prerender = false;
       setCsrfToken,
       setCurrentUser,
     } from "../utils/api/auth-store";
-import { organization } from "../modules/orgData";
+  import { organization, setId } from "../modules/orgData";
+  // import { loadOrgData } from "../modules/orgData";
 
     // Redirect if already logged in
     if (isAuthenticated()) {
@@ -235,27 +236,17 @@ import { organization } from "../modules/orgData";
         }
 
         const organizations = await apiClient.get("api/v1/organizations");
+        console.log(organizations.data);
+        
         let isInOrg = false;
 
         if (organizations.ok) {
           const orgData = organizations.data as any;
           const orgList = orgData.organizations;
 
-          for (let i in orgList) {
-            const ownerId = orgList[i].owner_id;
-            const loginData = res.data as any;
-            if (ownerId == loginData.user_id) {
+            if (orgList.length > 0 && orgData.total > 0) {
               isInOrg = true;
-              organization.trueIsOrganization();
-              break;
-            }
-            
           }
-          // Store organizations in localStorage
-          // localStorage.setItem(
-          //   "user_organizations",
-          //   JSON.stringify(organizations.data || []),
-          // );
         }
 
         showSuccess("Login successful! Redirecting...");
@@ -263,6 +254,9 @@ import { organization } from "../modules/orgData";
         let next;
 
         if (isInOrg) {
+          const id = (organizations.data as any).organizations[0].id as string;
+          setId(id);
+          console.log(organization);
           next =
             new URLSearchParams(window.location.search).get("next") ||
             "/orgdashboard";          
