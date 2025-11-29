@@ -62,4 +62,7 @@ export default defineConfig({
     server: {
         port: parseInt(process.env.PORT || "5173", 10),
     },
+    
+    // Enable middleware for API proxying in production
+    middleware: true,
 });
