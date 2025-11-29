@@ -284,12 +284,6 @@ export default function ScanReport({ data }: { data: ScanReportData }) {
     return [header, ...rows].map(r => r.map(escapeCSV).join(',')).join('\n');
   }
 
-  function toFilesCSV(files: FileAnalysis[]) {
-    const header = ['file', 'ecosystem', 'dependencies', 'vulnerable'];
-    const rows = files.map(f => [f.file, f.ecosystem, String(f.dependencies), String(f.vulnerable)]);
-    return [header, ...rows].map(r => r.map(escapeCSV).join(',')).join('\n');
-  }
-
   function printReport() {
     const root = document.getElementById('scan-report-root');
     if (!root) { window.print(); return; }

@@ -91,6 +91,11 @@ export class Settings {
     async transferOwnership(new_id: string) {
         const id = organization.orgId;
 
+        if (!id) {
+            window.alert("Organization ID not available.");
+            return;
+        }
+
         if (!new_id || new_id.trim() === "") {
             window.alert("New owner ID cannot be empty.");
             return;

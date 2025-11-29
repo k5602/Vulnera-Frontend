@@ -27,6 +27,16 @@ export const enrichService = {
             code_contexts: Record<string, string>;
         }
     ): Promise<ApiResponse<EnrichmentResponse>> => {
+        // Validate jobId before making the request
+        if (!jobId || jobId === 'null' || jobId === 'undefined') {
+            return {
+                ok: false,
+                status: 400,
+                error: 'Invalid job ID',
+                data: undefined
+            };
+        }
+        
         return apiClient.post<EnrichmentResponse>(`/api/v1/jobs/${jobId}/enrich`, payload);
     }
 };

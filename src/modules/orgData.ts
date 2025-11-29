@@ -91,7 +91,13 @@ function formatDate(dateString: string) {
     });
 };
 
-async function loadOrgData(orgId: string) {
+async function loadOrgData(orgId: string | null) {
+    // Skip if orgId is not available
+    if (!orgId || orgId === 'null' || orgId === 'undefined') {
+        logger.debug('Organization ID not available, skipping organization data load');
+        return;
+    }
+
     const req = await apiClient.get(`api/v1/organizations/${orgId}`);
     if (req.ok) {
         const data = await req.data as any;
@@ -239,6 +245,10 @@ export async function loadUserOrganization() {
     return false;
 }
 
-loadOrgData(localStorage.getItem('orgId')!);
+// Load organization data if orgId is available in localStorage
+const storedOrgId = typeof localStorage !== 'undefined' ? localStorage.getItem('orgId') : null;
+if (storedOrgId) {
+    loadOrgData(storedOrgId);
+}
 
 export { organization , loadOrgData , setId};

@@ -135,9 +135,6 @@ export class OrgDashboardHandler {
       this.changeDashboard('organization');
     }
 
-    let totalScan = 0;
-    let totalVuln = 0;
-    let apiCallsMth = 0;
     let criticalFindings = 0;
     let highFindings = 0;
     let scans = 0;
@@ -147,70 +144,79 @@ export class OrgDashboardHandler {
     let mHighFindings = 0;
     let mMediumFindings = 0;
     let mLowFindings = 0;
-    
 
-    interface OrgStats {
-      critical_this_month: number,
-      current_month: string,
-      findings_this_month: number,
-      findings_trend_percent: number,
-      high_this_month: number,
-      organization_id: string,
-      scans_this_month: number,
-      scans_trend_percent: number
-    }
-
-    try {
-      const res = await apiClient.get<OrgStats>(`/api/v1/organizations/${organization.orgId}/analytics/dashboard`);
-
-      if (res.ok && res.data) {
-        const data = res.data;
-        criticalFindings = data.critical_this_month;
-        highFindings = data.high_this_month;
-        scans = data.scans_this_month;
-        currMonth = data.current_month;
-        findingsMonth = data.findings_this_month;
-
-        console.log("Org Stats Data:", data);
+    // Skip organization API calls if orgId is not available
+    if (organization.orgId) {
+      interface OrgStats {
+        critical_this_month: number,
+        current_month: string,
+        findings_this_month: number,
+        findings_trend_percent: number,
+        high_this_month: number,
+        organization_id: string,
+        scans_this_month: number,
+        scans_trend_percent: number
       }
-    } catch (e) {
-      logger.error("Failed to load organization stats:", e);
-    }
 
-    interface OrgHStats {
-      months: [
-        {
-      api_calls: number,
-      critical_findings: number,
-      high_findings: number,
-      low_findings: number,
-      medium_findings: number,
-      month: string,
-      reports_generated: number,
-      scans_completed: number,
-      scans_failed: number,
-      total_findings: number
-    }
-      ]
-    }
-    //load organization historical stats
-    try {
-      const res = await apiClient.get<OrgHStats>(`/api/v1/organizations/${organization.orgId}/analytics/usage`);
+      try {
+        const res = await apiClient.get<OrgStats>(`/api/v1/organizations/${organization.orgId}/analytics/dashboard`);
 
-      if (res.ok && res.data) {
-        const data = res.data.months[0];
-        totalScan = data.scans_completed;
-        totalVuln = data.total_findings;
-        apiCallsMth = data.api_calls;
-        mCriticalFindings = data.critical_findings;
-        mHighFindings = data.high_findings;
-        mMediumFindings = data.medium_findings;
-        mLowFindings = data.low_findings;
+        if (res.ok && res.data) {
+          const data = res.data;
+          criticalFindings = data.critical_this_month;
+          highFindings = data.high_this_month;
+          scans = data.scans_this_month;
+          currMonth = data.current_month;
+          findingsMonth = data.findings_this_month;
 
-        console.log("Org history Stats Data:", data);
+          console.log("Org Stats Data:", data);
+        } else if (res.status === 404) {
+          logger.debug("Organization not found, using local scan history only");
+        } else {
+          logger.debug("Failed to load organization stats:", res.status);
+        }
+      } catch (e) {
+        logger.debug("Failed to load organization stats:", e);
       }
-    } catch (e) {
-      logger.error("Failed to load organization stats:", e);
+
+      interface OrgHStats {
+        months: [
+          {
+        api_calls: number,
+        critical_findings: number,
+        high_findings: number,
+        low_findings: number,
+        medium_findings: number,
+        month: string,
+        reports_generated: number,
+        scans_completed: number,
+        scans_failed: number,
+        total_findings: number
+      }
+        ]
+      }
+      //load organization historical stats
+      try {
+        const res = await apiClient.get<OrgHStats>(`/api/v1/organizations/${organization.orgId}/analytics/usage`);
+
+        if (res.ok && res.data) {
+          const data = res.data.months[0];
+          mCriticalFindings = data.critical_findings;
+          mHighFindings = data.high_findings;
+          mMediumFindings = data.medium_findings;
+          mLowFindings = data.low_findings;
+
+          console.log("Org history Stats Data:", data);
+        } else if (res.status === 404) {
+          logger.debug("Organization not found, using local scan history only");
+        } else {
+          logger.debug("Failed to load organization stats:", res.status);
+        }
+      } catch (e) {
+        logger.debug("Failed to load organization stats:", e);
+      }
+    } else {
+      logger.debug("Organization ID not available, skipping organization analytics");
     }
     // Calculate overview stats
 
@@ -506,9 +512,13 @@ export class DashboardHandler {
         lowFindings = data.low_this_month;
         totalScan = data.scans_this_month;
         totalVuln = data.findings_this_month;
+      } else if (res.status === 404 || !res.ok) {
+        // No analytics data available yet (user is new or hasn't scanned anything)
+        logger.debug("No analytics data available, using local scan history only", { status: res.status });
       }
     } catch (e) {
-      logger.error("Failed to load user analytics:", e);
+      logger.debug("Failed to load user analytics (expected for new users):", e);
+      // Continue with local scan history data
     }
     // Calculate overview stats
 

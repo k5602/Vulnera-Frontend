@@ -436,7 +436,7 @@ export class ScanHandler {
 
     const report = {
       scanId: result.project_id || result.scan_id || `scan-${Date.now()}`,
-      jobId: result.job_id || result.scan_id, // Ensure jobId is passed for enrichment
+      jobId: result.job_id || result.scan_id || undefined, // Only set if available, undefined otherwise
       startedAt: result.started_at || new Date().toISOString(),
       finishedAt: result.completed_at || result.finished_at || new Date().toISOString(),
       durationMs: result.metadata?.duration_ms || 0,
