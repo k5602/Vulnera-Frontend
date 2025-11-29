@@ -82,13 +82,13 @@ export class AuthService {
   async listApiKeys(forceRefresh = false): Promise<ApiKeyResponse> {
     try {
       let endpoint = API_ENDPOINTS.AUTH.LIST_API_KEYS;
-      
+
       // Add cache-bust parameter if forced refresh is needed
       if (forceRefresh) {
         const separator = endpoint.includes('?') ? '&' : '?';
         endpoint = `${endpoint}${separator}_t=${Date.now()}`;
       }
-      
+
       const response = await apiClient.get(endpoint);
 
       if (!response.ok) {
@@ -214,6 +214,10 @@ export class AuthService {
   async checkApiKeyEndpoint(): Promise<boolean> {
     try {
       const response = await this.listApiKeys();
+      // If status is 0 (network error) or undefined, assume endpoint doesn't exist
+      if (!response.status) {
+        return false;
+      }
       return response.status !== 404;
     } catch {
       return false;

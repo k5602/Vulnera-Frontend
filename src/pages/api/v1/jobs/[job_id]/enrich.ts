@@ -1,7 +1,21 @@
 export const prerender = false;
 
 import type { APIRoute } from 'astro';
-import { API_ENDPOINTS } from '../../../../../config/api';
+import { serverFetch, createJsonResponse, replacePathParams, API_ENDPOINTS } from '../../../../../utils/api/server-client';
+
+interface EnrichResponse {
+  job_id: string;
+  enriched_count: number;
+  failed_count: number;
+  findings: Array<{
+    id: string;
+    explanation: string;
+    remediation_suggestion: string;
+    risk_summary: string;
+    enrichment_successful: boolean;
+    enrichment_error?: string;
+  }>;
+}
 
 export const POST: APIRoute = async ({ params, request }) => {
   const { job_id } = params;
@@ -17,45 +31,26 @@ export const POST: APIRoute = async ({ params, request }) => {
     const body = await request.json().catch(() => ({}));
     const { finding_ids, code_contexts } = body || {};
 
-    // Read backend base from environment (PUBLIC_API_BASE)
-    const base = process.env.PUBLIC_API_BASE || '';
-    if (!base) {
-      return new Response(JSON.stringify({ error: 'Backend not configured (set PUBLIC_API_BASE)' }), {
-        status: 503,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
+    // Build endpoint with job_id parameter
+    const endpoint = replacePathParams(API_ENDPOINTS.LLM.ENRICH, { job_id });
 
-    const normalizedBase = (base as string).replace(/\/$/, '');
-    const endpoint = API_ENDPOINTS.LLM.ENRICH.replace(':job_id', job_id);
-    const backendUrl = `${normalizedBase}${endpoint}`;
+    // Use centralized serverFetch - automatically forwards cookies and CSRF
+    const response = await serverFetch<EnrichResponse>(
+      request,
+      endpoint,
+      {
+        method: 'POST',
+        body: { finding_ids, code_contexts },
+      }
+    );
 
-    const enrichRes = await fetch(backendUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-      body: JSON.stringify({ finding_ids, code_contexts }),
-    });
-
-    const data = await enrichRes.json();
-
-    if (!enrichRes.ok) {
-      return new Response(JSON.stringify({ error: 'Enrichment backend error', details: data }), {
-        status: Math.max(500, enrichRes.status),
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
-    return new Response(JSON.stringify(data), {
-      status: enrichRes.status,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    // Return response using helper (forwards CSRF token from backend)
+    return createJsonResponse(response);
   } catch (error) {
     return new Response(JSON.stringify({ error: 'Invalid request' }), {
       status: 400,
       headers: { 'Content-Type': 'application/json' },
     });
   }
+};
 };

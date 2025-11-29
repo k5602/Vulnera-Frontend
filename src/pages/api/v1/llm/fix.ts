@@ -1,7 +1,13 @@
 export const prerender = false;
 
 import type { APIRoute } from 'astro';
-import { API_ENDPOINTS } from '../../../../config/api';
+import { serverFetch, createJsonResponse, API_ENDPOINTS } from '../../../../utils/api/server-client';
+
+interface FixResponse {
+  confidence: number;
+  explanation: string;
+  fixed_code: string;
+}
 
 export const POST: APIRoute = async ({ request }) => {
   try {
@@ -16,53 +22,23 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    // Read backend base from environment (PUBLIC_API_BASE)
-    const base = process.env.PUBLIC_API_BASE || '';
-    if (!base) {
-      return new Response(JSON.stringify({ error: 'LLM backend not configured (set PUBLIC_API_BASE)' }), {
-        status: 503,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
+    // Use centralized serverFetch - automatically forwards cookies and CSRF
+    const response = await serverFetch<FixResponse>(
+      request,
+      API_ENDPOINTS.LLM.FIX,
+      {
+        method: 'POST',
+        body: {
+          vulnerability_id,
+          context: context || 'N/A',
+          language: language || 'javascript',
+          vulnerable_code: vulnerable_code || 'Vulnerability reference',
+        },
+      }
+    );
 
-    const normalizedBase = (base as string).replace(/\/$/, '');
-    const backendUrl = `${normalizedBase}${API_ENDPOINTS.LLM.FIX}`;
-
-    // Extract CSRF token from incoming request if present
-    const csrfToken = request.headers.get('X-CSRF-Token');
-    const backendHeaders: Record<string, string> = {
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-    };
-    
-    // Pass CSRF token to backend if available
-    if (csrfToken) {
-      backendHeaders['X-CSRF-Token'] = csrfToken;
-    }
-
-    const llmRes = await fetch(backendUrl, {
-      method: 'POST',
-      headers: backendHeaders,
-      body: JSON.stringify({
-        vulnerability_id,
-        context: context || 'N/A',
-        language: language || 'javascript',
-        vulnerable_code: vulnerable_code || 'Vulnerability reference',
-      }),
-    });
-
-    const data = await llmRes.json();
-    if (!llmRes.ok) {
-      return new Response(JSON.stringify({ error: 'LLM backend error', details: data }), {
-        status: Math.max(500, llmRes.status),
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
-    return new Response(JSON.stringify(data), {
-      status: llmRes.status,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    // Return response using helper (forwards CSRF token from backend)
+    return createJsonResponse(response);
   } catch (error) {
     return new Response(JSON.stringify({ error: 'Invalid request' }), {
       status: 400,

@@ -1,30 +1,15 @@
 export const prerender = false;
 
 import type { APIRoute } from 'astro';
-import { API_ENDPOINTS } from '../../../../config/api';
+import { serverFetch, createJsonResponse, API_ENDPOINTS } from '../../../../utils/api/server-client';
 
-async function getCsrfTokenFromBackend(backendUrl: string): Promise<string> {
-  try {
-    // Try to get CSRF token from a public endpoint or via a GET request with credentials
-    const csrfRes = await fetch(`${backendUrl.replace('/api/v1/llm/explain', '')}/api/v1/health`, {
-      method: 'GET',
-      headers: { 'Accept': 'application/json' },
-      credentials: 'include',
-    });
-    
-    if (csrfRes.ok) {
-      const csrfToken = csrfRes.headers.get('X-CSRF-Token');
-      if (csrfToken) return csrfToken;
-      
-      const data = await csrfRes.json();
-      if (data.csrf || data.csrf_token) {
-        return data.csrf || data.csrf_token;
-      }
-    }
-  } catch (e) {
-    console.error('Failed to fetch CSRF token:', e);
-  }
-  return '';
+interface ExplainResponse {
+  summary?: string;
+  explanation?: string;
+  impact?: string;
+  technical_details?: string;
+  remediation?: string;
+  confidence?: number;
 }
 
 export const POST: APIRoute = async ({ request }) => {
@@ -54,68 +39,23 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    // Read backend base from environment (PUBLIC_API_BASE)
-    const base = process.env.PUBLIC_API_BASE || '';
-    if (!base) {
-      return new Response(JSON.stringify({ error: 'LLM backend not configured (set PUBLIC_API_BASE)' }), {
-        status: 503,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
+    // Use centralized serverFetch - automatically forwards cookies and CSRF
+    const response = await serverFetch<ExplainResponse>(
+      request,
+      API_ENDPOINTS.LLM.EXPLAIN,
+      {
+        method: 'POST',
+        body: {
+          vulnerability_id,
+          description,
+          affected_component,
+          audience: audience || 'technical',
+        },
+      }
+    );
 
-    const normalizedBase = (base as string).replace(/\/$/, '');
-    const backendUrl = `${normalizedBase}${API_ENDPOINTS.LLM.EXPLAIN}`;
-
-    // Try to get CSRF token from incoming request or fetch a new one
-    let csrfToken = request.headers.get('X-CSRF-Token') || '';
-    if (!csrfToken) {
-      csrfToken = await getCsrfTokenFromBackend(backendUrl);
-    }
-
-    const backendHeaders: Record<string, string> = {
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-    };
-    
-    // Pass CSRF token to backend if available
-    if (csrfToken) {
-      backendHeaders['X-CSRF-Token'] = csrfToken;
-    }
-
-    const llmRes = await fetch(backendUrl, {
-      method: 'POST',
-      headers: backendHeaders,
-      credentials: 'include',
-      body: JSON.stringify({
-        vulnerability_id,
-        description,
-        affected_component,
-        audience: audience || 'technical',
-      }),
-    });
-
-    const data = await llmRes.json();
-    
-    // Extract CSRF token from response and include it in the response back to client
-    const responseCsrfToken = llmRes.headers.get('X-CSRF-Token');
-    const responseHeaders: Record<string, string> = {
-      'Content-Type': 'application/json',
-    };
-    if (responseCsrfToken) {
-      responseHeaders['X-CSRF-Token'] = responseCsrfToken;
-    }
-    
-    if (!llmRes.ok) {
-      return new Response(JSON.stringify({ error: 'LLM backend error', details: data }), {
-        status: Math.max(500, llmRes.status),
-        headers: responseHeaders,
-      });
-    }
-
-    return new Response(JSON.stringify(data), {
-      status: llmRes.status,
-      headers: responseHeaders,
-    });
+    // Return response using helper (forwards CSRF token from backend)
+    return createJsonResponse(response);
   } catch (error) {
     return new Response(JSON.stringify({ error: 'Invalid request' }), {
       status: 400,

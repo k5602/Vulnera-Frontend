@@ -1,6 +1,5 @@
 /**
  * API Client (HttpOnly Cookies + CSRF)
- * Now with auto-capture of auth data from responses
  */
 import {
     getCsrfToken,
@@ -10,6 +9,7 @@ import {
 } from "../api/auth-store";
 import { API_CONFIG } from "../../config/api";
 import { logger } from "../logger";
+import { getCookie } from "../cookies";
 
 function normalizeHeaders(init?: HeadersInit): Record<string, string> {
     const normalized: Record<string, string> = {};
@@ -101,10 +101,11 @@ export async function apiFetch<T = unknown>(
         "Content-Type": "application/json",
     } as Record<string, string>;
 
-    // Browser will automatically include HttpOnly cookies (like auth_token)
-    // when using `credentials: 'include'`. Do NOT try to read HttpOnly cookies
-    // from JavaScript and set an Authorization header, as HttpOnly cookies
-    // are not accessible via `document.cookie` or helper utilities.
+    // Add Authorization header if auth token exists
+    const authToken = getCookie("auth_token");
+    if (authToken) {
+        headers["Authorization"] = `Bearer ${authToken}`;
+    }
 
     if (isMutating && !skipCsrf) {
         let csrfToken = getCsrfToken();
@@ -116,9 +117,7 @@ export async function apiFetch<T = unknown>(
             csrfToken = getCsrfToken();
         }
 
-        // Add CSRF token to mutating requests as request header. Do not set
-        // CSRF as a cookie manually - the backend should set HttpOnly cookie
-        // values via Set-Cookie in responses, and the browser will handle them.
+        document.cookie = `csrf_token=${csrfToken}; path=/; SameSite=Lax`;
         if (csrfToken && !headers["X-CSRF-Token"]) {
             headers["X-CSRF-Token"] = csrfToken;
             localStorage.setItem("__vulnera_csrf_token", csrfToken);
@@ -165,14 +164,23 @@ export async function apiFetch<T = unknown>(
             }
         }
 
-        // Extract CSRF from response and store via setCsrfToken (no cookie writing)
+        // Extract CSRF from response and set as cookie
         if (data?.csrf_token) {
+            if (typeof document !== "undefined") {
+                document.cookie = `csrf_token=${data.csrf_token}; path=/; SameSite=Strict; Secure`;
+            }
             setCsrfToken(data.csrf_token);
         }
 
-        // Let the browser handle Set-Cookie headers automatically; do not
-        // parse and set cookies from JavaScript. This prevents conflicts with
-        // HttpOnly cookies and avoids double-setting values.
+        // Also check Set-Cookie header
+        const setCookieHeader = res.headers.get("set-cookie");
+        if (setCookieHeader && typeof document !== "undefined") {
+            // Parse and set individual cookies
+            const cookies = setCookieHeader.split(",");
+            cookies.forEach(cookie => {
+                document.cookie = cookie.trim();
+            });
+        }
 
 
         // Extract and store auth data from response

@@ -25,12 +25,11 @@ import Navigation from "../components/Navigation.astro";
         <div
           class="inline-flex items-center space-x-2 px-3 py-1 rounded-full border border-cyber-500/30 bg-cyber-950/30 backdrop-blur-sm mb-6 mt-10"
         >
-          <span class="relative flex h-2 w-2  ">
+          <span class="relative flex h-2 w-2">
             <span
               class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyber-400 opacity-75"
             ></span>
-            <span
-              class="relative inline-flex rounded-full h-2 w-2 bg-cyber-500 "
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-cyber-500"
             ></span>
           </span>
           <span class="text-xs text-cyber-300 font-mono tracking-wider"
@@ -53,7 +52,9 @@ import Navigation from "../components/Navigation.astro";
 
       <!-- Mode Selector -->
       <div class="flex justify-center mb-12">
-        <div class="flex items-center bg-black/60 border border-cyber-500/30 rounded-lg overflow-hidden">
+        <div
+          class="flex items-center bg-black/60 border border-cyber-500/30 rounded-lg overflow-hidden"
+        >
           <button
             id="mode-explain"
             class="mode-btn px-8 py-3 text-sm font-bold uppercase tracking-wider transition-all border-r border-cyber-500/30 active bg-cyan-500/20 text-cyan-400"
@@ -72,60 +73,128 @@ import Navigation from "../components/Navigation.astro";
       <!-- Main Content Grid -->
       <div class="grid lg:grid-cols-2 gap-8">
         <!-- Explain Form -->
-        <div id="explain-section" class="bg-black/60 backdrop-blur-sm border border-white/10 rounded-xl p-6 lg:p-8">
+        <div
+          id="explain-section"
+          class="bg-black/60 backdrop-blur-sm border border-white/10 rounded-xl p-6 lg:p-8"
+        >
           <div class="flex items-center gap-3 mb-6">
-            <div class="w-10 h-10 rounded-lg bg-cyan-950 border border-cyan-500/30 flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+            <div
+              class="w-10 h-10 rounded-lg bg-cyan-950 border border-cyan-500/30 flex items-center justify-center"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5 text-cyan-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                ></path>
               </svg>
             </div>
             <div>
-              <h2 class="text-xl font-bold text-white font-mono">Explain Vulnerability</h2>
-              <p class="text-sm text-gray-500">Get detailed AI analysis of CVEs</p>
+              <h2 class="text-xl font-bold text-white font-mono">
+                Explain Vulnerability
+              </h2>
+              <p class="text-sm text-gray-500">
+                Get detailed AI analysis of CVEs
+              </p>
             </div>
           </div>
 
           <form id="explain-form" class="space-y-5">
             <!-- Vulnerability ID -->
             <div>
-              <label for="explain_vulnerability_id" class="block text-sm font-mono text-gray-400 mb-2">
+              <label
+                for="explain_vulnerability_id"
+                class="block text-sm font-mono text-gray-400 mb-2"
+              >
                 Vulnerability ID <span class="text-red-500">*</span>
               </label>
-              <input type="text" id="explain_vulnerability_id" name="vulnerability_id" placeholder="CVE-2021-44228"
-                class="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white font-mono text-sm placeholder-gray-600 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30 transition-all" required />
+              <input
+                type="text"
+                id="explain_vulnerability_id"
+                name="vulnerability_id"
+                placeholder="CVE-2021-44228"
+                class="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white font-mono text-sm placeholder-gray-600 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30 transition-all"
+                required
+              />
             </div>
 
             <!-- Description (Optional) -->
             <div>
-              <label for="explain_description" class="block text-sm font-mono text-gray-400 mb-2">
+              <label
+                for="explain_description"
+                class="block text-sm font-mono text-gray-400 mb-2"
+              >
                 Description <span class="text-gray-600">(optional)</span>
               </label>
-              <textarea id="explain_description" name="description" placeholder="Brief description of the vulnerability..."
-                class="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white font-mono text-sm placeholder-gray-600 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30 transition-all resize-none h-20" />
+              <textarea
+                id="explain_description"
+                name="description"
+                placeholder="Brief description of the vulnerability..."
+                class="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white font-mono text-sm placeholder-gray-600 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30 transition-all resize-none h-20"
+              ></textarea>
             </div>
 
             <!-- Affected Component (Optional) -->
             <div>
-              <label for="explain_component" class="block text-sm font-mono text-gray-400 mb-2">
+              <label
+                for="explain_component"
+                class="block text-sm font-mono text-gray-400 mb-2"
+              >
                 Affected Component <span class="text-gray-600">(optional)</span>
               </label>
-              <input type="text" id="explain_component" name="affected_component" placeholder="e.g., Apache Log4j"
-                class="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white font-mono text-sm placeholder-gray-600 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30 transition-all" />
+              <input
+                type="text"
+                id="explain_component"
+                name="affected_component"
+                placeholder="e.g., Apache Log4j"
+                class="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white font-mono text-sm placeholder-gray-600 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30 transition-all"
+              />
             </div>
 
             <!-- Audience Selection -->
             <div>
-              <label class="block text-sm font-mono text-gray-400 mb-2">Target Audience</label>
+              <label class="block text-sm font-mono text-gray-400 mb-2"
+                >Target Audience</label
+              >
               <div class="grid grid-cols-3 gap-3">
-                <button type="button" data-audience="technical" class="audience-btn-explain active border-2 border-cyan-500/50 bg-cyan-500/10 text-cyan-400 py-3 font-mono text-xs font-bold transition-all uppercase rounded-lg">Technical</button>
-                <button type="button" data-audience="executive" class="audience-btn-explain border border-white/10 bg-black text-gray-500 py-3 font-mono text-xs font-bold hover:bg-white/5 hover:text-gray-300 transition-all uppercase rounded-lg">Executive</button>
-                <button type="button" data-audience="developer" class="audience-btn-explain border border-white/10 bg-black text-gray-500 py-3 font-mono text-xs font-bold hover:bg-white/5 hover:text-gray-300 transition-all uppercase rounded-lg">Developer</button>
+                <button
+                  type="button"
+                  data-audience="technical"
+                  class="audience-btn-explain active border-2 border-cyan-500/50 bg-cyan-500/10 text-cyan-400 py-3 font-mono text-xs font-bold transition-all uppercase rounded-lg"
+                  >Technical</button
+                >
+                <button
+                  type="button"
+                  data-audience="executive"
+                  class="audience-btn-explain border border-white/10 bg-black text-gray-500 py-3 font-mono text-xs font-bold hover:bg-white/5 hover:text-gray-300 transition-all uppercase rounded-lg"
+                  >Executive</button
+                >
+                <button
+                  type="button"
+                  data-audience="developer"
+                  class="audience-btn-explain border border-white/10 bg-black text-gray-500 py-3 font-mono text-xs font-bold hover:bg-white/5 hover:text-gray-300 transition-all uppercase rounded-lg"
+                  >Developer</button
+                >
               </div>
             </div>
 
             <!-- Submit Button -->
-            <button type="submit" id="btn-explain" class="w-full bg-linear-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold py-4 font-mono text-sm transition-all uppercase tracking-wider flex items-center justify-center gap-2 rounded-lg shadow-[0_0_20px_rgba(6,182,212,0.2)] hover:shadow-[0_0_30px_rgba(6,182,212,0.4)] disabled:opacity-50 disabled:cursor-not-allowed">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+            <button
+              type="submit"
+              id="btn-explain"
+              class="w-full bg-linear-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold py-4 font-mono text-sm transition-all uppercase tracking-wider flex items-center justify-center gap-2 rounded-lg shadow-[0_0_20px_rgba(6,182,212,0.2)] hover:shadow-[0_0_30px_rgba(6,182,212,0.4)] disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
               >
@@ -141,16 +210,36 @@ import Navigation from "../components/Navigation.astro";
         </div>
 
         <!-- Explain Output Panel -->
-        <div id="explain-output" class="bg-black/60 backdrop-blur-sm border border-white/10 rounded-xl p-6 lg:p-8 flex flex-col">
+        <div
+          id="explain-output"
+          class="bg-black/60 backdrop-blur-sm border border-white/10 rounded-xl p-6 lg:p-8 flex flex-col"
+        >
           <div class="flex items-center gap-3 mb-6">
-            <div class="w-10 h-10 rounded-lg bg-cyan-950 border border-cyan-500/30 flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            <div
+              class="w-10 h-10 rounded-lg bg-cyan-950 border border-cyan-500/30 flex items-center justify-center"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5 text-cyan-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                ></path>
               </svg>
             </div>
             <div>
-              <h2 class="text-xl font-bold text-white font-mono">AI Analysis</h2>
-              <p class="text-sm text-gray-500">Detailed vulnerability explanation</p>
+              <h2 class="text-xl font-bold text-white font-mono">
+                AI Analysis
+              </h2>
+              <p class="text-sm text-gray-500">
+                Detailed vulnerability explanation
+              </p>
             </div>
           </div>
 
@@ -189,7 +278,10 @@ import Navigation from "../components/Navigation.astro";
             </div>
 
             <!-- Loading State -->
-            <div id="loading-state" class="hidden h-full flex-col items-center justify-center">
+            <div
+              id="loading-state"
+              class="hidden h-full flex-col items-center justify-center"
+            >
               <div class="relative">
                 <div
                   class="w-16 h-16 border-4 border-cyber-500/20 rounded-full"
@@ -239,15 +331,32 @@ import Navigation from "../components/Navigation.astro";
         </div>
 
         <!-- Fix Form -->
-        <div id="fix-section" class="hidden bg-black/60 backdrop-blur-sm border border-white/10 rounded-xl p-6 lg:p-8">
+        <div
+          id="fix-section"
+          class="hidden bg-black/60 backdrop-blur-sm border border-white/10 rounded-xl p-6 lg:p-8"
+        >
           <div class="flex items-center gap-3 mb-6">
-            <div class="w-10 h-10 rounded-lg bg-green-950 border border-green-500/30 flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+            <div
+              class="w-10 h-10 rounded-lg bg-green-950 border border-green-500/30 flex items-center justify-center"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5 text-green-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M13 10V3L4 14h7v7l9-11h-7z"></path>
               </svg>
             </div>
             <div>
-              <h2 class="text-xl font-bold text-white font-mono">Generate Fix</h2>
+              <h2 class="text-xl font-bold text-white font-mono">
+                Generate Fix
+              </h2>
               <p class="text-sm text-gray-500">Get AI-generated code fixes</p>
             </div>
           </div>
@@ -255,28 +364,51 @@ import Navigation from "../components/Navigation.astro";
           <form id="fix-form" class="space-y-5">
             <!-- Vulnerability ID -->
             <div>
-              <label for="fix_vulnerability_id" class="block text-sm font-mono text-gray-400 mb-2">
+              <label
+                for="fix_vulnerability_id"
+                class="block text-sm font-mono text-gray-400 mb-2"
+              >
                 Vulnerability ID <span class="text-red-500">*</span>
               </label>
-              <input type="text" id="fix_vulnerability_id" name="vulnerability_id" placeholder="CVE-2021-44228"
-                class="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white font-mono text-sm placeholder-gray-600 focus:outline-none focus:border-green-500/50 focus:ring-1 focus:ring-green-500/30 transition-all" required />
+              <input
+                type="text"
+                id="fix_vulnerability_id"
+                name="vulnerability_id"
+                placeholder="CVE-2021-44228"
+                class="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white font-mono text-sm placeholder-gray-600 focus:outline-none focus:border-green-500/50 focus:ring-1 focus:ring-green-500/30 transition-all"
+                required
+              />
             </div>
 
             <!-- Context/Code -->
             <div>
-              <label for="fix_context" class="block text-sm font-mono text-gray-400 mb-2">
+              <label
+                for="fix_context"
+                class="block text-sm font-mono text-gray-400 mb-2"
+              >
                 Context <span class="text-gray-500">(not required)</span>
               </label>
-              <textarea id="fix_context" name="context" rows="3" placeholder="Affected file path or context code snippet"
-                class="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white font-mono text-sm placeholder-gray-600 focus:outline-none focus:border-green-500/50 focus:ring-1 focus:ring-green-500/30 transition-all resize-none"></textarea>
+              <textarea
+                id="fix_context"
+                name="context"
+                rows="3"
+                placeholder="Affected file path or context code snippet"
+                class="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white font-mono text-sm placeholder-gray-600 focus:outline-none focus:border-green-500/50 focus:ring-1 focus:ring-green-500/30 transition-all resize-none"
+              ></textarea>
             </div>
 
             <!-- Language -->
             <div>
-              <label for="fix_language" class="block text-sm font-mono text-gray-400 mb-2">
+              <label
+                for="fix_language"
+                class="block text-sm font-mono text-gray-400 mb-2"
+              >
               </label>
-              <select id="fix_language" name="language"
-                class="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white font-mono text-sm focus:outline-none focus:border-green-500/50 focus:ring-1 focus:ring-green-500/30 transition-all">
+              <select
+                id="fix_language"
+                name="language"
+                class="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white font-mono text-sm focus:outline-none focus:border-green-500/50 focus:ring-1 focus:ring-green-500/30 transition-all"
+              >
                 <option value="javascript">JavaScript/TypeScript</option>
                 <option value="python">Python</option>
                 <option value="java">Java</option>
@@ -289,9 +421,23 @@ import Navigation from "../components/Navigation.astro";
             </div>
 
             <!-- Submit Button -->
-            <button type="submit" id="btn-fix" class="w-full bg-linear-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-bold py-4 font-mono text-sm transition-all uppercase tracking-wider flex items-center justify-center gap-2 rounded-lg shadow-[0_0_20px_rgba(34,197,94,0.2)] hover:shadow-[0_0_30px_rgba(34,197,94,0.4)] disabled:opacity-50 disabled:cursor-not-allowed">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+            <button
+              type="submit"
+              id="btn-fix"
+              class="w-full bg-linear-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-bold py-4 font-mono text-sm transition-all uppercase tracking-wider flex items-center justify-center gap-2 rounded-lg shadow-[0_0_20px_rgba(34,197,94,0.2)] hover:shadow-[0_0_30px_rgba(34,197,94,0.4)] disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M13 10V3L4 14h7v7l9-11h-7z"></path>
               </svg>
               <span>Generate Fix</span>
             </button>
@@ -299,11 +445,27 @@ import Navigation from "../components/Navigation.astro";
         </div>
 
         <!-- Fix Output Panel -->
-        <div id="fix-output" class="hidden bg-black/60 backdrop-blur-sm border border-white/10 rounded-xl p-6 lg:p-8 flex-col">
+        <div
+          id="fix-output"
+          class="hidden bg-black/60 backdrop-blur-sm border border-white/10 rounded-xl p-6 lg:p-8 flex-col"
+        >
           <div class="flex items-center gap-3 mb-6">
-            <div class="w-10 h-10 rounded-lg bg-green-950 border border-green-500/30 flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            <div
+              class="w-10 h-10 rounded-lg bg-green-950 border border-green-500/30 flex items-center justify-center"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5 text-green-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                ></path>
               </svg>
             </div>
             <div>
@@ -313,24 +475,54 @@ import Navigation from "../components/Navigation.astro";
           </div>
 
           <!-- Result Container -->
-          <div id="fix-result-container" class="flex-1 bg-black/40 border border-white/5 rounded-lg p-5 min-h-[400px] overflow-auto custom-scrollbar">
+          <div
+            id="fix-result-container"
+            class="flex-1 bg-black/40 border border-white/5 rounded-lg p-5 min-h-[400px] overflow-auto custom-scrollbar"
+          >
             <!-- Empty State -->
-            <div id="fix-empty-state" class="h-full flex flex-col items-center justify-center text-center">
+            <div
+              id="fix-empty-state"
+              class="h-full flex flex-col items-center justify-center text-center"
+            >
               <div class="text-gray-700 mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-16 w-16"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1"
+                    d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  ></path>
                 </svg>
               </div>
-              <p class="text-gray-600 font-mono text-sm">Enter vulnerability ID to generate fix</p>
+              <p class="text-gray-600 font-mono text-sm">
+                Enter vulnerability ID to generate fix
+              </p>
             </div>
 
             <!-- Loading State -->
-            <div id="fix-loading-state" class="hidden h-full flex-col items-center justify-center">
+            <div
+              id="fix-loading-state"
+              class="hidden h-full flex-col items-center justify-center"
+            >
               <div class="relative">
-                <div class="w-16 h-16 border-4 border-green-500/20 rounded-full"></div>
-                <div class="absolute top-0 left-0 w-16 h-16 border-4 border-transparent border-t-green-500 rounded-full animate-spin"></div>
+                <div
+                  class="w-16 h-16 border-4 border-green-500/20 rounded-full"
+                >
+                </div>
+                <div
+                  class="absolute top-0 left-0 w-16 h-16 border-4 border-transparent border-t-green-500 rounded-full animate-spin"
+                >
+                </div>
               </div>
-              <p class="text-green-400 font-mono text-sm mt-4 animate-pulse">Generating fix...</p>
+              <p class="text-green-400 font-mono text-sm mt-4 animate-pulse">
+                Generating fix...
+              </p>
             </div>
 
             <!-- Result Content -->
@@ -339,13 +531,29 @@ import Navigation from "../components/Navigation.astro";
             </div>
 
             <!-- Error State -->
-            <div id="fix-error-state" class="hidden h-full flex-col items-center justify-center text-center">
+            <div
+              id="fix-error-state"
+              class="hidden h-full flex-col items-center justify-center text-center"
+            >
               <div class="text-red-500 mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-16 w-16"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1"
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  ></path>
                 </svg>
               </div>
-              <p class="text-red-400 font-mono text-sm" id="fix-error-message">An error occurred</p>
+              <p class="text-red-400 font-mono text-sm" id="fix-error-message">
+                An error occurred
+              </p>
             </div>
           </div>
         </div>
@@ -464,51 +672,75 @@ import Navigation from "../components/Navigation.astro";
 </style>
 
 <script>
-  function getCsrfTokenFromStorage(): string {
-    try {
-      return localStorage.getItem("__vulnera_csrf_token") || "";
-    } catch (e) {
-      console.warn("Failed to get CSRF token from storage");
-      return "";
-    }
-  }
+  import { llmService } from "../utils/api/llm-service";
 
   document.addEventListener("DOMContentLoaded", () => {
     // Mode switching
-    const modeExplainBtn = document.getElementById("mode-explain") as HTMLButtonElement;
+    const modeExplainBtn = document.getElementById(
+      "mode-explain"
+    ) as HTMLButtonElement;
     const modeFixBtn = document.getElementById("mode-fix") as HTMLButtonElement;
     const explainSection = document.getElementById("explain-section");
     const explainOutput = document.getElementById("explain-output");
     const fixSection = document.getElementById("fix-section");
     const fixOutput = document.getElementById("fix-output");
 
-    function switchMode(mode: 'explain' | 'fix') {
+    function switchMode(mode: "explain" | "fix") {
       // Update buttons
-      if (mode === 'explain') {
-        modeExplainBtn?.classList.add("active", "bg-cyan-500/20", "text-cyan-400");
-        modeExplainBtn?.classList.remove("text-green-500/50", "hover:text-green-400");
-        modeFixBtn?.classList.remove("active", "bg-green-500/20", "text-green-400");
+      if (mode === "explain") {
+        modeExplainBtn?.classList.add(
+          "active",
+          "bg-cyan-500/20",
+          "text-cyan-400"
+        );
+        modeExplainBtn?.classList.remove(
+          "text-green-500/50",
+          "hover:text-green-400"
+        );
+        modeFixBtn?.classList.remove(
+          "active",
+          "bg-green-500/20",
+          "text-green-400"
+        );
         modeFixBtn?.classList.add("text-green-500/50", "hover:text-green-400");
       } else {
-        modeFixBtn?.classList.add("active", "bg-green-500/20", "text-green-400");
-        modeFixBtn?.classList.remove("text-green-500/50", "hover:text-green-400");
-        modeExplainBtn?.classList.remove("active", "bg-cyan-500/20", "text-cyan-400");
-        modeExplainBtn?.classList.add("text-green-500/50", "hover:text-green-400");
+        modeFixBtn?.classList.add(
+          "active",
+          "bg-green-500/20",
+          "text-green-400"
+        );
+        modeFixBtn?.classList.remove(
+          "text-green-500/50",
+          "hover:text-green-400"
+        );
+        modeExplainBtn?.classList.remove(
+          "active",
+          "bg-cyan-500/20",
+          "text-cyan-400"
+        );
+        modeExplainBtn?.classList.add(
+          "text-green-500/50",
+          "hover:text-green-400"
+        );
       }
 
       // Show/hide sections
-      explainSection?.classList.toggle("hidden", mode !== 'explain');
-      explainOutput?.classList.toggle("hidden", mode !== 'explain');
-      fixSection?.classList.toggle("hidden", mode !== 'fix');
-      fixOutput?.classList.toggle("hidden", mode !== 'fix');
+      explainSection?.classList.toggle("hidden", mode !== "explain");
+      explainOutput?.classList.toggle("hidden", mode !== "explain");
+      fixSection?.classList.toggle("hidden", mode !== "fix");
+      fixOutput?.classList.toggle("hidden", mode !== "fix");
     }
 
-    modeExplainBtn?.addEventListener("click", () => switchMode('explain'));
-    modeFixBtn?.addEventListener("click", () => switchMode('fix'));
+    modeExplainBtn?.addEventListener("click", () => switchMode("explain"));
+    modeFixBtn?.addEventListener("click", () => switchMode("fix"));
 
     // EXPLAIN MODE
-    const explainForm = document.getElementById("explain-form") as HTMLFormElement;
-    const btnExplain = document.getElementById("btn-explain") as HTMLButtonElement;
+    const explainForm = document.getElementById(
+      "explain-form"
+    ) as HTMLFormElement;
+    const btnExplain = document.getElementById(
+      "btn-explain"
+    ) as HTMLButtonElement;
     const audienceBtns = document.querySelectorAll(".audience-btn-explain");
 
     const emptyState = document.getElementById("empty-state");
@@ -523,11 +755,33 @@ import Navigation from "../components/Navigation.astro";
     audienceBtns.forEach((btn) => {
       btn.addEventListener("click", () => {
         audienceBtns.forEach((b) => {
-          b.classList.remove("active", "border-2", "border-cyan-500/50", "bg-cyan-500/10", "text-cyan-400");
-          b.classList.add("border", "border-white/10", "bg-black", "text-gray-500");
+          b.classList.remove(
+            "active",
+            "border-2",
+            "border-cyan-500/50",
+            "bg-cyan-500/10",
+            "text-cyan-400"
+          );
+          b.classList.add(
+            "border",
+            "border-white/10",
+            "bg-black",
+            "text-gray-500"
+          );
         });
-        btn.classList.remove("border", "border-white/10", "bg-black", "text-gray-500");
-        btn.classList.add("active", "border-2", "border-cyan-500/50", "bg-cyan-500/10", "text-cyan-400");
+        btn.classList.remove(
+          "border",
+          "border-white/10",
+          "bg-black",
+          "text-gray-500"
+        );
+        btn.classList.add(
+          "active",
+          "border-2",
+          "border-cyan-500/50",
+          "bg-cyan-500/10",
+          "text-cyan-400"
+        );
         selectedAudience = (btn as HTMLElement).dataset.audience || "technical";
       });
     });
@@ -555,39 +809,55 @@ import Navigation from "../components/Navigation.astro";
         `;
       } else if (data.explanation || data.response || data.result) {
         const content = data.explanation || data.response || data.result;
-        
+
         html = `
           <div class="space-y-4">
-            ${data.vulnerability_id ? `
+            ${
+              data.vulnerability_id
+                ? `
               <div class="flex items-center gap-2 text-cyber-400 font-mono text-sm">
                 <span class="px-2 py-1 bg-cyber-500/10 border border-cyber-500/30 rounded">${escapeHtml(data.vulnerability_id)}</span>
-                ${data.severity ? `<span class="px-2 py-1 bg-red-500/10 border border-red-500/30 rounded text-red-400">${escapeHtml(data.severity)}</span>` : ''}
+                ${data.severity ? `<span class="px-2 py-1 bg-red-500/10 border border-red-500/30 rounded text-red-400">${escapeHtml(data.severity)}</span>` : ""}
               </div>
-            ` : ''}
+            `
+                : ""
+            }
             
             <div class="text-gray-300 text-sm font-mono whitespace-pre-wrap leading-relaxed border-l-2 border-matrix-500/30 pl-4">
               ${escapeHtml(content)}
             </div>
             
-            ${data.remediation ? `
+            ${
+              data.remediation
+                ? `
               <div class="mt-4 p-4 bg-matrix-500/5 border border-matrix-500/20 rounded-lg">
                 <h4 class="text-matrix-400 font-mono text-sm font-bold mb-2">Remediation</h4>
                 <p class="text-gray-400 text-sm font-mono">${escapeHtml(data.remediation)}</p>
               </div>
-            ` : ''}
+            `
+                : ""
+            }
             
-            ${data.references && data.references.length > 0 ? `
+            ${
+              data.references && data.references.length > 0
+                ? `
               <div class="mt-4">
                 <h4 class="text-gray-500 font-mono text-xs uppercase tracking-wider mb-2">References</h4>
                 <ul class="space-y-1">
-                  ${data.references.map((ref: string) => `
+                  ${data.references
+                    .map(
+                      (ref: string) => `
                     <li>
                       <a href="${escapeHtml(ref)}" target="_blank" rel="noopener" class="text-cyber-400 text-xs font-mono hover:underline">${escapeHtml(ref)}</a>
                     </li>
-                  `).join('')}
+                  `
+                    )
+                    .join("")}
                 </ul>
               </div>
-            ` : ''}
+            `
+                : ""
+            }
           </div>
         `;
       } else {
@@ -623,45 +893,39 @@ import Navigation from "../components/Navigation.astro";
       btnExplain.disabled = true;
 
       try {
-        const csrfToken = getCsrfTokenFromStorage();
-        const response = await fetch("/api/v1/llm/explain", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...(csrfToken && { "X-CSRF-Token": csrfToken }),
-          },
-          body: JSON.stringify({
-            vulnerability_id,
-            description: description || "Vulnerability analysis requested",
-            affected_component: affected_component || "Unknown Component",
-            audience: selectedAudience,
-          }),
+        // Use centralized llmService - handles CSRF and credentials automatically
+        const response = await llmService.explain({
+          vulnerability_id,
+          description: description || "Vulnerability analysis requested",
+          affected_component: affected_component || "Unknown Component",
+          audience: selectedAudience,
         });
 
-        // Capture CSRF token from response for next request
-        const csrfTokenFromResponse = response.headers.get('X-CSRF-Token');
-        if (csrfTokenFromResponse) {
-          try {
-            localStorage.setItem('__vulnera_csrf_token', csrfTokenFromResponse);
-          } catch (e) {
-            console.warn('Failed to store CSRF token');
-          }
-        }
-
-        const data = await response.json();
-
         if (!response.ok) {
-          let errorMsg = data.error || data.details?.message || "Failed to analyze vulnerability";
-          
+          const errorData = response.error as
+            | {
+                error?: string;
+                details?: { message?: string; retry_after?: number };
+                code?: string;
+              }
+            | undefined;
+          let errorMsg =
+            errorData?.error ||
+            errorData?.details?.message ||
+            "Failed to analyze vulnerability";
+
           // Handle rate limiting with retry information
-          if (data.code === "RATE_LIMIT_EXCEEDED" && data.details?.retry_after) {
-            errorMsg = `Rate limit exceeded. Please retry after ${data.details.retry_after} seconds.`;
+          if (
+            errorData?.code === "RATE_LIMIT_EXCEEDED" &&
+            errorData?.details?.retry_after
+          ) {
+            errorMsg = `Rate limit exceeded. Please retry after ${errorData.details.retry_after} seconds.`;
           }
-          
+
           throw new Error(errorMsg);
         }
 
-        formatResult(data);
+        formatResult(response.data);
         showState("result");
       } catch (err: any) {
         if (errorMessage) {
@@ -710,7 +974,7 @@ import Navigation from "../components/Navigation.astro";
           <div>
             <div class="flex items-center justify-between mb-2">
               <h4 class="text-green-500 font-mono text-sm font-bold">Fixed Code</h4>
-              <button type="button" onclick="navigator.clipboard.writeText(\`${data.fixed_code.replace(/`/g, '\\`')}\`)" class="text-xs text-green-500/50 hover:text-green-400">[ COPY ]</button>
+              <button type="button" onclick="navigator.clipboard.writeText(\`${data.fixed_code.replace(/`/g, "\\`")}\`)" class="text-xs text-green-500/50 hover:text-green-400">[ COPY ]</button>
             </div>
             <pre class="bg-black p-3 border border-green-500/30 text-xs text-green-400 overflow-x-auto whitespace-pre-wrap break-words">${escapeHtml(data.fixed_code)}</pre>
           </div>
@@ -736,35 +1000,39 @@ import Navigation from "../components/Navigation.astro";
       btnFix.disabled = true;
 
       try {
-        const csrfToken = getCsrfTokenFromStorage();
-        const response = await fetch("/api/v1/llm/fix", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...(csrfToken && { "X-CSRF-Token": csrfToken }),
-          },
-          body: JSON.stringify({
-            vulnerability_id: vulnerability_id,
-            context: context || "N/A",
-            language: language || "javascript",
-            vulnerable_code: "Vulnerability reference",
-          }),
+        // Use centralized llmService - handles CSRF and credentials automatically
+        const response = await llmService.fix({
+          vulnerability_id,
+          context: context || "N/A",
+          language: language || "javascript",
+          vulnerable_code: "Vulnerability reference",
         });
 
-        const data = await response.json();
-
         if (!response.ok) {
-          let errorMsg = data.error || data.details?.message || "Failed to generate fix";
-          
+          const errorData = response.error as
+            | {
+                error?: string;
+                details?: { message?: string; retry_after?: number };
+                code?: string;
+              }
+            | undefined;
+          let errorMsg =
+            errorData?.error ||
+            errorData?.details?.message ||
+            "Failed to generate fix";
+
           // Handle rate limiting with retry information
-          if (data.code === "RATE_LIMIT_EXCEEDED" && data.details?.retry_after) {
-            errorMsg = `Rate limit exceeded. Please retry after ${data.details.retry_after} seconds.`;
+          if (
+            errorData?.code === "RATE_LIMIT_EXCEEDED" &&
+            errorData?.details?.retry_after
+          ) {
+            errorMsg = `Rate limit exceeded. Please retry after ${errorData.details.retry_after} seconds.`;
           }
-          
+
           throw new Error(errorMsg);
         }
 
-        formatFixResult(data);
+        formatFixResult(response.data);
         showFixState("result");
       } catch (err: any) {
         if (fixErrorMessage) {
