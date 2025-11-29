@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.4
 # Builder stage
 FROM node:20-alpine AS builder
 
@@ -22,8 +23,8 @@ RUN npm run build
 # Production stage - nginx + Node.js runtime
 FROM nginx:alpine
 
-# Install Node.js runtime and npm for Astro server
-RUN apk add --no-cache nodejs npm
+# Install Node.js runtime, npm, and curl for health checks
+RUN apk add --no-cache nodejs npm curl
 
 WORKDIR /app
 
@@ -61,9 +62,9 @@ ENV PUBLIC_API_BASE=http://localhost:8000
 # Set Astro internal port (nginx proxies to this)
 ENV PORT=3000
 
-# Health check on nginx port
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD wget -q -O- http://localhost:5173/ || exit 1
+# Health check on nginx port - increased start-period to 60s for cold starts
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
+    CMD curl -sf http://localhost:5173/ || exit 1
 
 # Start via entrypoint script
 ENTRYPOINT ["/entrypoint.sh"]

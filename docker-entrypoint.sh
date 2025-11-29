@@ -38,18 +38,44 @@ node /app/dist/server/entry.mjs &
 ASTRO_PID=$!
 echo "[docker-entrypoint] Astro server started (PID: $ASTRO_PID)"
 
-# Wait for Astro to be ready (max 30 seconds)
+# Wait for Astro to be ready (max 60 seconds with exponential backoff)
 echo "[docker-entrypoint] Waiting for Astro to be ready..."
-MAX_RETRIES=30
+MAX_RETRIES=60
 RETRY=0
-until wget -q -O- http://localhost:3000/ >/dev/null 2>&1 || [ $RETRY -eq $MAX_RETRIES ]; do
+WAIT_TIME=1
+
+while [ $RETRY -lt $MAX_RETRIES ]; do
+    # Check if Astro process is still running
+    if ! kill -0 $ASTRO_PID 2>/dev/null; then
+        echo "[docker-entrypoint] ERROR: Astro process died unexpectedly (PID: $ASTRO_PID)"
+        # Print last 50 lines of logs for debugging
+        echo "[docker-entrypoint] Last output before crash:"
+        sleep 2
+        exit 1
+    fi
+
+    # Try to connect to Astro with curl (more robust than wget)
+    if curl -sf http://localhost:3000/ >/dev/null 2>&1; then
+        echo "[docker-entrypoint] ✓ Astro is ready!"
+        break
+    fi
+
     RETRY=$((RETRY + 1))
-    echo "[docker-entrypoint] Retry $RETRY/$MAX_RETRIES - waiting for Astro..."
-    sleep 1
+    if [ $((RETRY % 10)) -eq 0 ]; then
+        echo "[docker-entrypoint] Retry $RETRY/$MAX_RETRIES - waiting for Astro to initialize..."
+    fi
+
+    sleep $WAIT_TIME
 done
 
 if [ $RETRY -eq $MAX_RETRIES ]; then
-    echo "[docker-entrypoint] ERROR: Astro server failed to start within 30 seconds"
+    echo "[docker-entrypoint] ERROR: Astro server failed to start within $((MAX_RETRIES * WAIT_TIME)) seconds"
+    echo "[docker-entrypoint] Checking if Astro process is still alive..."
+    if kill -0 $ASTRO_PID 2>/dev/null; then
+        echo "[docker-entrypoint] Astro process is running but not responding to HTTP requests"
+        echo "[docker-entrypoint] Trying to get process info..."
+        ps aux | grep -i astro || true
+    fi
     exit 1
 fi
 
