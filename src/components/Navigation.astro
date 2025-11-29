@@ -88,6 +88,18 @@ import Logo from "./Logo.astro";
                     class="absolute bottom-0 left-0 w-0 h-0.5 bg-cyber-400 transition-all duration-300 group-hover:w-full"
                 ></span>
             </a>
+
+            <!-- Organization Dashboard (visible only if in organization) -->
+            <a id="org-dash-link"
+                href="/orgdashboard"
+                class="nav-auth-only hidden text-matrix-300 hover:text-cyber-400 font-mono text-sm tracking-wider transition-colors duration-300 relative group"
+            >
+                <span class="relative z-10">ORG</span>
+                <span
+                    class="absolute bottom-0 left-0 w-0 h-0.5 bg-cyber-400 transition-all duration-300 group-hover:w-full"
+                ></span>
+            </a>
+
             <a
                 href="/scan"
                 class="nav-auth-only hidden text-matrix-300 hover:text-cyber-400 font-mono text-sm tracking-wider transition-colors duration-300 relative group"
@@ -97,6 +109,18 @@ import Logo from "./Logo.astro";
                     class="absolute bottom-0 left-0 w-0 h-0.5 bg-cyber-400 transition-all duration-300 group-hover:w-full"
                 ></span>
             </a>
+
+            <!-- LLM/AI Feature -->
+            <a
+                href="/llm"
+                class="nav-auth-only hidden text-matrix-300 hover:text-cyber-400 font-mono text-sm tracking-wider transition-colors duration-300 relative group"
+            >
+                <span class="relative z-10">AI</span>
+                <span
+                    class="absolute bottom-0 left-0 w-0 h-0.5 bg-cyber-400 transition-all duration-300 group-hover:w-full"
+                ></span>
+            </a>
+
             <a
                 href="/settings"
                 class="nav-auth-only hidden text-matrix-300 hover:text-cyber-400 font-mono text-sm tracking-wider transition-colors duration-300 relative group"
@@ -124,13 +148,18 @@ import Logo from "./Logo.astro";
     import { organization } from "../modules/orgData";
     // Mobile sidebar toggle
     const toggleBtn = document.getElementById("menu-toggle");
-    const dashboardLink = document.getElementById("dash-link") as HTMLAnchorElement;
+    const orgDashLink = document.getElementById("org-dash-link") as HTMLAnchorElement;
 
-    if (organization.isOrganization) {
-        dashboardLink.href = "/orgdashboard";
-    } else {
-        dashboardLink.href = "/dashboard";
+    // Show/hide organization dashboard link based on organization status
+    function updateOrgDashLink() {
+        if (organization.isOrganization && orgDashLink) {
+            orgDashLink.style.display = "";
+        } else if (orgDashLink) {
+            orgDashLink.style.display = "none";
+        }
     }
+
+    updateOrgDashLink();
 
     // Dispatch event for Sidebar component to handle
     function toggleMobileSidebar() {
@@ -179,5 +208,6 @@ import Logo from "./Logo.astro";
     // Listen for storage changes (multi-tab sync)
     window.addEventListener("storage", () => {
         updateNavVisibility();
+        updateOrgDashLink();
     });
 </script>

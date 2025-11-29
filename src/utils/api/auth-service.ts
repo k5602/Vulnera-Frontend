@@ -76,13 +76,34 @@ export class AuthService {
   }
 
   /**
-   * List API keys for current user
+   * List API keys for current user with rate limit retry logic
+   * @param forceRefresh - Add cache-bust parameter to force fresh API call
    */
-  async listApiKeys(): Promise<ApiKeyResponse> {
+  async listApiKeys(forceRefresh = false): Promise<ApiKeyResponse> {
     try {
-      const response = await apiClient.get(API_ENDPOINTS.AUTH.LIST_API_KEYS);
+      let endpoint = API_ENDPOINTS.AUTH.LIST_API_KEYS;
+      
+      // Add cache-bust parameter if forced refresh is needed
+      if (forceRefresh) {
+        const separator = endpoint.includes('?') ? '&' : '?';
+        endpoint = `${endpoint}${separator}_t=${Date.now()}`;
+      }
+      
+      const response = await apiClient.get(endpoint);
 
       if (!response.ok) {
+        // Handle rate limiting (429) with retry information
+        if (response.status === 429) {
+          const errorData = response.error as { details?: { retry_after?: number } } | undefined;
+          const retryAfter = errorData?.details?.retry_after || 5;
+          return {
+            success: false,
+            status: response.status,
+            error: `Rate limited. Please retry after ${retryAfter} seconds.`,
+            data: response.error,
+          };
+        }
+
         return {
           success: false,
           status: response.status,
@@ -105,13 +126,25 @@ export class AuthService {
   }
 
   /**
-   * Create a new API key
+   * Create a new API key with rate limit handling
    */
   async createApiKey(payload: CreateApiKeyRequest): Promise<ApiKeyResponse> {
     try {
       const response = await apiClient.post(API_ENDPOINTS.AUTH.CREATE_API_KEY, payload);
 
       if (!response.ok) {
+        // Handle rate limiting (429) with retry information
+        if (response.status === 429) {
+          const errorData = response.error as { details?: { retry_after?: number } } | undefined;
+          const retryAfter = errorData?.details?.retry_after || 5;
+          return {
+            success: false,
+            status: response.status,
+            error: `Rate limited. Please retry after ${retryAfter} seconds.`,
+            data: response.error,
+          };
+        }
+
         return {
           success: false,
           status: response.status,
@@ -134,7 +167,7 @@ export class AuthService {
   }
 
   /**
-   * Revoke an API key
+   * Revoke an API key with rate limit handling
    */
   async revokeApiKey(keyId: string): Promise<ApiKeyResponse> {
     try {
@@ -142,6 +175,18 @@ export class AuthService {
       const response = await apiClient.delete(endpoint);
 
       if (!response.ok) {
+        // Handle rate limiting (429) with retry information
+        if (response.status === 429) {
+          const errorData = response.error as { details?: { retry_after?: number } } | undefined;
+          const retryAfter = errorData?.details?.retry_after || 5;
+          return {
+            success: false,
+            status: response.status,
+            error: `Rate limited. Please retry after ${retryAfter} seconds.`,
+            data: response.error,
+          };
+        }
+
         return {
           success: false,
           status: response.status,

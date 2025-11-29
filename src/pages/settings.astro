@@ -826,9 +826,15 @@ import Footer from "../components/Footer.astro";
             userAgentDisplay.textContent =
               navigator.userAgent.substring(0, 50) + "...";
 
-          async function loadApiKeys() {
+          async function loadApiKeys(forceRefresh = false) {
             try {
-              const response = await authService.listApiKeys();
+              logger.debug("loadApiKeys called", { forceRefresh });
+              const response = await authService.listApiKeys(forceRefresh);
+              logger.debug("listApiKeys response received", {
+                success: response.success,
+                status: response.status,
+                hasData: !!response.data,
+              });
 
               if (!response.success) {
                 let errorMsg = response.error || "Failed to load API keys";
@@ -849,6 +855,24 @@ import Footer from "../components/Footer.astro";
                 `;
                   }
                   return; // Don't throw error, just show message
+                }
+
+                // Handle rate limiting
+                if (response.status === 429) {
+                  const container =
+                    document.getElementById("api-keys-container");
+                  if (container) {
+                    container.innerHTML = `
+                  <div class="text-center py-8">
+                    <div class="text-orange-400 mb-2">⏱️ Rate Limited</div>
+                    <p class="text-matrix-300 text-sm">
+                      ${errorMsg}<br/>
+                      Try loading API keys again after the wait period.
+                    </p>
+                  </div>
+                `;
+                  }
+                  return; // Don't throw error, just show retry message
                 }
 
                 throw new Error(errorMsg + ` (HTTP ${response.status || 500})`);
@@ -882,9 +906,14 @@ import Footer from "../components/Footer.astro";
                 logger.warn("Unknown API keys response format", data);
               }
 
-              logger.debug("Extracted keys", { keys, count: keys.length });
+              logger.debug("Extracted keys", {
+                keys,
+                count: keys.length,
+                keyIds: keys.map((k: any) => k.id || k.key_id),
+              });
 
               if (!keys || keys.length === 0) {
+                logger.debug("No keys found, clearing container");
                 container.innerHTML = `
               <div class="text-center py-8 text-matrix-300">
                 <p>No API keys yet. Generate one to get started.</p>
@@ -893,15 +922,42 @@ import Footer from "../components/Footer.astro";
                 return;
               }
 
+              logger.debug("Rendering keys to container", {
+                count: keys.length,
+              });
               container.innerHTML = keys
                 .map(
-                  (key: any) => `
+                  (key: any) => {
+                    // Extract key ID with multiple fallbacks to handle different response formats
+                    const keyId = key.key_id || key.id || key.uuid || key.api_key_id;
+                    
+                    // Validate that we have a key ID before rendering
+                    if (!keyId) {
+                      logger.warn("API key missing ID field", { key });
+                      return "";
+                    }
+
+                    // Check if API supports is_active field (for toggling)
+                    const hasActiveField = key.hasOwnProperty('is_active');
+                    const isActive = key.is_active !== false; // Default to true if field doesn't exist
+                    
+                    // Calculate expiry status
+                    const expiresAt = key.expires_at ? new Date(key.expires_at) : null;
+                    const isExpired = expiresAt && expiresAt < new Date();
+
+                    return `
             <div class="terminal-border bg-black/50 rounded-lg p-4 flex items-center justify-between">
               <div class="flex-1">
                 <div class="flex items-center gap-3 mb-2">
                   <h3 class="text-white font-mono font-bold">${key.name || "Unnamed Key"}</h3>
-                  <span class="key-status-badge px-2 py-1 rounded text-xs font-mono ${key.is_active !== false ? "bg-green-500/20 text-green-400" : "bg-orange-500/20 text-orange-400"}" data-key-id="${key.key_id}">
-                    ${key.is_active !== false ? "🔒 ACTIVE" : "🔓 INACTIVE"}
+                  <span class="key-status-badge px-2 py-1 rounded text-xs font-mono ${
+                    isExpired
+                      ? "bg-red-500/20 text-red-400"
+                      : isActive
+                        ? "bg-green-500/20 text-green-400"
+                        : "bg-orange-500/20 text-orange-400"
+                  }" data-key-id="${keyId}">
+                    ${isExpired ? "⏰ EXPIRED" : isActive ? "🔒 ACTIVE" : "🔓 INACTIVE"}
                   </span>
                 </div>
                 <p class="text-sm text-matrix-300 font-mono">Key: ${key.masked_key || key.key_preview || "••••••••"}</p>
@@ -913,23 +969,30 @@ import Footer from "../components/Footer.astro";
                 </div>
               </div>
               <div class="flex gap-2">
+                ${
+                  hasActiveField
+                    ? `
                 <button
-                  class="toggle-key-btn ${key.is_active !== false ? "bg-orange-500/20 text-orange-400 hover:bg-orange-500/30" : "bg-green-500/20 text-green-400 hover:bg-green-500/30"} px-3 py-1 rounded text-sm font-mono transition-all duration-300"
-                  data-key-id="${key.key_id}"
-                  title="${key.is_active !== false ? "Disable this API key" : "Enable this API key"}"
+                  class="toggle-key-btn ${isActive ? "bg-orange-500/20 text-orange-400 hover:bg-orange-500/30" : "bg-green-500/20 text-green-400 hover:bg-green-500/30"} px-3 py-1 rounded text-sm font-mono transition-all duration-300"
+                  data-key-id="${keyId}"
+                  title="${isActive ? "Disable this API key" : "Enable this API key"}"
                 >
-                  ${key.is_active !== false ? "✎ Disable" : "✎ Enable"}
+                  ${isActive ? "✎ Disable" : "✎ Enable"}
                 </button>
+                `
+                    : ""
+                }
                 <button
                   class="delete-key-btn bg-red-500/20 text-red-400 hover:bg-red-500/30 px-3 py-1 rounded text-sm font-mono transition-all duration-300"
-                  data-key-id="${key.key_id}"
+                  data-key-id="${keyId}"
                   title="Permanently delete this API key"
                 >
                   🗑️ Delete
                 </button>
               </div>
             </div>
-          `,
+          `;
+                  },
                 )
                 .join("");
 
@@ -946,10 +1009,16 @@ import Footer from "../components/Footer.astro";
                   logger.debug("Toggle button clicked", {
                     keyId,
                     isCurrentlyActive,
+                    hasKeyId: !!keyId,
                   });
 
+                  if (!keyId) {
+                    logger.error("Toggle: Key ID is missing or undefined", { button });
+                    alert("❌ Error: API key ID not found. Please refresh and try again.");
+                    return;
+                  }
+
                   if (
-                    keyId &&
                     confirm(
                       `⚠️ ${isCurrentlyActive ? "Disable" : "Enable"} API Key?\n\nAre you sure you want to ${isCurrentlyActive ? "disable" : "enable"} this API key?\n\nProceed?`,
                     )
@@ -964,10 +1033,15 @@ import Footer from "../components/Footer.astro";
                   const button = e.currentTarget as HTMLElement;
                   const keyId = button.getAttribute("data-key-id");
 
-                  logger.debug("Delete button clicked", { keyId });
+                  logger.debug("Delete button clicked", { keyId, hasKeyId: !!keyId });
+
+                  if (!keyId) {
+                    logger.error("Delete: Key ID is missing or undefined", { button });
+                    alert("❌ Error: API key ID not found. Please refresh and try again.");
+                    return;
+                  }
 
                   if (
-                    keyId &&
                     confirm(
                       "⚠️ Delete API Key?\n\nAre you sure you want to permanently delete this API key?\n\n⚠️ This action cannot be undone\n⚠️ All services using this key will stop working immediately\n\nProceed with deletion?",
                     )
@@ -1000,6 +1074,17 @@ import Footer from "../components/Footer.astro";
 
           async function deleteApiKey(keyId: string) {
             try {
+              // Validate keyId to prevent sending undefined to API
+              if (!keyId || keyId === "undefined" || keyId.trim() === "") {
+                logger.error("deleteApiKey called with invalid keyId", {
+                  keyId,
+                  type: typeof keyId,
+                  length: keyId?.length,
+                });
+                alert("❌ Error: Invalid API key ID. Please refresh the page and try again.");
+                return;
+              }
+
               logger.debug("Attempting to revoke API key", { keyId });
 
               // Get current keys from DOM before making the request
@@ -1026,6 +1111,14 @@ import Footer from "../components/Footer.astro";
               if (!response.success) {
                 let errorMsg = response.error || "Failed to revoke API key";
 
+                // Handle rate limiting
+                if (response.status === 429) {
+                  window.alert(
+                    errorMsg || "Rate limited. Please try again in a few seconds."
+                  );
+                  return;
+                }
+
                 if (response.status === 404) {
                   logger.warn("Got 404 - Key not found on server");
 
@@ -1044,7 +1137,7 @@ import Footer from "../components/Footer.astro";
 
                   // Reload list to verify current state
                   const keysCountBefore = currentKeys.length;
-                  await loadApiKeys();
+                  await loadApiKeys(true); // Force refresh to bypass any caching
 
                   // Get keys after reload
                   const updatedKeyElements =
@@ -1067,33 +1160,35 @@ import Footer from "../components/Footer.astro";
 
                   if (keyStillExists) {
                     // KEY MISMATCH: Key exists in UI but backend says not found
+                    // Trust the backend - remove from UI since backend doesn't have it
                     logger.error(
-                      "DATA MISMATCH: Key exists in list but backend says not found",
+                      "DATA MISMATCH: Key exists in list but backend says not found. Removing from UI to sync with backend.",
                       { keyId },
                     );
 
-                    // Get the masked key for display
-                    const keyElement = document.querySelector(
+                    // Immediately remove the key from the DOM to sync with backend
+                    const keyElements = document.querySelectorAll(
                       `[data-key-id="${keyId}"]`,
                     );
-                    const maskedKey =
-                      keyElement?.closest("tr")?.querySelector(".font-mono")
-                        ?.textContent || "Unknown";
+                    keyElements.forEach((el) => {
+                      const container = el.closest("div");
+                      if (container) {
+                        container.style.opacity = "0.5";
+                        container.style.pointerEvents = "none";
+                        setTimeout(() => {
+                          container.remove();
+                        }, 300);
+                      }
+                    });
 
                     alert(
-                      `🚨 Data Synchronization Error\n\n` +
-                        `The API key appears in your list, but the backend server says it doesn't exist.\n\n` +
-                        `Key ID: ${keyId}\n` +
-                        `Masked: ${maskedKey}\n\n` +
-                        `This indicates a data synchronization issue between frontend and backend.\n\n` +
-                        `Possible causes:\n` +
-                        `• Backend database inconsistency\n` +
-                        `• Cached/stale data\n` +
-                        `• Key was created but not properly stored\n\n` +
-                        `Recommendation: Try refreshing the page.`,
+                      `⚠️ API Key Removed\n\n` +
+                        `The API key was not found on the server (may have been already revoked).\n` +
+                        `The key has been removed from your list.\n\n` +
+                        `If you continue to see issues, please refresh the page.`,
                     );
                   } else {
-                    // Key was removed from list
+                    // Key was removed from list during reload
                     logger.debug("Key no longer in list after reload");
                     if (keysCountAfter < keysCountBefore) {
                       alert(
@@ -1124,11 +1219,56 @@ import Footer from "../components/Footer.astro";
                 throw new Error(errorMsg + ` (HTTP ${response.status})`);
               }
 
-              logger.info("API key revoked successfully");
+              logger.info("API key revoked successfully", { keyId });
+
+              // Immediately remove the key from the DOM to provide instant feedback
+              const keyElements = document.querySelectorAll(
+                `[data-key-id="${keyId}"]`,
+              );
+              logger.debug("Found key elements to remove", {
+                count: keyElements.length,
+                keyId,
+              });
+
+              keyElements.forEach((el) => {
+                const container = el.closest("div");
+                if (container) {
+                  // Add fade-out animation
+                  container.style.opacity = "0.5";
+                  container.style.pointerEvents = "none";
+                  setTimeout(() => {
+                    container.remove();
+                  }, 300);
+                }
+              });
+
               alert(
                 "✅ API key revoked successfully\n\nThe key has been permanently deleted and can no longer be used.",
               );
-              await loadApiKeys();
+
+              // Reload the keys list after a short delay to ensure backend is updated
+              setTimeout(async () => {
+                logger.debug("Starting forced reload of API keys", { keyId });
+                await loadApiKeys(true); // Force refresh to bypass any caching
+                
+                // Double-check the key is gone after reload
+                const remainingElements = document.querySelectorAll(
+                  `[data-key-id="${keyId}"]`,
+                );
+                if (remainingElements.length > 0) {
+                  logger.warn("Key still exists after reload! Forcing removal.", {
+                    keyId,
+                    count: remainingElements.length,
+                  });
+                  
+                  remainingElements.forEach((el) => {
+                    const container = el.closest("div");
+                    if (container) {
+                      container.style.display = "none";
+                    }
+                  });
+                }
+              }, 500);
             } catch (error) {
               logger.error("Error revoking API key", error);
               const errorMsg =
@@ -1139,6 +1279,17 @@ import Footer from "../components/Footer.astro";
 
           async function toggleApiKey(keyId: string, shouldActivate: boolean) {
             try {
+              // Validate keyId to prevent sending undefined to API
+              if (!keyId || keyId === "undefined" || keyId.trim() === "") {
+                logger.error("toggleApiKey called with invalid keyId", {
+                  keyId,
+                  type: typeof keyId,
+                  length: keyId?.length,
+                });
+                alert("❌ Error: Invalid API key ID. Please refresh the page and try again.");
+                return;
+              }
+
               logger.debug("Toggling API key", { keyId, shouldActivate });
 
               // Try the activate/deactivate endpoint first
@@ -1170,7 +1321,11 @@ import Footer from "../components/Footer.astro";
               alert(
                 `✅ API key ${shouldActivate ? "enabled" : "disabled"} successfully`,
               );
-              await loadApiKeys();
+              
+              // Reload the keys list to reflect the status change
+              setTimeout(async () => {
+                await loadApiKeys(true); // Force refresh to bypass any caching
+              }, 300);
             } catch (error) {
               logger.error("Error toggling API key", error);
               const errorMsg =
@@ -1253,6 +1408,8 @@ import Footer from "../components/Footer.astro";
                 let errorMsg = response.error || "Failed to create API key";
                 if (response.status === 404) {
                   errorMsg = "API Keys endpoint not implemented on backend";
+                } else if (response.status === 429) {
+                  errorMsg = response.error || "Rate limited. Please try again later.";
                 }
                 throw new Error(errorMsg + ` (HTTP ${response.status || 500})`);
               }
@@ -1282,7 +1439,7 @@ import Footer from "../components/Footer.astro";
               descInput.value = "";
 
               logger.debug("Reloading API keys list");
-              await loadApiKeys();
+              await loadApiKeys(true); // Force refresh to get newly created key
               logger.debug("API keys list reloaded");
             } catch (error) {
               logger.error("Error creating API key", error);
