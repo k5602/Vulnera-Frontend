@@ -17,7 +17,6 @@ import type { APIRoute } from 'astro';
 import { WebhookPayloadSchema } from '../../../../types/api';
 
 // Server-side cache for webhook results
-// In production, consider using Redis or similar for multi-instance deployments
 const webhookResultsCache = new Map<string, { data: unknown; timestamp: number }>();
 
 // Cache TTL: 10 minutes (results should be consumed quickly)

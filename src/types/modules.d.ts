@@ -17,9 +17,7 @@ export interface ThemeOptions {
   isDark: boolean;
 }
 
-export function initThemeToggle(): void;
 export function initNotyf(): void;
-export function onModalToggle(): void;
 
 // ========== Notifications ==========
 export interface NotifyOptions {
