@@ -117,6 +117,277 @@ describe('Auth Service', () => {
         });
     });
 
+    // =========================================================================
+    // Login Tests
+    // =========================================================================
+    describe('login', () => {
+        it('should login successfully and store user data', async () => {
+            const loginResponse = {
+                csrf_token: 'new-csrf-token',
+                user: {
+                    id: 'user-123',
+                    email: 'login@example.com',
+                    name: 'Logged In User',
+                },
+            };
+            global.fetch = vi.fn().mockResolvedValue({
+                ok: true,
+                status: 200,
+                headers: new Headers(),
+                text: () => Promise.resolve(JSON.stringify(loginResponse)),
+            });
+
+            const result = await authService.login({
+                email: 'login@example.com',
+                password: 'password123',
+            });
+
+            expect(result.success).toBe(true);
+            expect(result.data?.user.email).toBe('login@example.com');
+        });
+
+        it('should handle invalid credentials (401)', async () => {
+            global.fetch = vi.fn().mockResolvedValue({
+                ok: false,
+                status: 401,
+                headers: new Headers(),
+                text: () => Promise.resolve(JSON.stringify({ message: 'Invalid credentials' })),
+            });
+
+            const result = await authService.login({
+                email: 'wrong@example.com',
+                password: 'wrongpassword',
+            });
+
+            expect(result.success).toBe(false);
+            expect(result.status).toBe(401);
+            expect(result.error).toContain('Invalid email or password');
+        });
+
+        it('should handle rate limiting (429)', async () => {
+            global.fetch = vi.fn().mockResolvedValue({
+                ok: false,
+                status: 429,
+                headers: new Headers(),
+                text: () => Promise.resolve(JSON.stringify({
+                    error: 'Too many requests',
+                    details: { retry_after: 60 },
+                })),
+            });
+
+            const result = await authService.login({
+                email: 'test@example.com',
+                password: 'password123',
+            });
+
+            expect(result.success).toBe(false);
+            expect(result.status).toBe(429);
+            expect(result.error).toContain('60 seconds');
+        });
+
+        it('should handle network errors', async () => {
+            global.fetch = vi.fn().mockRejectedValue(new Error('Network failure'));
+
+            const result = await authService.login({
+                email: 'test@example.com',
+                password: 'password123',
+            });
+
+            expect(result.success).toBe(false);
+            expect(result.error).toContain('Network error');
+        });
+
+        it('should NOT include CSRF token for login request', async () => {
+            global.fetch = vi.fn().mockResolvedValue({
+                ok: true,
+                status: 200,
+                headers: new Headers(),
+                text: () => Promise.resolve(JSON.stringify({ user: mockUser })),
+            });
+
+            await authService.login({
+                email: 'test@example.com',
+                password: 'password123',
+            });
+
+            const fetchCall = (global.fetch as any).mock.calls[0];
+            expect(fetchCall[0]).toContain('/auth/login');
+        });
+    });
+
+    // =========================================================================
+    // Register Tests
+    // =========================================================================
+    describe('register', () => {
+        it('should register successfully and store user data', async () => {
+            const registerResponse = {
+                csrf_token: 'new-csrf-token',
+                user: {
+                    id: 'new-user-123',
+                    email: 'newuser@example.com',
+                    name: 'New User',
+                },
+            };
+            global.fetch = vi.fn().mockResolvedValue({
+                ok: true,
+                status: 201,
+                headers: new Headers(),
+                text: () => Promise.resolve(JSON.stringify(registerResponse)),
+            });
+
+            const result = await authService.register({
+                email: 'newuser@example.com',
+                password: 'securepassword123',
+                first_name: 'New',
+                last_name: 'User',
+            });
+
+            expect(result.success).toBe(true);
+            expect(result.data?.user.email).toBe('newuser@example.com');
+        });
+
+        it('should handle email already exists (409)', async () => {
+            global.fetch = vi.fn().mockResolvedValue({
+                ok: false,
+                status: 409,
+                headers: new Headers(),
+                text: () => Promise.resolve(JSON.stringify({ message: 'Email already exists' })),
+            });
+
+            const result = await authService.register({
+                email: 'existing@example.com',
+                password: 'password123',
+            });
+
+            expect(result.success).toBe(false);
+            expect(result.status).toBe(409);
+            expect(result.error).toContain('already exists');
+        });
+
+        it('should handle validation errors (400)', async () => {
+            global.fetch = vi.fn().mockResolvedValue({
+                ok: false,
+                status: 400,
+                headers: new Headers(),
+                text: () => Promise.resolve(JSON.stringify({ message: 'Password too weak' })),
+            });
+
+            const result = await authService.register({
+                email: 'test@example.com',
+                password: '123',
+            });
+
+            expect(result.success).toBe(false);
+            expect(result.status).toBe(400);
+        });
+
+        it('should handle network errors', async () => {
+            global.fetch = vi.fn().mockRejectedValue(new Error('Network failure'));
+
+            const result = await authService.register({
+                email: 'test@example.com',
+                password: 'password123',
+            });
+
+            expect(result.success).toBe(false);
+            expect(result.error).toContain('Network error');
+        });
+
+        it('should NOT include CSRF token for register request', async () => {
+            global.fetch = vi.fn().mockResolvedValue({
+                ok: true,
+                status: 201,
+                headers: new Headers(),
+                text: () => Promise.resolve(JSON.stringify({ user: mockUser })),
+            });
+
+            await authService.register({
+                email: 'test@example.com',
+                password: 'password123',
+            });
+
+            const fetchCall = (global.fetch as any).mock.calls[0];
+            expect(fetchCall[0]).toContain('/auth/register');
+        });
+    });
+
+    // =========================================================================
+    // Refresh Tests
+    // =========================================================================
+    describe('refresh', () => {
+        it('should refresh token successfully', async () => {
+            const refreshResponse = {
+                csrf_token: 'refreshed-csrf-token',
+                message: 'Token refreshed',
+            };
+            global.fetch = vi.fn().mockResolvedValue({
+                ok: true,
+                status: 200,
+                headers: new Headers(),
+                text: () => Promise.resolve(JSON.stringify(refreshResponse)),
+            });
+
+            const result = await authService.refresh();
+
+            expect(result.success).toBe(true);
+            expect(result.data?.message).toBe('Token refreshed');
+        });
+
+        it('should clear auth on 401 (session expired)', async () => {
+            setCurrentUser(mockUser);
+
+            global.fetch = vi.fn().mockResolvedValue({
+                ok: false,
+                status: 401,
+                headers: new Headers(),
+                text: () => Promise.resolve(JSON.stringify({ message: 'Session expired' })),
+            });
+
+            const result = await authService.refresh();
+
+            expect(result.success).toBe(false);
+            expect(result.status).toBe(401);
+            expect(result.error).toContain('Session expired');
+        });
+
+        it('should handle server errors', async () => {
+            global.fetch = vi.fn().mockResolvedValue({
+                ok: false,
+                status: 500,
+                headers: new Headers(),
+                text: () => Promise.resolve(JSON.stringify({ message: 'Server error' })),
+            });
+
+            const result = await authService.refresh();
+
+            expect(result.success).toBe(false);
+            expect(result.status).toBe(500);
+        });
+
+        it('should handle network errors', async () => {
+            global.fetch = vi.fn().mockRejectedValue(new Error('Connection failed'));
+
+            const result = await authService.refresh();
+
+            expect(result.success).toBe(false);
+            expect(result.error).toContain('Network error');
+        });
+
+        it('should include CSRF token for refresh request', async () => {
+            global.fetch = vi.fn().mockResolvedValue({
+                ok: true,
+                status: 200,
+                headers: new Headers(),
+                text: () => Promise.resolve(JSON.stringify({ csrf_token: 'new-token' })),
+            });
+
+            await authService.refresh();
+
+            const fetchCall = (global.fetch as any).mock.calls[0];
+            expect(fetchCall[1].headers['X-CSRF-Token']).toBe('test-csrf-token');
+        });
+    });
+
     describe('listApiKeys', () => {
         it('should fetch API keys successfully', async () => {
             const mockKeys = [
