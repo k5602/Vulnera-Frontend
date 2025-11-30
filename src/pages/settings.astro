@@ -79,17 +79,6 @@ import Footer from "../components/Footer.astro";
                   </span>
                 </button>
               </li>
-              <li>
-                <button
-                  class="settings-tab w-full text-left px-6 py-3 font-mono text-sm transition-all duration-200 hover:bg-cyan-400/10 hover:border-l-4 hover:border-cyan-400"
-                  data-tab="debug"
-                >
-                  <span class="flex items-center gap-2 text-cyan-400">
-                    <span>🔧</span>
-                    <span>Debug Tools</span>
-                  </span>
-                </button>
-              </li>
             </ul>
           </nav>
 
@@ -278,136 +267,6 @@ import Footer from "../components/Footer.astro";
                     >
                       🗑️ Delete Organization
                     </button>
-                  </div>
-                </div>
-
-                <!-- Debug Tools Tab -->
-                <div id="debug-tab" class="tab-content hidden">
-                  <h2 class="text-2xl font-bold text-cyan-400 mb-6 font-mono">
-                    Debug Tools
-                  </h2>
-                  <div class="space-y-6">
-                    <div
-                      class="bg-cyan-900/10 border border-cyan-500/30 rounded-lg p-4"
-                    >
-                      <h3
-                        class="text-lg font-bold text-cyan-300 mb-4 font-mono"
-                      >
-                        Vulnerability Database
-                      </h3>
-                      <p class="text-sm text-gray-400 mb-4">
-                        Refresh the vulnerability database cache from the
-                        backend
-                      </p>
-                      <p class="text-sm text-gray-500 mt-2">
-                        This feature is no longer available - endpoint is
-                        deprecated
-                      </p>
-                    </div>
-
-                    <div
-                      class="bg-cyan-900/10 border border-cyan-500/30 rounded-lg p-4"
-                    >
-                      <h3
-                        class="text-lg font-bold text-cyan-300 mb-4 font-mono"
-                      >
-                        System Information
-                      </h3>
-                      <div class="space-y-2 text-sm font-mono">
-                        <div>
-                          <span class="text-matrix-300">API Base:</span>
-                          <span id="api-base-display" class="text-cyan-300"
-                            >Loading...</span
-                          >
-                        </div>
-                        <div>
-                          <span class="text-matrix-300">Token Status:</span>
-                          <span id="token-status-display" class="text-cyan-300"
-                            >Loading...</span
-                          >
-                        </div>
-                        <div>
-                          <span class="text-matrix-300">User Agent:</span>
-                          <span id="user-agent-display" class="text-cyan-300"
-                            >Loading...</span
-                          >
-                        </div>
-                      </div>
-                    </div>
-
-                    <div
-                      class="bg-cyan-900/10 border border-cyan-500/30 rounded-lg p-4"
-                    >
-                      <h3
-                        class="text-lg font-bold text-cyan-300 mb-4 font-mono"
-                      >
-                        Scan History Backup
-                      </h3>
-                      <p class="text-sm text-gray-400 mb-4">
-                        Export or import your scan history data
-                      </p>
-                      <div class="space-y-2">
-                        <button
-                          id="export-scans-btn"
-                          class="w-full bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 font-bold py-2 px-4 rounded transition-all duration-300 font-mono text-sm"
-                        >
-                          💾 Export Scan History (JSON)
-                        </button>
-                        <button
-                          id="import-scans-btn"
-                          class="w-full bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 font-bold py-2 px-4 rounded transition-all duration-300 font-mono text-sm"
-                        >
-                          📂 Import Scan History
-                        </button>
-                        <input
-                          type="file"
-                          id="import-scans-input"
-                          accept=".json"
-                          class="hidden"
-                        />
-                        <div
-                          id="backup-status"
-                          class="mt-2 text-sm text-gray-400"
-                        >
-                        </div>
-                      </div>
-                    </div>
-
-                    <div
-                      class="bg-cyan-900/10 border border-cyan-500/30 rounded-lg p-4"
-                    >
-                      <h3
-                        class="text-lg font-bold text-cyan-300 mb-4 font-mono"
-                      >
-                        Test Data
-                      </h3>
-                      <p class="text-sm text-gray-400 mb-4">
-                        Download test files with known vulnerabilities
-                      </p>
-                      <div class="space-y-2">
-                        <a
-                          href="/test-vulnerable-package.json"
-                          download
-                          class="block bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 font-bold py-2 px-4 rounded transition-all duration-300 font-mono text-sm text-center"
-                        >
-                          📦 Test Package.json (NPM)
-                        </a>
-                        <a
-                          href="/vulnerable-requirements.txt"
-                          download
-                          class="block bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 font-bold py-2 px-4 rounded transition-all duration-300 font-mono text-sm text-center"
-                        >
-                          🐍 Test Requirements.txt (Python)
-                        </a>
-                        <a
-                          href="/vulnerable-pom.xml"
-                          download
-                          class="block bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 font-bold py-2 px-4 rounded transition-all duration-300 font-mono text-sm text-center"
-                        >
-                          ☕ Test pom.xml (Maven/Java)
-                        </a>
-                      </div>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -694,135 +553,13 @@ import Footer from "../components/Footer.astro";
           const hash = window.location.hash.replace("#", "");
           if (
             hash &&
-            ["api-keys", "create-org", "org-settings", "debug"].includes(hash)
+            ["api-keys", "create-org", "org-settings"].includes(hash)
           ) {
             switchTab(hash);
           } else {
             // Initialize first tab
             switchTab("api-keys");
           }
-
-          // Export scan history
-          const exportScansBtn = document.getElementById("export-scans-btn");
-          const backupStatus = document.getElementById("backup-status");
-
-          exportScansBtn?.addEventListener("click", () => {
-            try {
-              const scanHistory = localStorage.getItem("scan_history") || "[]";
-              const data = JSON.parse(scanHistory);
-
-              if (data.length === 0) {
-                if (backupStatus) {
-                  backupStatus.textContent = "⚠️ No scan history to export";
-                  backupStatus.className = "mt-2 text-sm text-yellow-400";
-                }
-                return;
-              }
-
-              const blob = new Blob([JSON.stringify(data, null, 2)], {
-                type: "application/json",
-              });
-              const url = URL.createObjectURL(blob);
-              const a = document.createElement("a");
-              a.href = url;
-              a.download = `vulnera_scan_history_${new Date().toISOString().split("T")[0]}.json`;
-              document.body.appendChild(a);
-              a.click();
-              document.body.removeChild(a);
-              URL.revokeObjectURL(url);
-
-              if (backupStatus) {
-                backupStatus.textContent = `✅ Exported ${data.length} scans successfully`;
-                backupStatus.className = "mt-2 text-sm text-green-400";
-              }
-            } catch (e) {
-              logger.error("Export failed", e);
-              if (backupStatus) {
-                backupStatus.textContent = "❌ Export failed";
-                backupStatus.className = "mt-2 text-sm text-red-400";
-              }
-            }
-          });
-
-          // Import scan history
-          const importScansBtn = document.getElementById("import-scans-btn");
-          const importScansInput = document.getElementById(
-            "import-scans-input",
-          ) as HTMLInputElement;
-
-          importScansBtn?.addEventListener("click", () => {
-            importScansInput?.click();
-          });
-
-          importScansInput?.addEventListener("change", async (e) => {
-            const target = e.target as HTMLInputElement;
-            const file = target?.files?.[0];
-            if (!file) return;
-
-            try {
-              const text = await file.text();
-              const data = JSON.parse(text);
-
-              if (!Array.isArray(data)) {
-                throw new Error("Invalid format: expected an array");
-              }
-
-              // Merge with existing data
-              const existing = JSON.parse(
-                localStorage.getItem("scan_history") || "[]",
-              );
-              const merged = [...data, ...existing];
-
-              // Remove duplicates by ID
-              const unique = merged.filter(
-                (scan, index, self) =>
-                  index === self.findIndex((s) => s.id === scan.id),
-              );
-
-              // Keep only last 50
-              if (unique.length > 50) unique.length = 50;
-
-              localStorage.setItem("scan_history", JSON.stringify(unique));
-
-              if (backupStatus) {
-                backupStatus.textContent = `✅ Imported successfully! Total scans: ${unique.length}`;
-                backupStatus.className = "mt-2 text-sm text-green-400";
-              }
-
-              // Clear input
-              if (target) target.value = "";
-            } catch (err) {
-              logger.error("Import failed", err);
-              if (backupStatus) {
-                const errorMsg =
-                  err instanceof Error ? err.message : "Unknown error";
-                backupStatus.textContent = `❌ Import failed: ${errorMsg}`;
-                backupStatus.className = "mt-2 text-sm text-red-400";
-              }
-            }
-          });
-
-          // System information display
-          const apiBaseDisplay = document.getElementById("api-base-display");
-          const tokenStatusDisplay = document.getElementById(
-            "token-status-display",
-          );
-          const userAgentDisplay =
-            document.getElementById("user-agent-display");
-
-          if (apiBaseDisplay) apiBaseDisplay.textContent = "✅ Configured"; // Hide actual IP for security
-          if (tokenStatusDisplay) {
-            const token = authService.getToken();
-            tokenStatusDisplay.textContent = token
-              ? `✅ Present (${token.length} chars)`
-              : "❌ Not found";
-            tokenStatusDisplay.className = token
-              ? "text-green-400"
-              : "text-red-400";
-          }
-          if (userAgentDisplay)
-            userAgentDisplay.textContent =
-              navigator.userAgent.substring(0, 50) + "...";
 
           async function loadApiKeys(forceRefresh = false) {
             try {
@@ -924,26 +661,28 @@ import Footer from "../components/Footer.astro";
                 count: keys.length,
               });
               container.innerHTML = keys
-                .map(
-                  (key: any) => {
-                    // Extract key ID with multiple fallbacks to handle different response formats
-                    const keyId = key.key_id || key.id || key.uuid || key.api_key_id;
-                    
-                    // Validate that we have a key ID before rendering
-                    if (!keyId) {
-                      logger.warn("API key missing ID field", { key });
-                      return "";
-                    }
+                .map((key: any) => {
+                  // Extract key ID with multiple fallbacks to handle different response formats
+                  const keyId =
+                    key.key_id || key.id || key.uuid || key.api_key_id;
 
-                    // Check if API supports is_active field (for toggling)
-                    const hasActiveField = key.hasOwnProperty('is_active');
-                    const isActive = key.is_active !== false; // Default to true if field doesn't exist
-                    
-                    // Calculate expiry status
-                    const expiresAt = key.expires_at ? new Date(key.expires_at) : null;
-                    const isExpired = expiresAt && expiresAt < new Date();
+                  // Validate that we have a key ID before rendering
+                  if (!keyId) {
+                    logger.warn("API key missing ID field", { key });
+                    return "";
+                  }
 
-                    return `
+                  // Check if API supports is_active field (for toggling)
+                  const hasActiveField = key.hasOwnProperty("is_active");
+                  const isActive = key.is_active !== false; // Default to true if field doesn't exist
+
+                  // Calculate expiry status
+                  const expiresAt = key.expires_at
+                    ? new Date(key.expires_at)
+                    : null;
+                  const isExpired = expiresAt && expiresAt < new Date();
+
+                  return `
             <div class="terminal-border bg-black/50 rounded-lg p-4 flex items-center justify-between">
               <div class="flex-1">
                 <div class="flex items-center gap-3 mb-2">
@@ -990,8 +729,7 @@ import Footer from "../components/Footer.astro";
               </div>
             </div>
           `;
-                  },
-                )
+                })
                 .join("");
 
               document.querySelectorAll(".toggle-key-btn").forEach((btn) => {
@@ -1011,8 +749,12 @@ import Footer from "../components/Footer.astro";
                   });
 
                   if (!keyId) {
-                    logger.error("Toggle: Key ID is missing or undefined", { button });
-                    alert("❌ Error: API key ID not found. Please refresh and try again.");
+                    logger.error("Toggle: Key ID is missing or undefined", {
+                      button,
+                    });
+                    alert(
+                      "❌ Error: API key ID not found. Please refresh and try again.",
+                    );
                     return;
                   }
 
@@ -1031,11 +773,18 @@ import Footer from "../components/Footer.astro";
                   const button = e.currentTarget as HTMLElement;
                   const keyId = button.getAttribute("data-key-id");
 
-                  logger.debug("Delete button clicked", { keyId, hasKeyId: !!keyId });
+                  logger.debug("Delete button clicked", {
+                    keyId,
+                    hasKeyId: !!keyId,
+                  });
 
                   if (!keyId) {
-                    logger.error("Delete: Key ID is missing or undefined", { button });
-                    alert("❌ Error: API key ID not found. Please refresh and try again.");
+                    logger.error("Delete: Key ID is missing or undefined", {
+                      button,
+                    });
+                    alert(
+                      "❌ Error: API key ID not found. Please refresh and try again.",
+                    );
                     return;
                   }
 
@@ -1079,7 +828,9 @@ import Footer from "../components/Footer.astro";
                   type: typeof keyId,
                   length: keyId?.length,
                 });
-                alert("❌ Error: Invalid API key ID. Please refresh the page and try again.");
+                alert(
+                  "❌ Error: Invalid API key ID. Please refresh the page and try again.",
+                );
                 return;
               }
 
@@ -1112,7 +863,8 @@ import Footer from "../components/Footer.astro";
                 // Handle rate limiting
                 if (response.status === 429) {
                   window.alert(
-                    errorMsg || "Rate limited. Please try again in a few seconds."
+                    errorMsg ||
+                      "Rate limited. Please try again in a few seconds.",
                   );
                   return;
                 }
@@ -1248,17 +1000,20 @@ import Footer from "../components/Footer.astro";
               setTimeout(async () => {
                 logger.debug("Starting forced reload of API keys", { keyId });
                 await loadApiKeys(true); // Force refresh to bypass any caching
-                
+
                 // Double-check the key is gone after reload
                 const remainingElements = document.querySelectorAll(
                   `[data-key-id="${keyId}"]`,
                 );
                 if (remainingElements.length > 0) {
-                  logger.warn("Key still exists after reload! Forcing removal.", {
-                    keyId,
-                    count: remainingElements.length,
-                  });
-                  
+                  logger.warn(
+                    "Key still exists after reload! Forcing removal.",
+                    {
+                      keyId,
+                      count: remainingElements.length,
+                    },
+                  );
+
                   remainingElements.forEach((el) => {
                     const container = el.closest("div");
                     if (container) {
@@ -1284,7 +1039,9 @@ import Footer from "../components/Footer.astro";
                   type: typeof keyId,
                   length: keyId?.length,
                 });
-                alert("❌ Error: Invalid API key ID. Please refresh the page and try again.");
+                alert(
+                  "❌ Error: Invalid API key ID. Please refresh the page and try again.",
+                );
                 return;
               }
 
@@ -1319,7 +1076,7 @@ import Footer from "../components/Footer.astro";
               alert(
                 `✅ API key ${shouldActivate ? "enabled" : "disabled"} successfully`,
               );
-              
+
               // Reload the keys list to reflect the status change
               setTimeout(async () => {
                 await loadApiKeys(true); // Force refresh to bypass any caching
@@ -1407,7 +1164,8 @@ import Footer from "../components/Footer.astro";
                 if (response.status === 404) {
                   errorMsg = "API Keys endpoint not implemented on backend";
                 } else if (response.status === 429) {
-                  errorMsg = response.error || "Rate limited. Please try again later.";
+                  errorMsg =
+                    response.error || "Rate limited. Please try again later.";
                 }
                 throw new Error(errorMsg + ` (HTTP ${response.status || 500})`);
               }
