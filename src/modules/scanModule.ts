@@ -377,14 +377,13 @@ export class ScanHandler {
       // 2) Build final payload for /api/v1/analyze/job
       // -------------------------------------------
       const payload = {
-        source_type: "file_upload",
-        source_uri: "inline",
-        analysis_depth: this.mapDetailLevelToAnalysisDepth(this.selectedDetailLevel),
-
+        compact_mode: true,
+        enable_cache: true,
         files: filesPayload.map(f => ({
           filename: f.filename,
           ecosystem: f.ecosystem,
-          content: f.file_content
+          file_content: f.file_content,
+          workspace_path: "/"
         }))
       };
 
@@ -394,7 +393,7 @@ export class ScanHandler {
       // 3) Send request to backend
       // -------------------------------------------
       const apiResponse = await apiClient.post(
-        API_ENDPOINTS.ANALYSIS.ANALYZE,
+        API_ENDPOINTS.DEPENDENCIES.ANALYZE,
         payload
       );
 
