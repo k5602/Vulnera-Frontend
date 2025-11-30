@@ -689,7 +689,7 @@ export class ScanHandler {
           throw new Error("Scan timed out after 5 minutes. Please check back later.");
         }
 
-        const endpoint = API_ENDPOINTS.ANALYSIS.GET_JOB.replace(":job_id", jobId);
+        const endpoint = API_ENDPOINTS.ANALYSIS.GET_JOB.replace(":id", jobId);
         const response = await apiClient.get(endpoint);
 
         if (!response.ok) {

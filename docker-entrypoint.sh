@@ -83,7 +83,7 @@ while [ $RETRY -lt $MAX_RETRIES ]; do
     fi
 
     # Try to connect to Astro with curl
-    if curl -sf http://localhost:$PORT/ >/dev/null 2>&1; then
+    if curl -sf http://localhost:$ASTRO_PORT/ >/dev/null 2>&1; then
         echo "[docker-entrypoint] ✓ Astro is ready!"
         break
     fi

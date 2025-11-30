@@ -21,7 +21,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
     // Get backend URL from environment
     const backendUrl = process.env.PUBLIC_API_BASE;
-    
+
     if (!backendUrl) {
         console.warn('[Middleware] PUBLIC_API_BASE not set, API requests will fail');
         return new Response(
@@ -33,18 +33,23 @@ export const onRequest = defineMiddleware(async (context, next) => {
     try {
         // Build the target URL
         const targetUrl = new URL(url.pathname + url.search, backendUrl);
-        
+
         logger.debug('[Middleware] Proxying request', {
             from: url.pathname,
             to: targetUrl.href,
             method: request.method,
         });
 
+        // Prepare headers - strip Host to let fetch set it correctly
+        const requestHeaders = new Headers(request.headers);
+        requestHeaders.delete('Host');
+        requestHeaders.delete('connection');
+
         // Clone the request to modify it
         const proxyRequest = new Request(targetUrl, {
             method: request.method,
-            headers: request.headers,
-            body: request.body,
+            headers: requestHeaders,
+            body: ['GET', 'HEAD'].includes(request.method) ? null : request.body,
             // Preserve credentials (cookies, auth)
             credentials: 'include',
         });
@@ -55,7 +60,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
         // Clone the response to add CORS headers
         const clonedResponse = response.clone();
         const newHeaders = new Headers(clonedResponse.headers);
-        
+
         // Add CORS headers to allow requests
         newHeaders.set('Access-Control-Allow-Origin', '*');
         newHeaders.set('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
@@ -74,12 +79,12 @@ export const onRequest = defineMiddleware(async (context, next) => {
         });
 
         return new Response(
-            JSON.stringify({ 
+            JSON.stringify({
                 error: 'Proxy error',
                 details: error instanceof Error ? error.message : String(error),
             }),
-            { 
-                status: 502, 
+            {
+                status: 502,
                 headers: { 'Content-Type': 'application/json' },
             }
         );
