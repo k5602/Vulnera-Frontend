@@ -5,14 +5,10 @@ import Footer from "../components/Footer.astro";
 export const prerender = false;
 ---
 
-<script
-  set:html={`
-  import('/src/utils/auth-guard.js')
-    .then(({ setupAuthGuard }) => {
-      setupAuthGuard({ requireAuth: true });
-    });
-`}
-/>
+<script>
+  import { setupAuthGuard } from "../utils/auth-guard";
+  setupAuthGuard({ requireAuth: true });
+</script>
 
 <Layout
   title="Dashboard — Vulnera"
