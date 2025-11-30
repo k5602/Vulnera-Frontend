@@ -4,6 +4,8 @@ import { detectEcosystem } from "../utils/scan-handler";
 import { apiClient } from "../utils/api/client";
 import { API_ENDPOINTS } from "../config/api";
 import { isAuthenticated } from "../utils/api/auth-store";
+import { normalizeSeverity } from "../utils/severity";
+import { getWebhookConfig, isLocalhostEnv } from "../utils/webhook-store";
 import {
   transformScanResult,
   createScanHistoryRecord,
@@ -520,19 +522,33 @@ export class ScanHandler {
 
       // For git repositories, source_uri is the GitHub URL
       // Valid analysis_depth: "full", "dependencies_only", "fast_scan"
-      const requestBody: any = {
-        source_type: this.currentSourceType,
-        source_uri: this.currentSourceType === 'git' ? `https://github.com/${owner}/${repo}.git` : url, // For S3, use full URL
+
+      // Get webhook config (null if localhost - webhook unreachable)
+      const webhookConfig = getWebhookConfig();
+      const useWebhook = webhookConfig !== null;
+
+      if (useWebhook) {
+        logger.info('Webhook enabled for scan', { callback_url: webhookConfig.callback_url });
+      } else {
+        logger.info('Webhook disabled (localhost) - using polling only');
+      }
+
+      const requestBody: {
+        source_type: 'git';
+        source_uri: string;
+        analysis_depth: string;
+        callback_url?: string;
+        webhook_secret?: string;
+      } = {
+        source_type: "git" as const,
+        source_uri: `https://github.com/${owner}/${repo}.git`,
         analysis_depth: this.mapDetailLevelToAnalysisDepth(this.selectedAnalysisDepth),
-        callback_url: undefined, // Optional: can be added if needed
-        is_private: isPrivate, // Signal backend to use token
       };
 
-      if (this.currentSourceType === 'git') {
-        requestBody.github_token = token || undefined;
-      } else {
-        requestBody.aws_credentials = token || undefined;
-      }
+      // Add webhook config if not localhost
+      if (webhookConfig) {
+        requestBody.callback_url = webhookConfig.callback_url;
+        requestBody.webhook_secret = webhookConfig.webhook_secret;
       if (manualToken && this.currentSourceType === 'git') {
         setCookie("github_token", manualToken, { days: 1 / 24, sameSite: "Strict", secure: true });
       }
@@ -663,8 +679,11 @@ export class ScanHandler {
 
   async pollJobStatus(jobId: string, repoInfo?: { owner: string; repo: string }) {
     const POLL_INTERVAL = 2000; // 2 seconds
-    const MAX_ATTEMPTS = 150; // 5 minutes timeout (150 * 2s)
+    const MAX_ATTEMPTS = 90; // 3 minutes timeout (90 * 2s) - reduced since webhook should be faster
     let attempts = 0;
+
+    // Check if webhook mode is active (not localhost)
+    const webhookEnabled = !isLocalhostEnv();
 
     // Prevent multiple polling instances
     if (this.isPolling) {
@@ -686,7 +705,46 @@ export class ScanHandler {
         logger.debug(`Polling attempt ${attempts}/${MAX_ATTEMPTS} for job ${jobId}`);
 
         if (attempts > MAX_ATTEMPTS) {
-          throw new Error("Scan timed out after 5 minutes. Please check back later.");
+          throw new Error("Scan timed out after 3 minutes. Please check back later.");
+        }
+
+        // Step 1: Check webhook cache first (faster than polling backend)
+        if (webhookEnabled) {
+          try {
+            const webhookCheckUrl = `${API_ENDPOINTS.WEBHOOKS.SCAN_COMPLETE}?job_id=${encodeURIComponent(jobId)}`;
+            const webhookResponse = await apiClient.get(webhookCheckUrl);
+
+            if (webhookResponse.ok && webhookResponse.data) {
+              const webhookData = webhookResponse.data as { found?: boolean; data?: unknown };
+
+              if (webhookData.found && webhookData.data) {
+                logger.info('Webhook result found, processing immediately', { jobId });
+
+                const durationMs = this.stopImportTimer();
+                this.stopPolling();
+
+                // Process webhook result
+                const job = webhookData.data as {
+                  status?: string;
+                  [key: string]: unknown;
+                };
+
+                if (repoInfo && job) {
+                  this.getRepoReportData(job, repoInfo, durationMs, jobId);
+                } else if (job) {
+                  this.getReportData(job);
+                }
+
+                // Reset button
+                this.btnImport.disabled = false;
+                this.btnImport.textContent = "> IMPORT_REPO";
+                return;
+              }
+            }
+          } catch (webhookErr) {
+            // Webhook check failed, fall through to backend polling
+            logger.debug('Webhook cache check failed, falling back to backend poll', webhookErr);
+          }
         }
 
         const endpoint = API_ENDPOINTS.ANALYSIS.GET_JOB.replace(":id", jobId);
@@ -715,7 +773,8 @@ export class ScanHandler {
           id: jobId,
           status: status,
           attempt: attempts,
-          rawStatus: job?.status
+          rawStatus: job?.status,
+          webhookEnabled
         });
 
         // Handle terminal states
