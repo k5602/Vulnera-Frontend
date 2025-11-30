@@ -1,6 +1,7 @@
 // User Signup Class (Refactored)
 
 import { apiClient } from "../utils/api/client";
+import { API_ENDPOINTS } from "../config/api";
 
 export class UserSignup {
   firstName: string;
@@ -54,7 +55,7 @@ export class UserSignup {
   }
 
   async signUp() {
-    const res = await apiClient.post("/api/v1/auth/register", {
+    const res = await apiClient.post(API_ENDPOINTS.AUTH.REGISTER, {
       email: this.email,
       password: this.password,
       first_name: this.firstName,

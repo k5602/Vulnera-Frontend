@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { isAuthenticated as isAuthenticatedStore } from '../utils/api/auth-store';
 import { apiClient } from '../utils/api/client';
 import { logger } from '../utils/logger';
+import { API_ENDPOINTS } from '../config/api';
 
 /** Extract error message from unknown error types */
 function extractErrorMessage(error: unknown, fallback = 'An unknown error occurred'): string {
@@ -89,7 +90,7 @@ export default function VulneraBot() {
 
         try {
             // Use apiClient to handle CSRF tokens automatically
-            const response = await apiClient.post<LLMResponse>('/api/v1/llm/query', {
+            const response = await apiClient.post<LLMResponse>(API_ENDPOINTS.LLM.QUERY, {
                 context: "User is asking via the web chat interface.",
                 query: userMessage.text
             });
@@ -140,7 +141,7 @@ export default function VulneraBot() {
                 onClick={() => setIsOpen(!isOpen)}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
-                aria-label="Toggle VulneraAI Chat"
+                aria-label="Toggle Vulnero bot Chat"
             >
                 {isOpen ? (
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -148,8 +149,12 @@ export default function VulneraBot() {
                     </svg>
                 ) : (
                     <div className="relative">
+                        {/* Robot icon */}
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            <rect x="3" y="7" width="18" height="10" rx="2" ry="2" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11h.01M16 11h.01" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 17v2" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 4v2M15 4v2" />
                         </svg>
                         <span className="absolute -top-1 -right-1 flex h-3 w-3">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyber-400 opacity-75"></span>
@@ -170,7 +175,7 @@ export default function VulneraBot() {
                         className="fixed bottom-8 right-24 z-40 bg-black/80 backdrop-blur border border-cyber-500/50 text-cyber-400 text-xs font-mono py-1 px-3 rounded pointer-events-none hidden md:block"
                     >
                         <div className="absolute top-1/2 -right-1 w-2 h-2 bg-black border-t border-r border-cyber-500/50 transform rotate-45 -translate-y-1/2"></div>
-                        VULNERA_AI
+                        VULNERO_BOT
                     </motion.div>
                 )}
             </AnimatePresence>

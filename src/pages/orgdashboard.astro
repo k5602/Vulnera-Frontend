@@ -5,48 +5,85 @@ import Footer from "../components/Footer.astro";
 export const prerender = false;
 ---
 
-<Layout title="Dashboard — Vulnera" description="Overview of reports, projects, and recent activity.">
+<Layout
+  title="Dashboard — Vulnera"
+  description="Overview of reports, projects, and recent activity."
+>
   <script>
-    import { setupAuthGuard } from '../utils/auth-guard';
-    import { organization } from '../modules/orgData.js';
+    import { setupAuthGuard } from "../utils/auth-guard";
+    import { loadOrgData, organization } from "../modules/orgData.js";
+    import { getCurrentUser } from "../utils/api/auth-store";
     setupAuthGuard({ requireAuth: true });
-    const subtitleEl = document.getElementById('dash-subtitle') as HTMLElement;
-    subtitleEl.innerHTML = `ORGANIZATION_NAME: ${organization.orgName || 'N/A' } ||
-                            DESCRIPTION: ${organization.orgDescription || 'N/A'} ||
-                            TIER: ${organization.tier || 'N/A'} ||
-                            CREATED_AT: ${organization.createdAt || 'N/A'} ||
-                            MEMBERS_COUNT: ${organization.membersCount || 'N/A'}`;
-
+    const subtitleEl = document.getElementById("dash-subtitle") as HTMLElement;
+    await loadOrgData(localStorage.getItem("orgId")!);
+    const currentUser = getCurrentUser();
+    subtitleEl.innerHTML = `ORGANIZATION_NAME: ${organization.orgName || "N/A"} ||
+                            DESCRIPTION: ${organization.orgDescription || "N/A"} ||
+                            TIER: ${organization.tier || "N/A"} ||
+                            CREATED_AT: ${organization.createdAt.toString() || "N/A"} ||
+                            MEMBERS_COUNT: ${organization.membersCount.toString() || "N/A"} ||
+                            Role: ${organization.ownerId === currentUser?.id ? "Owner" : "Member"}`;
   </script>
 
   <Navigation />
 
-  <section id="main" class="relative min-h-screen overflow-hidden bg-black" aria-labelledby="dash-title" transition:animate="fade">
+  <section
+    id="main"
+    class="relative min-h-screen overflow-hidden bg-black"
+    aria-labelledby="dash-title"
+    transition:animate="fade"
+  >
     <!-- Background Layers -->
     <div class="absolute inset-0 z-0">
       <div class="absolute inset-0 matrix-rain opacity-20"></div>
-      <div class="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-black/60"></div>
-      <div class="absolute inset-0 bg-gradient-to-b from-transparent via-matrix-900/20 to-black/80"></div>
+      <div
+        class="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-black/60"
+      >
+      </div>
+      <div
+        class="absolute inset-0 bg-gradient-to-b from-transparent via-matrix-900/20 to-black/80"
+      >
+      </div>
     </div>
 
     <!-- Content -->
-    <div class="relative z-10 max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-8 sm:py-12 md:py-16">
+    <div
+      class="relative z-10 max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-8 sm:py-12 md:py-16"
+    >
       <header class="mb-6 sm:mb-8 md:mb-10">
-        <div class="text-cyber-400 font-mono text-xs sm:text-sm md:text-base">root@vulnera:~$</div>
-  <h1 id="dash-title" class="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white font-mono tracking-wider mt-4 sm:mt-5 md:mt-6 mb-3 sm:mb-4 md:mb-6">
+        <div class="text-cyber-400 font-mono text-xs sm:text-sm md:text-base">
+          root@vulnera:~$
+        </div>
+        <h1
+          id="dash-title"
+          class="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white font-mono tracking-wider mt-4 sm:mt-5 md:mt-6 mb-3 sm:mb-4 md:mb-6"
+        >
           <span class="text-cyber-400">&gt;</span> ORGANIZATION_DASHBOARD
         </h1>
-        <div id="dash-subtitle" class="text-matrix-300 mt-2 text-xs sm:text-sm md:text-base">Live overview of your organization analysis activity</div>
+        <div
+          id="dash-subtitle"
+          class="text-matrix-300 mt-2 text-xs sm:text-sm md:text-base"
+        >
+          Live overview of your organization analysis activity
+        </div>
       </header>
 
       <!-- Controls -->
-      <div class="mb-4 flex flex-col sm:flex-row gap-2 sm:gap-3 md:gap-4 items-stretch sm:items-center justify-between">
+      <div
+        class="mb-4 flex flex-col sm:flex-row gap-2 sm:gap-3 md:gap-4 items-stretch sm:items-center justify-between"
+      >
         <div class="flex gap-2">
-          <select id="filter-view" class="bg-black/60 border border-cyber-400/30 text-matrix-200 px-2 sm:px-3 py-2 rounded-lg text-xs sm:text-sm">
+          <select
+            id="filter-view"
+            class="bg-black/60 border border-cyber-400/30 text-matrix-200 px-2 sm:px-3 py-2 rounded-lg text-xs sm:text-sm"
+          >
             <option value="organization">ORGANIZATION</option>
             <option value="member">MEMBER</option>
           </select>
-          <select id="filter-ecosystem" class="bg-black/60 border border-cyber-400/30 text-matrix-200 px-2 sm:px-3 py-2 rounded-lg text-xs sm:text-sm">
+          <select
+            id="filter-ecosystem"
+            class="bg-black/60 border border-cyber-400/30 text-matrix-200 px-2 sm:px-3 py-2 rounded-lg text-xs sm:text-sm"
+          >
             <option value="all">ALL_ECOSYSTEMS</option>
             <option value="npm">NPM</option>
             <option value="pypi">PYPI</option>
@@ -57,44 +94,86 @@ export const prerender = false;
           </select>
         </div>
         <div class="flex gap-2">
-          <button id="btn-refresh" class="inline-flex items-center bg-gradient-to-r from-cyber-600 to-matrix-600 hover:from-cyber-500 hover:to-matrix-500 text-black px-3 sm:px-4 py-2 md:py-2.5 rounded-lg font-mono text-xs sm:text-sm md:text-base terminal-border touch-none"><span class="mr-2">&gt;</span> REFRESH</button>
+          <button
+            id="btn-refresh"
+            class="inline-flex items-center bg-gradient-to-r from-cyber-600 to-matrix-600 hover:from-cyber-500 hover:to-matrix-500 text-black px-3 sm:px-4 py-2 md:py-2.5 rounded-lg font-mono text-xs sm:text-sm md:text-base terminal-border touch-none"
+            ><span class="mr-2">&gt;</span> REFRESH</button
+          >
         </div>
       </div>
 
       <!-- Stats Grid -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+      <div
+        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6"
+      >
         <div class="terminal-border bg-black/60 rounded-lg p-4 sm:p-6">
-          <div class="text-cyber-400 text-xs sm:text-sm mb-1">criticalFindings_FINDINGS</div>
-          <div id="criticalFindings" class="text-2xl sm:text-3xl lg:text-4xl text-yellow-400 font-mono">--</div>
+          <div class="text-cyber-400 text-xs sm:text-sm mb-1">
+            CRITICAL_FINDINGS
+          </div>
+          <div
+            id="criticalFindings"
+            class="text-2xl sm:text-3xl lg:text-4xl text-yellow-400 font-mono"
+          >
+            --
+          </div>
         </div>
         <div class="terminal-border bg-black/60 rounded-lg p-4 sm:p-6">
-          <div class="text-cyber-400 text-xs sm:text-sm mb-1">HIGH_FINDINGS</div>
-          <div id="highFindings" class="text-2xl sm:text-3xl lg:text-4xl text-white font-mono">--</div>
+          <div class="text-cyber-400 text-xs sm:text-sm mb-1">
+            HIGH_FINDINGS
+          </div>
+          <div
+            id="highFindings"
+            class="text-2xl sm:text-3xl lg:text-4xl text-white font-mono"
+          >
+            --
+          </div>
         </div>
         <div class="terminal-border bg-black/60 rounded-lg p-4 sm:p-6">
-          <div class="text-cyber-400 text-xs sm:text-sm mb-1">MEDIUM_FINDINGS</div>
-          <div id="mediumFindings" class="text-2xl sm:text-3xl lg:text-4xl text-white font-mono">--</div>
+          <div class="text-cyber-400 text-xs sm:text-sm mb-1">
+            MEDIUM_FINDINGS
+          </div>
+          <div
+            id="mediumFindings"
+            class="text-2xl sm:text-3xl lg:text-4xl text-white font-mono"
+          >
+            --
+          </div>
         </div>
         <div class="terminal-border bg-black/60 rounded-lg p-4 sm:p-6">
           <div class="text-cyber-400 text-xs sm:text-sm mb-1">LOW_FINDINGS</div>
-          <div id="lowFindings" class="text-2xl sm:text-3xl lg:text-4xl text-white font-mono">--</div>
+          <div
+            id="lowFindings"
+            class="text-2xl sm:text-3xl lg:text-4xl text-white font-mono"
+          >
+            --
+          </div>
         </div>
       </div>
 
       <!-- Trend & Activity -->
-      <section class="mt-8 sm:mt-10 grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+      <section
+        class="mt-8 sm:mt-10 grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6"
+      >
         <!-- Trend Chart -->
-        <div class="lg:col-span-2 terminal-border bg-black/70 rounded-xl p-4 sm:p-6">
+        <div
+          class="lg:col-span-2 terminal-border bg-black/70 rounded-xl p-4 sm:p-6"
+        >
           <div class="flex items-center justify-between mb-3">
             <h2 class="text-cyber-400 font-mono text-lg">LAST_7_DAYS_TREND</h2>
             <span class="text-xs text-gray-400">reports vs vulns</span>
           </div>
           <div class="overflow-x-auto">
-            <svg id="trend-svg" viewBox="0 0 600 220" class="w-full h-48 sm:h-56">
-              <rect x="0" y="0" width="600" height="220" fill="transparent" />
+            <svg
+              id="trend-svg"
+              viewBox="0 0 600 220"
+              class="w-full h-48 sm:h-56"
+            >
+              <rect x="0" y="0" width="600" height="220" fill="transparent"
+              ></rect>
               <!-- axes -->
-              <line x1="40" y1="200" x2="580" y2="200" stroke="#1affef55" />
-              <line x1="40" y1="20" x2="40" y2="200" stroke="#1affef55" />
+              <line x1="40" y1="200" x2="580" y2="200" stroke="#1affef55"
+              ></line>
+              <line x1="40" y1="20" x2="40" y2="200" stroke="#1affef55"></line>
               <!-- paths inserted by JS -->
             </svg>
           </div>
@@ -105,7 +184,10 @@ export const prerender = false;
             <h2 class="text-cyber-400 font-mono text-lg">MONTH_ACTIVITY</h2>
             <span class="text-xs text-gray-400">v1.1</span>
           </div>
-          <ul id="month-activity" class="space-y-2 text-matrix-300 text-sm font-mono">
+          <ul
+            id="month-activity"
+            class="space-y-2 text-matrix-300 text-sm font-mono"
+          >
             <li>Loading…</li>
           </ul>
         </div>
@@ -116,10 +198,16 @@ export const prerender = false;
         <div class="terminal-border bg-black/70 rounded-xl p-4 sm:p-6">
           <div class="flex items-center justify-between mb-3">
             <h2 class="text-cyber-400 font-mono text-lg">RECENT_REPORTS</h2>
-            <button id="btn-export" class="inline-flex items-center border border-cyber-400/40 text-cyber-300 px-3 py-1.5 rounded-lg font-mono text-xs">EXPORT_CSV</button>
+            <button
+              id="btn-export"
+              class="inline-flex items-center border border-cyber-400/40 text-cyber-300 px-3 py-1.5 rounded-lg font-mono text-xs"
+              >EXPORT_CSV</button
+            >
           </div>
           <div class="overflow-x-auto">
-            <table class="min-w-full text-left text-sm text-matrix-300 font-mono">
+            <table
+              class="min-w-full text-left text-sm text-matrix-300 font-mono"
+            >
               <thead class="text-cyber-300">
                 <tr>
                   <th class="py-2 pr-4">ID</th>
@@ -141,7 +229,11 @@ export const prerender = false;
       <section class="mt-8 sm:mt-10">
         <div class="terminal-border bg-black/70 rounded-xl p-4 sm:p-6">
           <h2 class="text-cyber-400 font-mono text-lg mb-3">PROJECTS</h2>
-          <div id="projects-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+          <div
+            id="projects-grid"
+            class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+          >
+          </div>
         </div>
       </section>
     </div>
@@ -150,31 +242,26 @@ export const prerender = false;
   <Footer />
 
   <script>
-    import { OrgDashboardHandler } from '../modules/dashboard';
+    import { OrgDashboardHandler } from "../modules/userDashboard";
     // Public dashboard: no auth guard
 
     const dashboardHandler = new OrgDashboardHandler(
-      document.getElementById('criticalFindings')!,
-      document.getElementById('highFindings')!,
-      document.getElementById('mediumFindings')!,
-      document.getElementById('lowFindings')!,
-      document.getElementById('month-activity')!,
-      document.getElementById('reports-tbody')!,
-      document.getElementById('projects-grid')!,
-      document.getElementById('trend-svg')!,
-      document.getElementById('filter-ecosystem')! as HTMLSelectElement
+      document.getElementById("criticalFindings")!,
+      document.getElementById("highFindings")!,
+      document.getElementById("mediumFindings")!,
+      document.getElementById("lowFindings")!,
+      document.getElementById("month-activity")!,
+      document.getElementById("reports-tbody")!,
+      document.getElementById("projects-grid")!,
+      document.getElementById("trend-svg")!,
+      document.getElementById("filter-ecosystem")! as HTMLSelectElement
     );
 
+    dashboardHandler.loadReportsAndProjects();
 
-  dashboardHandler.loadReportsAndProjects();
-    const filterView = document.getElementById('filter-view') as HTMLSelectElement;
-    filterView.addEventListener('change', (selection) => {
-      dashboardHandler.changeDashboard((selection.target as HTMLSelectElement).value);
-      dashboardHandler.loadReportsAndProjects();
-    });
     // Defer binding and initial load until idle to free up the main thread on first paint
     const scheduleIdle = (cb: any) => {
-      if (typeof window.requestIdleCallback === 'function') {
+      if (typeof window.requestIdleCallback === "function") {
         window.requestIdleCallback(cb);
       } else {
         setTimeout(cb, 120);
@@ -182,18 +269,48 @@ export const prerender = false;
     };
 
     scheduleIdle(() => {
-      document.getElementById('btn-refresh')?.addEventListener('click', () => dashboardHandler.loadReportsAndProjects());
-      document.getElementById('filter-ecosystem')?.addEventListener('change', () => dashboardHandler.loadReportsAndProjects());
-      document.getElementById('filter-severity')?.addEventListener('change', () => dashboardHandler.loadReportsAndProjects());
+      document
+        .getElementById("btn-refresh")
+        ?.addEventListener("click", () =>
+          dashboardHandler.loadReportsAndProjects()
+        );
+      document
+        .getElementById("filter-ecosystem")
+        ?.addEventListener("change", () =>
+          dashboardHandler.loadReportsAndProjects()
+        );
+      document
+        .getElementById("filter-severity")
+        ?.addEventListener("change", () =>
+          dashboardHandler.loadReportsAndProjects()
+        );
+      document
+        .getElementById("filter-view")
+        ?.addEventListener("change", (selection) => {
+          dashboardHandler.changeDashboard(
+            (selection.target as HTMLSelectElement).value
+          );
+          dashboardHandler.loadReportsAndProjects();
+        });
 
       // Export CSV
-      document.getElementById('btn-export')?.addEventListener('click', () => {
-        const header = ['id','project','severity','issues','createdAt'];
-        const rows = dashboardHandler.currentReportsFiltered.map(r => [r.id, r.project, r.severity, String(r.issues), r.createdAt]);
-        const csv = [header, ...rows].map(cols => cols.map(v => '"' + String(v).replace(/"/g,'""') + '"').join(',')).join('\n');
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      document.getElementById("btn-export")?.addEventListener("click", () => {
+        const header = ["id", "project", "severity", "issues", "createdAt"];
+        const rows = dashboardHandler.currentReportsFiltered.map((r) => [
+          r.id,
+          r.project,
+          r.severity,
+          String(r.issues),
+          r.createdAt,
+        ]);
+        const csv = [header, ...rows]
+          .map((cols) =>
+            cols.map((v) => '"' + String(v).replace(/"/g, '""') + '"').join(",")
+          )
+          .join("\n");
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
         const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
+        const a = document.createElement("a");
         a.href = url;
         a.download = `reports_${Date.now()}.csv`;
         document.body.appendChild(a);

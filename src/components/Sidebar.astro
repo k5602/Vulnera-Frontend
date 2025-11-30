@@ -25,13 +25,6 @@ const mainLinks: Link[] = [
     id: "home-page",
   },
   {
-    href: "/scan",
-    label: "SCAN",
-    icon: "scan",
-    guestOnly: false,
-    authOnly: true,
-  },
-  {
     href: "/dashboard",
     label: "DASHBOARD",
     icon: "dashboard",
@@ -39,11 +32,26 @@ const mainLinks: Link[] = [
     authOnly: true,
   },
   {
+    href: "/orgdashboard",
+    label: "ORG_DASHBOARD",
+    icon: "dashboard",
+    guestOnly: false,
+    authOnly: true,
+    id: "org-dash-sidebar",
+  },
+  {
+    href: "/scan",
+    label: "SCAN",
+    icon: "scan",
+    guestOnly: false,
+    authOnly: true,
+  },
+  {
     href: "/llm",
-    label: "VULNERA AI",
+    label: "ANALYZE_AI",
     icon: "bot",
     guestOnly: false,
-    authOnly: false,
+    authOnly: true,
   },
   {
     href: "/docs",
@@ -441,11 +449,13 @@ const linksToRender = isDocs ? docsLinks : mainLinks;
 
   // Auth-based visibility
   import { authService } from "../utils/api/index";
+  import { organization } from "../modules/orgData";
 
   function updateSidebarVisibility() {
     const authElements = sidebar?.querySelectorAll(".auth-only");
     const guestElements = sidebar?.querySelectorAll(".guest-only");
     const homeElement = document.getElementById("home-page");
+    const orgDashSidebar = document.getElementById("org-dash-sidebar");
     const isLoggedIn = authService.isAuthenticated();
 
     if (isLoggedIn) {
@@ -456,6 +466,13 @@ const linksToRender = isDocs ? docsLinks : mainLinks;
         (el) => ((el as HTMLElement).style.display = "none"),
       );
       if (homeElement) homeElement.style.display = "none";
+
+      // Show organization dashboard link only if user is in an organization
+      if (organization.isOrganization && orgDashSidebar) {
+        orgDashSidebar.style.removeProperty("display");
+      } else if (orgDashSidebar) {
+        orgDashSidebar.style.display = "none";
+      }
     } else {
       authElements?.forEach(
         (el) => ((el as HTMLElement).style.display = "none"),
@@ -463,6 +480,9 @@ const linksToRender = isDocs ? docsLinks : mainLinks;
       guestElements?.forEach((el) =>
         (el as HTMLElement).style.removeProperty("display"),
       );
+      if (orgDashSidebar) {
+        orgDashSidebar.style.display = "none";
+      }
     }
   }
 

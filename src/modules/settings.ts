@@ -1,8 +1,37 @@
 import { apiClient } from "../utils";
 import { organization, OrgData } from "./orgData";
+import { requestDebouncer } from "../utils/api/request-debounce";
 
 export class Settings {
     orgData: OrgData = organization;
+
+    async getOrgData() {
+        const id = this.orgData.orgId;
+        const requestKey = `org-data-${id}`;
+
+        // Debounce with 2 second delay to prevent rapid repeated requests
+        await requestDebouncer.debounce(
+            requestKey,
+            async () => {
+                const req = await apiClient.get(`api/v1/organizations/${id}`);
+                if (req.ok) {
+                    const data = await req.data as any;
+                    this.orgData.orgName = data.name;
+                    this.orgData.ownerId = data.owner_id;
+                    this.orgData.membersCount = data.members_count;
+                    this.orgData.orgDescription = data.description;
+                    this.orgData.tier = data.tier;
+                    this.orgData.updatedAt = data.updated_at;
+                    this.orgData.createdAt = data.created_at;
+                    this.orgData.orgId = data.id;
+
+                    alert("Organization data updated successfully.");
+                }
+                return req;
+            },
+            { delay: 2000 }
+        );
+    }
 
     async changeOrgName(newName: string) {
         const id = this.orgData.orgId;
@@ -22,10 +51,11 @@ export class Settings {
         });
 
         if (req.ok) {
-            this.orgData.orgName = newName;
+            await this.getOrgData();
             window.alert("Organization name updated successfully.");
             window.location.reload();
         }
+
     }
 
     async inviteMember(email: string) {
@@ -41,14 +71,14 @@ export class Settings {
         });
 
         if (req.ok) {
-            this.orgData.membersCount += 1;
+            await this.getOrgData();
             window.alert("Member invited successfully.");
         }
         switch (req.status) {
             case 409:
                 window.alert("User is already a member of the organization.");
                 break;
-            
+
             case 401:
                 window.alert("You are not authorized to invite members.");
                 break;
@@ -69,7 +99,12 @@ export class Settings {
     }
 
     async transferOwnership(new_id: string) {
-        const id = this.orgData.orgId;
+        const id = organization.orgId;
+
+        if (!id) {
+            window.alert("Organization ID not available.");
+            return;
+        }
 
         if (!new_id || new_id.trim() === "") {
             window.alert("New owner ID cannot be empty.");
@@ -81,15 +116,30 @@ export class Settings {
         });
 
         if (req.ok) {
-            this.orgData.ownerId = new_id;
+            await this.getOrgData();
             window.alert("Ownership transferred successfully.");
-        } else {
-            window.alert("Failed to transfer ownership.");
+        }
+
+        switch (req.status) {
+            case 401:
+                window.alert("You are not authorized to transfer ownership.");
+                break;
+            case 403:
+                window.alert("Only the owner can transfer ownership.");
+                break;
+            case 404:
+                window.alert("Organization or new owner not found.");
+                break;
+            default:
+                if (!req.ok) {
+                    window.alert("Failed to transfer ownership.");
+                }
         }
     }
 
     async removeMember(member_id: string) {
         const id = this.orgData.orgId;
+        console.log("Removing member with ID:", id);
 
         if (!member_id || member_id.trim() === "") {
             window.alert("Member ID cannot be empty.");
@@ -97,13 +147,33 @@ export class Settings {
         }
 
         const req = await apiClient.delete(`api/v1/organizations/${id}/members/${member_id}`);
+        console.log(req.data);
+
 
         if (req.ok) {
-            this.orgData.membersCount -= 1;
+            await this.getOrgData();
             window.alert("Member removed successfully.");
-        } else {
-            window.alert("Failed to remove member.");
         }
+
+        switch (req.status) {
+            case 401:
+                window.alert("You are not authorized to transfer ownership.");
+                break;
+            case 403:
+                window.alert("Only the owner can transfer ownership.");
+                break;
+            case 404:
+                window.alert("Organization or new owner not found.");
+                break;
+            case 409:
+                window.alert("Cannot remove the owner from the organization.");
+                break;
+            default:
+                if (!req.ok) {
+                    window.alert("Failed to transfer ownership.");
+                }
+        }
+
     }
 
     async leaveOrganization() {
@@ -114,11 +184,28 @@ export class Settings {
         });
 
         if (req.ok) {
+            organization.falseIsOrganization();
+            organization.falseSignOrganization();
             window.alert("Left the organization successfully.");
             window.location.reload();
-        } else {
-            window.alert("Failed to leave the organization.");
         }
+
+        switch (req.status) {
+            case 401:
+                window.alert("You are not authorized to transfer ownership.");
+                break;
+            case 403:
+                window.alert("Only the owner can transfer ownership.");
+                break;
+            case 404:
+                window.alert("Organization or new owner not found.");
+                break;
+            default:
+                if (!req.ok) {
+                    window.alert("Failed to transfer ownership.");
+                }
+        }
+
     }
 
     async deleteOrganization() {
@@ -128,10 +215,26 @@ export class Settings {
 
         if (req.ok) {
             organization.falseIsOrganization();
+            organization.falseSignOrganization();
             window.alert("Organization deleted successfully.");
             window.location.reload();
-        } else {
-            window.alert("Failed to delete organization.");
         }
+
+        switch (req.status) {
+            case 401:
+                window.alert("You are not authorized to transfer ownership.");
+                break;
+            case 403:
+                window.alert("Only the owner can transfer ownership.");
+                break;
+            case 404:
+                window.alert("Organization or new owner not found.");
+                break;
+            default:
+                if (!req.ok) {
+                    window.alert("Failed to transfer ownership.");
+                }
+        }
+
     }
 }

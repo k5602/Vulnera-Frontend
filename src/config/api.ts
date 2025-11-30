@@ -22,10 +22,12 @@ import { config } from './validation';
  * Get API base URL from environment or use safe same-origin fallback
  * 
  * Fallback chain (in order of preference):
- * 1. Empty string (same-origin) in development - uses Vite proxy
- * 2. PUBLIC_API_BASE with PUBLIC_FORCE_API_BASE=true (forced direct URL in production)
- * 3. PUBLIC_API_BASE from config (production builds)
- * 4. Empty string (relative requests for SSR/build-time)
+ * 1. Empty string (same-origin) - uses middleware proxy
+ * 2. PUBLIC_API_BASE with PUBLIC_FORCE_API_BASE=true (forced direct URL)
+ * 3. Empty string (relative requests for SSR/build-time)
+ * 
+ * Always use empty string (relative URL) to go through the proxy middleware,
+ * which handles both HTTP and HTTPS backends correctly from an HTTPS frontend.
  */
 const getApiBase = (): string => {
     const env =
@@ -39,32 +41,23 @@ const getApiBase = (): string => {
         console.debug('[API Config]', {
             PUBLIC_API_BASE: publicBase,
             PUBLIC_FORCE_API_BASE: forceDirect,
-            importMetaEnv: env.PUBLIC_API_BASE,
-            configValue: config.PUBLIC_API_BASE,
             windowOrigin: window.location.origin,
             isDev: env?.DEV,
+            usingProxy: !forceDirect,
         });
     }
 
-    // In development mode, use empty string (same-origin) to use the Vite proxy
-    // This avoids CORS issues during local development
-    if (typeof window !== "undefined") {
-        const isLocalhost = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(window.location.hostname);
-        const isDev = !!env?.DEV || isLocalhost;
-
-        if (isDev && !forceDirect) {
-            // Use same-origin (proxy will forward to backend)
-            return "";
-        }
+    // Always use same-origin by default (empty string)
+    // This routes through the middleware proxy which handles:
+    // - Vite dev proxy in development
+    // - Node middleware proxy in production
+    // - Avoids mixed-content issues (HTTPS frontend → HTTP backend)
+    if (!forceDirect) {
+        return "";
     }
 
-    // In production or when forced, use the configured PUBLIC_API_BASE
+    // Only use direct URL if explicitly forced
     if (forceDirect && publicBase) {
-        return publicBase.replace(/\/$/, "");
-    }
-
-    // SSR/build-time or production: use PUBLIC_API_BASE if available
-    if (publicBase && publicBase !== 'http://localhost:8000') {
         return publicBase.replace(/\/$/, "");
     }
 
@@ -107,15 +100,47 @@ export const API_ENDPOINTS = {
         REVOKE_API_KEY: "/api/v1/auth/api-keys/:key_id",
     },
 
+    // Organization endpoints
+    ORGANIZATIONS: {
+        LIST: "/api/v1/organizations",
+        CREATE: "/api/v1/organizations",
+        GET: "/api/v1/organizations/:id",
+        UPDATE: "/api/v1/organizations/:id",
+        DELETE: "/api/v1/organizations/:id",
+        LEAVE: "/api/v1/organizations/:id/leave",
+        TRANSFER: "/api/v1/organizations/:id/transfer",
+        STATS: "/api/v1/organizations/:id/stats",
+        // Members
+        LIST_MEMBERS: "/api/v1/organizations/:id/members",
+        INVITE_MEMBER: "/api/v1/organizations/:id/members",
+        REMOVE_MEMBER: "/api/v1/organizations/:id/members/:user_id",
+        // Analytics
+        DASHBOARD: "/api/v1/organizations/:id/analytics/dashboard",
+        QUOTA: "/api/v1/organizations/:id/analytics/quota",
+        USAGE: "/api/v1/organizations/:id/analytics/usage",
+    },
+
+    // Personal Analytics endpoints
+    ME: {
+        DASHBOARD: "/api/v1/me/analytics/dashboard",
+        USAGE: "/api/v1/me/analytics/usage",
+    },
+
     // Analysis endpoints
     ANALYSIS: {
         ANALYZE: "/api/v1/analyze/job",
-        GET_JOB: "/api/v1/jobs/:job_id",
+        GET_JOB: "/api/v1/jobs/:id",
+    },
+
+    // Dependencies endpoints (for extensions)
+    DEPENDENCIES: {
+        ANALYZE: "/api/v1/dependencies/analyze",
     },
 
     // LLM endpoints
     LLM: {
         QUERY: "/api/v1/llm/query",
+        EXPLAIN: "/api/v1/llm/explain",
         ENRICH: "/api/v1/jobs/:job_id/enrich",
         FIX: "/api/v1/llm/fix",
     },

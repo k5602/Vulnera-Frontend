@@ -135,14 +135,10 @@ export const prerender = false;
 
   <Footer />
   <script>
-    import { apiClient } from "../utils/api/client";
-    import {
-      clearAuth,
-      isAuthenticated,
-      setCsrfToken,
-      setCurrentUser,
-    } from "../utils/api/auth-store";
-import { organization } from "../modules/orgData";
+    import { authService } from "../utils/api/auth-service";
+    import { organizationService } from "../utils/api/organization-service";
+    import { clearAuth, isAuthenticated } from "../utils/api/auth-store";
+    import { setId } from "../modules/orgData";
 
     // Redirect if already logged in
     if (isAuthenticated()) {
@@ -155,17 +151,17 @@ import { organization } from "../modules/orgData";
     // Safe element getters (TS safe)
     // ----------------------------
     const form = document.getElementById(
-      "login-form",
+      "login-form"
     ) as HTMLFormElement | null;
     const submitBtn = document.getElementById(
-      "submit-btn",
+      "submit-btn"
     ) as HTMLButtonElement | null;
 
     const errorDiv = document.getElementById(
-      "error-message",
+      "error-message"
     ) as HTMLDivElement | null;
     const successDiv = document.getElementById(
-      "success-message",
+      "success-message"
     ) as HTMLDivElement | null;
 
     function showError(msg: string): void {
@@ -190,10 +186,13 @@ import { organization } from "../modules/orgData";
         e.preventDefault();
 
         const emailEl = document.getElementById(
-          "email",
+          "email"
         ) as HTMLInputElement | null;
         const passwordEl = document.getElementById(
-          "password",
+          "password"
+        ) as HTMLInputElement | null;
+        const rememberEl = document.getElementById(
+          "remember"
         ) as HTMLInputElement | null;
 
         if (!emailEl || !passwordEl) {
@@ -203,81 +202,47 @@ import { organization } from "../modules/orgData";
 
         const email = emailEl.value.trim();
         const password = passwordEl.value;
+        const rememberMe = rememberEl?.checked ?? false;
 
         submitBtn.disabled = true;
         submitBtn.textContent = "> AUTHENTICATING...";
 
-        const res = await apiClient.post("/api/v1/auth/login", {
+        // Use authService for login
+        const loginResult = await authService.login({
           email,
           password,
+          remember_me: rememberMe,
         });
 
-        if (!res.ok) {
-          showError("Invalid email or password.");
+        if (!loginResult.success) {
+          showError(loginResult.error || "Invalid email or password.");
           submitBtn.disabled = false;
           submitBtn.innerHTML = "<span class='mr-2'>&gt;</span> LOGIN";
           return;
         }
 
-        // Save authentication details
-        if (res.data) {
-          const loginData = res.data as any;
-          if (loginData.csrf_token) setCsrfToken(loginData.csrf_token);
+        // Update last refresh timestamp to prevent immediate refresh on dashboard load
+        localStorage.setItem("last_token_refresh", Date.now().toString());
 
-          setCurrentUser({
-            id: loginData.user_id,
-            email: loginData.email,
-            roles: loginData.roles,
-          });
-
-          // Update last refresh timestamp to prevent immediate refresh on dashboard load
-          localStorage.setItem("last_token_refresh", Date.now().toString());
-        }
-
-        const organizations = await apiClient.get("api/v1/organizations");
-        let isInOrg = false;
-
-        if (organizations.ok) {
-          const orgData = organizations.data as any;
-          const orgList = orgData.organizations;
-
-          for (let i in orgList) {
-            const ownerId = orgList[i].owner_id;
-            const loginData = res.data as any;
-            if (ownerId == loginData.user_id) {
-              isInOrg = true;
-              organization.trueIsOrganization();
-              break;
-            }
-            
-          }
-          // Store organizations in localStorage
-          // localStorage.setItem(
-          //   "user_organizations",
-          //   JSON.stringify(organizations.data || []),
-          // );
+        // Use organizationService to check and set current organization
+        const orgResult = await organizationService.list();
+        if (orgResult.success && orgResult.data && orgResult.data.length > 0) {
+          // Set first org as current
+          setId(orgResult.data[0].id);
         }
 
         showSuccess("Login successful! Redirecting...");
 
-        let next;
-
-        if (isInOrg) {
-          next =
-            new URLSearchParams(window.location.search).get("next") ||
-            "/orgdashboard";          
-        } else {
-          next =
-            new URLSearchParams(window.location.search).get("next") ||
-            "/dashboard";
-        }
+        const next =
+          new URLSearchParams(window.location.search).get("next") ||
+          "/dashboard";
         window.location.replace(next);
       });
     }
 
     // Clear session button
     const clearBtn = document.getElementById(
-      "clear-session-btn",
+      "clear-session-btn"
     ) as HTMLButtonElement | null;
     if (clearBtn) {
       clearBtn.addEventListener("click", () => {
