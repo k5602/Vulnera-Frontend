@@ -1,15 +1,25 @@
 /**
  * API Client (HttpOnly Cookies + CSRF)
+ *
+ * Authentication Flow:
+ * 1. Frontend does NOT read or manage HttpOnly cookies directly
+ * 2. Browser automatically sends HttpOnly session cookies when credentials: 'include' is set
+ * 3. Frontend manages CSRF tokens (extracted from responses, stored in localStorage)
+ * 4. On authentication: Backend sends auth_token as HttpOnly cookie + csrf_token in response body
+ * 5. On mutating requests: Frontend adds X-CSRF-Token header from stored token
+ *
+ * Bootstrap Case (First Authenticated Request):
+ * - If CSRF token is missing from localStorage, frontend calls refreshAuth()
+ * - refreshAuth() is a POST to /auth/refresh that needs the session cookie (HttpOnly)
+ * - BACKEND REQUIREMENT: /auth/refresh must accept requests without CSRF token
+ *   if the HttpOnly session cookie is valid and not expired
+ * - Once refresh succeeds, a fresh CSRF token is extracted and stored
+ * - Original request is retried with new CSRF token
  */
-import {
-    getCsrfToken,
-    refreshAuth,
-    setCsrfToken,
-    setCurrentUser,
-} from "../api/auth-store";
+import { getCsrfToken, refreshAuth, setCsrfToken, setCurrentUser } from "../api/auth-store";
 import { API_CONFIG } from "../../config/api";
 import { logger } from "../logger";
-import { getCookie, setCookie } from "../cookies";
+import { setCookie } from "../cookies";
 
 function normalizeHeaders(init?: HeadersInit): Record<string, string> {
     const normalized: Record<string, string> = {};
@@ -60,22 +70,22 @@ function extractAndStoreAuthData(res: Response, data: unknown): void {
         }
 
         // Extract auth data from response body
-        if (data && typeof data === 'object') {
+        if (data && typeof data === "object") {
             const responseData = data as Record<string, unknown>;
             // Only set CSRF from body if header didn't provide one
             if (!csrfSet && (responseData.csrf || responseData.csrf_token)) {
                 setCsrfToken(String(responseData.csrf || responseData.csrf_token));
             }
 
-            if (responseData.user && typeof responseData.user === 'object') {
+            if (responseData.user && typeof responseData.user === "object") {
                 setCurrentUser(responseData.user as Parameters<typeof setCurrentUser>[0]);
             } else if (responseData.user_id || responseData.email) {
                 // Map flat structure to CurrentUser
                 setCurrentUser({
-                    id: responseData.user_id as string || responseData.id as string,
+                    id: (responseData.user_id as string) || (responseData.id as string),
                     email: responseData.email as string,
                     name: (responseData.name || responseData.first_name) as string | undefined,
-                    roles: (responseData.roles || []) as string[]
+                    roles: (responseData.roles || []) as string[],
                 });
             }
         }
@@ -86,7 +96,7 @@ function extractAndStoreAuthData(res: Response, data: unknown): void {
 
 export async function apiFetch<T = unknown>(
     url: string,
-    opts: RequestInit = {}
+    opts: RequestInit = {},
 ): Promise<ApiResponse<T>> {
     const method = (opts.method || "GET").toUpperCase();
     // Do NOT use CSRF for login and register
@@ -94,18 +104,11 @@ export async function apiFetch<T = unknown>(
 
     const isMutating = ["POST", "PUT", "PATCH", "DELETE"].includes(method) && !skipCsrf;
 
-
     const headers = {
         ...normalizeHeaders(opts.headers),
         Accept: "application/json",
         "Content-Type": "application/json",
     } as Record<string, string>;
-
-    // Add Authorization header if auth token exists
-    const authToken = getCookie("auth_token");
-    if (authToken) {
-        headers["Authorization"] = `Bearer ${authToken}`;
-    }
 
     if (isMutating && !skipCsrf) {
         let csrfToken = getCsrfToken();
@@ -117,9 +120,9 @@ export async function apiFetch<T = unknown>(
             csrfToken = getCsrfToken();
         }
 
-        // Set CSRF cookie using centralized utility
+        // Set CSRF cookie using centralized utility with consistent security settings
         if (typeof document !== "undefined" && csrfToken) {
-            setCookie("csrf_token", csrfToken, { days: 1, sameSite: "Lax", secure: false });
+            setCookie("csrf_token", csrfToken, { days: 1, sameSite: "Strict", secure: true });
         }
         if (csrfToken && !headers["X-CSRF-Token"]) {
             headers["X-CSRF-Token"] = csrfToken;
@@ -133,7 +136,6 @@ export async function apiFetch<T = unknown>(
 
     const customHeaders = normalizeHeaders(opts.headers);
     Object.assign(headers, customHeaders);
-
 
     // Prevent GET requests from having a body
     if (method === "GET" && opts.body) {
@@ -170,7 +172,11 @@ export async function apiFetch<T = unknown>(
         // Extract CSRF from response and set as cookie
         if (data?.csrf_token) {
             if (typeof document !== "undefined") {
-                setCookie("csrf_token", data.csrf_token, { days: 1, sameSite: "Strict", secure: true });
+                setCookie("csrf_token", data.csrf_token, {
+                    days: 1,
+                    sameSite: "Strict",
+                    secure: true,
+                });
             }
             setCsrfToken(data.csrf_token);
         }
@@ -181,11 +187,10 @@ export async function apiFetch<T = unknown>(
             // Parse and set individual cookies - these come from backend
             // and should be applied as-is (already formatted)
             const cookies = setCookieHeader.split(",");
-            cookies.forEach(cookie => {
+            cookies.forEach((cookie) => {
                 document.cookie = cookie.trim();
             });
         }
-
 
         // Extract and store auth data from response
         extractAndStoreAuthData(res, data);
@@ -285,7 +290,8 @@ export const apiClient = {
             method: "PUT",
             body: JSON.stringify(body || {}),
         }),
-    delete: <T = unknown>(url: string, opts?: RequestInit) => apiFetch<T>(url, { ...opts, method: "DELETE" }),
+    delete: <T = unknown>(url: string, opts?: RequestInit) =>
+        apiFetch<T>(url, { ...opts, method: "DELETE" }),
     patch: <T = unknown>(url: string, body?: unknown, opts?: RequestInit) =>
         apiFetch<T>(url, {
             ...opts,
@@ -298,7 +304,7 @@ export const apiClient = {
      * @param template - URL template with :param placeholders (e.g., '/api/jobs/:job_id')
      * @param params - Object with parameter values (e.g., { job_id: '123' })
      * @returns URL with parameters replaced (e.g., '/api/jobs/123')
-     * 
+     *
      * @example
      * apiClient.replacePath('/api/jobs/:job_id', { job_id: '123' })
      * // => '/api/jobs/123'
