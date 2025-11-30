@@ -130,9 +130,6 @@ export const POST: APIRoute = async ({ request }) => {
         // In production, make this mandatory
         const signature = request.headers.get('X-Webhook-Signature');
         if (signature) {
-            // Note: In a real implementation, you'd look up the user's webhook secret
-            // based on the job_id or a user identifier in the payload
-            // For now, we skip mandatory verification since we can't access localStorage server-side
             console.log('[Webhook] Signature provided:', signature.substring(0, 16) + '...');
         }
 
