@@ -163,6 +163,7 @@ export class OrgSignupOrgData {
         }
 
         if (result.data) {
+            organization.trueIsOrganization();
             setId(result.data.id);
             loadOrgData(result.data.id);
         }
