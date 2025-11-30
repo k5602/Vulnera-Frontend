@@ -17,7 +17,7 @@ class DebouncedRequest {
    * @param fn Function to execute
    * @param delay Delay in milliseconds (default: 2000ms)
    */
-  async execute<T>(key: string, fn: () => Promise<T>, delay: number = 2000): Promise<T | null> {
+  async execute<T>(key: string, fn: () => Promise<T>, delay: number = 500): Promise<T | null> {
     // If same request is already in flight, skip
     if (this.isLoading && this.lastRequestKey === key) {
       logger.debug("Duplicate request detected, skipping", { key });
