@@ -16,7 +16,7 @@
  * - Once refresh succeeds, a fresh CSRF token is extracted and stored
  * - Original request is retried with new CSRF token
  */
-import { getCsrfToken, refreshAuth, setCsrfToken, setCurrentUser } from "../api/auth-store";
+import { getCsrfToken, refreshAuth, setCsrfToken, setCurrentUser, isAuthenticated } from "../api/auth-store";
 import { API_CONFIG } from "../../config/api";
 import { logger } from "../logger";
 import { setCookie } from "../cookies";
@@ -215,14 +215,21 @@ export async function apiFetch<T = unknown>(
             }
 
             if (!refreshed) {
-                logger.warn("Token refresh failed, redirecting to login");
+                // Only redirect if the session is actually invalid (cleared by refreshAuth)
+                // If refreshAuth returned false but didn't clear auth (e.g. network error),
+                // we should NOT redirect, to avoid loops.
+                if (!isAuthenticated()) {
+                    logger.warn("Token refresh failed and session invalid, redirecting to login");
 
-                // Avoid infinite redirect loop
-                if (
-                    typeof window !== "undefined" &&
-                    !window.location.pathname.startsWith("/login")
-                ) {
-                    window.location.replace("/login");
+                    // Avoid infinite redirect loop
+                    if (
+                        typeof window !== "undefined" &&
+                        !window.location.pathname.startsWith("/login")
+                    ) {
+                        window.location.replace("/login");
+                    }
+                } else {
+                    logger.warn("Token refresh failed but session preserved (transient error)");
                 }
 
                 return { ok: false, status: 401, error: "Authentication expired" };
