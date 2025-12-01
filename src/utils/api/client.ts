@@ -111,22 +111,29 @@ export async function apiFetch<T = unknown>(
     } as Record<string, string>;
 
     if (isMutating && !skipCsrf) {
-        let csrfToken = getCsrfToken();
+        // Check if CSRF token is already provided in headers (manual override)
+        let csrfToken = headers["X-CSRF-Token"];
 
-        // If we don't have a CSRF token for a mutating request, try to get one via refresh
         if (!csrfToken) {
-            logger.debug("Missing CSRF token for mutating request, attempting refresh");
-            await refreshAuth();
             csrfToken = getCsrfToken();
+
+            // If we don't have a CSRF token for a mutating request, try to get one via refresh
+            if (!csrfToken) {
+                logger.debug("Missing CSRF token for mutating request, attempting refresh");
+                await refreshAuth();
+                csrfToken = getCsrfToken();
+            }
         }
 
         // Set CSRF cookie using centralized utility with consistent security settings
         if (typeof document !== "undefined" && csrfToken) {
             setCookie("csrf_token", csrfToken, { days: 1, sameSite: "Strict", secure: true });
         }
-        if (csrfToken && !headers["X-CSRF-Token"]) {
-            headers["X-CSRF-Token"] = csrfToken;
-            // setCsrfToken already handles localStorage persistence
+
+        if (csrfToken) {
+            if (!headers["X-CSRF-Token"]) {
+                headers["X-CSRF-Token"] = csrfToken;
+            }
         } else {
             logger.warn("Proceeding with mutating request without CSRF token");
         }
