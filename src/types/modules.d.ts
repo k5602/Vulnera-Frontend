@@ -17,17 +17,6 @@ export interface ThemeOptions {
   isDark: boolean;
 }
 
-export function initNotyf(): void;
-
-// ========== Notifications ==========
-export interface NotifyOptions {
-  type: 'success' | 'error' | 'warning' | 'info';
-  message: string;
-  duration?: number;
-}
-
-export function notify(options: NotifyOptions): void;
-
 // ========== Ecosystems ==========
 export interface EcosystemInfo {
   name: string;
