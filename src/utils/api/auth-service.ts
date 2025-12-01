@@ -3,7 +3,7 @@
  * Centralized service for authentication, registration, and API key management
  */
 import { apiClient } from './client';
-import { clearAuth, isAuthenticated, getCurrentUser, setCsrfToken, setCurrentUser, type CurrentUser } from './auth-store';
+import { clearAuth, isAuthenticated, getCurrentUser, setCsrfToken, getCsrfToken, setCurrentUser, type CurrentUser } from './auth-store';
 import { API_ENDPOINTS } from '../../config/api';
 import { logger } from '../logger';
 
@@ -277,21 +277,35 @@ export class AuthService {
   /**
    * Logout user
    */
+  /**
+   * Logout user
+   * Fire-and-forget: clears local state immediately, then notifies backend
+   */
   async logout(): Promise<void> {
+    // 1. Capture token before clearing state
+    const csrfToken = getCsrfToken();
+
+    // 2. Always clear local state immediately for instant UI feedback
+    clearAuth();
     try {
-      // Call backend logout endpoint
-      await apiClient.post(API_ENDPOINTS.AUTH.LOGOUT);
-    } catch (error) {
-      logger.warn('Logout endpoint failed, proceeding with local cleanup', { error: error instanceof Error ? error.message : String(error) });
-    } finally {
-      // Always clear local state
-      clearAuth();
-      try {
-        localStorage.removeItem('github_token');
-        localStorage.removeItem('api_token');
-      } catch {
-        // Ignore errors
-      }
+      localStorage.removeItem('github_token');
+      localStorage.removeItem('api_token');
+    } catch {
+      // Ignore errors
+    }
+
+    // 3. Notify backend in background (fire-and-forget)
+    // We don't await this because we want the UI to be responsive immediately
+    if (csrfToken) {
+      apiClient.post(API_ENDPOINTS.AUTH.LOGOUT, undefined, {
+        keepalive: true, // Ensure request survives page unload/redirect
+        headers: {
+          'X-CSRF-Token': csrfToken
+        }
+      }).catch(err => {
+        // Suppress errors for background logout
+        logger.warn('Background logout request failed', { error: err });
+      });
     }
   }
 

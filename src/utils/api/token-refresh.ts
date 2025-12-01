@@ -56,6 +56,26 @@ class TokenRefreshManager {
                 logger.debug("Token refresh successful");
             } else {
                 logger.warn("Token refresh failed or skipped (may be rate limited or server error)");
+
+                // Check if session is still valid (refreshAuth clears it on 401/403)
+                // We need to import isAuthenticated to check this
+                const { isAuthenticated } = await import("./auth-store");
+
+                if (!isAuthenticated()) {
+                    logger.warn("Session expired during background refresh, redirecting to login");
+
+                    // Check if we are on a public page to avoid unnecessary redirects
+                    const currentPath = window.location.pathname;
+                    const publicPaths = ["/login", "/signup", "/pricing", "/vulnera-ai", "/"];
+                    const isPublic = publicPaths.some(path =>
+                        path === "/" ? currentPath === "/" : currentPath.startsWith(path)
+                    );
+
+                    if (!isPublic) {
+                        window.location.replace("/login");
+                    }
+                }
+
                 // Rate limit protection strategy:
                 // - MIN_REFRESH_DELAY (5 min) prevents retry spamming on 429 responses
                 // - Failed attempts don't update timestamp, so retries naturally backoff
