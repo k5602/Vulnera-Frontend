@@ -25,7 +25,8 @@
     "tailwindcss": "^4.1.13",
     "typescript": "^5.9.2",
     "ua-parser-js": "^2.0.5",
-    "zod": "^3.25.76"
+    "zod": "^3.25.76",
+    "astro-icon": "^0.4.0"
   },
   "devDependencies": {
     "@testing-library/dom": "^10.4.0",
