@@ -59,7 +59,9 @@ import Logo from "./Logo.astro";
 
             <!-- Shared Links -->
             <a
-                href="/docs"
+                href="https://k5602.github.io/Vulnera/"
+                target="_blank"
+                rel="noopener noreferrer"
                 class="text-matrix-300 hover:text-cyber-400 font-mono text-sm tracking-wider transition-colors duration-300 relative group"
             >
                 <span class="relative z-10">DOCS</span>
@@ -79,7 +81,8 @@ import Logo from "./Logo.astro";
             </a>
 
             <!-- Auth Only Links -->
-            <a id="dash-link"
+            <a
+                id="dash-link"
                 href="/dashboard"
                 class="nav-auth-only hidden text-matrix-300 hover:text-cyber-400 font-mono text-sm tracking-wider transition-colors duration-300 relative group"
             >
@@ -90,7 +93,8 @@ import Logo from "./Logo.astro";
             </a>
 
             <!-- Organization Dashboard (visible only if in organization) -->
-            <a id="org-dash-link"
+            <a
+                id="org-dash-link"
                 href="/orgdashboard"
                 class="nav-auth-only hidden text-matrix-300 hover:text-cyber-400 font-mono text-sm tracking-wider transition-colors duration-300 relative group"
             >
@@ -148,7 +152,9 @@ import Logo from "./Logo.astro";
     import { organization } from "../modules/orgData";
     // Mobile sidebar toggle
     const toggleBtn = document.getElementById("menu-toggle");
-    const orgDashLink = document.getElementById("org-dash-link") as HTMLAnchorElement;
+    const orgDashLink = document.getElementById(
+        "org-dash-link",
+    ) as HTMLAnchorElement;
 
     // Show/hide organization dashboard link based on organization status
     function updateOrgDashLink() {

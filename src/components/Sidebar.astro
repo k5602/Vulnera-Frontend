@@ -13,6 +13,7 @@ interface Link {
   guestOnly: boolean;
   authOnly: boolean;
   id?: string;
+  target?: string;
 }
 
 const mainLinks: Link[] = [
@@ -54,11 +55,12 @@ const mainLinks: Link[] = [
     authOnly: true,
   },
   {
-    href: "/docs",
+    href: "https://k5602.github.io/Vulnera/",
     label: "DOCS",
     icon: "docs",
     guestOnly: false,
     authOnly: false,
+    target: "_blank",
   },
   {
     href: "/settings",
@@ -185,6 +187,8 @@ const linksToRender = isDocs ? docsLinks : mainLinks;
           data-label={link.label}
           id={link.id}
           style={link.guestOnly || link.authOnly ? 'display: none' : ''}
+          target={link.target}
+          rel={link.target === "_blank" ? "noopener noreferrer" : undefined}
         >
           <!-- Ripple Effect Container -->
           <span class="ripple-container absolute inset-0 overflow-hidden"></span>
