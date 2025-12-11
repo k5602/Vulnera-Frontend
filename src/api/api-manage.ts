@@ -14,19 +14,11 @@
  */
 
 import axios from "axios";
+import { clearCsrfToken, csrfTokenStore } from "../utils/store";
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 
-// CSRF token storage (in-memory)
-let csrfToken: string | null = null;
-
-export const setCsrfToken = (token: string) => {
-  csrfToken = token;
-};
-
-export const clearCsrfToken = () => {
-  csrfToken = null;
-};
+let csrfToken: string | null = csrfTokenStore.get();
 
 const api = axios.create({
   baseURL: BASE_URL,

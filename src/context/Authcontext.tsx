@@ -7,7 +7,7 @@ import {
 } from "react";
 import { POST } from "../api/api-manage";
 import ENDPOINTS from "../utils/api/endpoints";
-import { setCsrfToken, clearCsrfToken } from "../api/api-manage";
+import { clearCsrfToken, csrfTokenStore } from "../utils/store";
 
 interface User {
   user_id: string;
@@ -36,7 +36,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const res = await POST(ENDPOINTS.AUTH.POST_refresh_token);
 
-      setCsrfToken(res.data.csrf_token);
+      csrfTokenStore.set(res.data.csrf_token);
 
       // No user info returned → you must store it manually after login
       // So we re-fetch user info from a protected endpoint.
@@ -69,7 +69,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const res = await POST(ENDPOINTS.AUTH.POST_login, { email, password });
 
     // Save CSRF token
-    setCsrfToken(res.data.csrf_token);
+    csrfTokenStore.set(res.data.csrf_token);
 
     // Save user metadata from AuthResponse
     setUser({
@@ -83,7 +83,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const register = async (email: string, password: string) => {
     const res = await POST(ENDPOINTS.AUTH.POST_register, { email, password });
 
-    setCsrfToken(res.data.csrf_token);
+    csrfTokenStore.set(res.data.csrf_token);
 
     setUser({
       user_id: res.data.user_id,

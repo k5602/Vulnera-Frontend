@@ -242,7 +242,7 @@ const ecosystems = [
                     class="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center animate-slide-up px-4"
                 >
                     <a
-                        href="/signup"
+                        href="/dashboard"
                         target="_self"
                         rel="noopener"
                         class="group inline-flex items-center justify-center bg-gradient-to-r from-cyber-600 to-matrix-600 hover:from-cyber-500 hover:to-matrix-500 text-black px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-bold text-sm sm:text-base lg:text-lg font-mono transition-all duration-300 transform hover:scale-105 terminal-border animate-glow focus:outline-none focus-visible:ring-2 focus-visible:ring-cyber-400"
@@ -620,14 +620,6 @@ const ecosystems = [
     <Footer />
     <script>
         import { organization } from "../modules/orgData";
-        import { isAuthenticated } from "../utils/api/auth-store";
-        if (isAuthenticated()) {
-            if (organization.isOrganization) {
-                window.location.href = "/orgdashboard";
-            }else {
-                window.location.href = "/dashboard";
-            }
-        }
         organization.falseSignOrganization();
         organization.falseIsOrganization();
         const createOrgBtn = document.getElementById('create-organization') as HTMLAnchorElement;

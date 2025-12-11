@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { isAuthenticated as isAuthenticatedStore } from '../utils/api/auth-store';
-import { apiClient } from '../utils/api/client';
 import { API_ENDPOINTS } from '../config/api';
+import { POST } from '../api/api-manage';
+import ENDPOINTS from '../utils/api/endpoints';
 
 /** Extract error message from unknown error types */
 function extractErrorMessage(error: unknown, fallback = 'An unknown error occurred'): string {
@@ -43,22 +43,22 @@ export default function VulneraBot() {
 
     const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-    useEffect(() => {
-        // Check for authentication using the centralized store
-        const checkAuth = () => {
-            setIsAuthenticated(isAuthenticatedStore());
-        };
+    // useEffect(() => {
+    //     // Check for authentication using the centralized store
+    //     const checkAuth = () => {
+    //         setIsAuthenticated(isAuthenticatedStore());
+    //     };
 
-        checkAuth();
+    //     checkAuth();
 
-        // Listen for storage events to handle login/logout across tabs
-        // This is sufficient - storage events fire whenever auth state changes
-        window.addEventListener('storage', checkAuth);
+    //     // Listen for storage events to handle login/logout across tabs
+    //     // This is sufficient - storage events fire whenever auth state changes
+    //     window.addEventListener('storage', checkAuth);
 
-        return () => {
-            window.removeEventListener('storage', checkAuth);
-        };
-    }, []);
+    //     return () => {
+    //         window.removeEventListener('storage', checkAuth);
+    //     };
+    // }, []);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -89,15 +89,15 @@ export default function VulneraBot() {
 
         try {
             // Use apiClient to handle CSRF tokens automatically
-            const response = await apiClient.post<LLMResponse>(API_ENDPOINTS.LLM.QUERY, {
+            const response = await POST(ENDPOINTS.LLM.POST_naturalLanguageQuery, {
                 context: "User is asking via the web chat interface.",
                 query: userMessage.text
             });
 
-            if (!response.ok) {
-                console.warn('LLM Query failed', { status: response.status, error: response.error });
+            if (!(response.status == 200)) {
+                console.warn('LLM Query failed', { status: response.status, error: response.statusText });
                 // Safely extract error message from unknown error type
-                const err = response.error as Record<string, unknown> | string | undefined;
+                const err = response.statusText as Record<string, unknown> | string | undefined;
                 const errorMsg = typeof err === 'string' ? err :
                     (err?.message as string) ||
                     (err?.details as string) ||
