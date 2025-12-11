@@ -409,7 +409,7 @@ const linksToRender = isDocs ? docsLinks : mainLinks;
   }
 </style>
 
-<script>
+<script type="module">
   // Sidebar functionality
   const sidebar = document.getElementById("sidebar");
   const sidebarLinks = document.querySelectorAll(".sidebar-link");
@@ -451,10 +451,10 @@ const linksToRender = isDocs ? docsLinks : mainLinks;
     }
   });
 
-import { POST } from "../api/api-manage";
+  import { POST } from "../api/api-manage";
   // Auth-based visibility
   import { organization } from "../modules/orgData";
-import ENDPOINTS from "../utils/api/endpoints";
+  import ENDPOINTS from "../utils/api/endpoints";
   import { isAuthenticatedStore } from "../utils/store";
 
   function updateSidebarVisibility() {
@@ -523,4 +523,4 @@ import ENDPOINTS from "../utils/api/endpoints";
       sidebar?.classList.remove("mobile-open");
     }
   });
-</script>
+</script> 
