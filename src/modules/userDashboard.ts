@@ -2,63 +2,7 @@ import { apiClient } from '../utils/index.js';
 import { logger } from '../utils/logger.js';
 import { getSeverityTextColor } from '../utils/severity.js';
 import { organization, loadUserOrganization } from './orgData.js';
-
-/**
- * Debounce utility to delay execution and prevent duplicate requests
- */
-class DebouncedRequest {
-  private timeoutId: NodeJS.Timeout | null = null;
-  private lastRequestKey: string | null = null;
-  private isLoading: boolean = false;
-
-  /**
-   * Execute a function with debounce and duplicate prevention
-   * @param key Unique key to identify duplicate requests
-   * @param fn Function to execute
-   * @param delay Delay in milliseconds (default: 2000ms)
-   */
-  async execute<T>(key: string, fn: () => Promise<T>, delay: number = 2000): Promise<T | null> {
-    // If same request is already in flight, skip
-    if (this.isLoading && this.lastRequestKey === key) {
-      logger.debug("Duplicate request detected, skipping", { key });
-      return null;
-    }
-
-    // Clear existing timeout
-    if (this.timeoutId) {
-      clearTimeout(this.timeoutId);
-    }
-
-    this.lastRequestKey = key;
-
-    return new Promise((resolve) => {
-      this.timeoutId = setTimeout(async () => {
-        try {
-          this.isLoading = true;
-          logger.debug("Executing debounced request after 2 second delay", { key });
-          const result = await fn();
-          resolve(result);
-        } catch (error) {
-          logger.error("Debounced request failed", { key, error });
-          resolve(null as any);
-        } finally {
-          this.isLoading = false;
-          this.timeoutId = null;
-        }
-      }, delay);
-    });
-  }
-
-  /**
-   * Cancel any pending request
-   */
-  cancel(): void {
-    if (this.timeoutId) {
-      clearTimeout(this.timeoutId);
-      this.timeoutId = null;
-    }
-  }
-}
+import { requestDebouncer } from '../utils/api/request-debounce.js';
 
 export class OrgDashboardHandler {
   criticalElement: HTMLElement;
@@ -71,8 +15,6 @@ export class OrgDashboardHandler {
   chartSvg: HTMLElement;
   currentReportsFiltered: any[] = [];
   ecoSelect: HTMLSelectElement;
-  private debouncedRequest: DebouncedRequest = new DebouncedRequest();
-
 
   renderOverview(data: any) {
     if (this.criticalElement) this.criticalElement.textContent = String(data.mCriticalFindings ?? 0);
@@ -101,11 +43,40 @@ export class OrgDashboardHandler {
     this.reportBody.innerHTML = '';
     for (const r of reports) {
       const tr = document.createElement('tr');
-      tr.innerHTML = `<td class="py-2 pr-4 text-gray-400">${r.id.slice(-6)}</td>
-                        <td class="py-2 pr-4">${r.project}</td>
-                        <td class="py-2 pr-4"><span class="${this.sevClass(r.severity)}">${r.severity.toUpperCase()}</span></td>
-                        <td class="py-2 pr-4">${r.issues}</td>
-                        <td class="py-2">${new Date(r.createdAt).toLocaleString()}</td>`;
+
+      // ID
+      const tdId = document.createElement('td');
+      tdId.className = "py-2 pr-4 text-gray-400";
+      tdId.textContent = r.id.slice(-6);
+      tr.appendChild(tdId);
+
+      // Project
+      const tdProject = document.createElement('td');
+      tdProject.className = "py-2 pr-4";
+      tdProject.textContent = r.project; // Safe: textContent escapes HTML
+      tr.appendChild(tdProject);
+
+      // Severity
+      const tdSev = document.createElement('td');
+      tdSev.className = "py-2 pr-4";
+      const spanSev = document.createElement('span');
+      spanSev.className = this.sevClass(r.severity);
+      spanSev.textContent = r.severity.toUpperCase();
+      tdSev.appendChild(spanSev);
+      tr.appendChild(tdSev);
+
+      // Issues
+      const tdIssues = document.createElement('td');
+      tdIssues.className = "py-2 pr-4";
+      tdIssues.textContent = String(r.issues);
+      tr.appendChild(tdIssues);
+
+      // Date
+      const tdDate = document.createElement('td');
+      tdDate.className = "py-2";
+      tdDate.textContent = new Date(r.createdAt).toLocaleString();
+      tr.appendChild(tdDate);
+
       this.reportBody.appendChild(tr);
     }
   }
@@ -116,10 +87,27 @@ export class OrgDashboardHandler {
     for (const p of projects) {
       const card = document.createElement('div');
       card.className = 'terminal-border bg-black/60 rounded-lg p-4 flex flex-col gap-1';
-      card.innerHTML = `<div class="text-white font-mono">${p.name}</div>
-                          <div class="text-xs text-cyber-300">ECO: ${p.ecosystem.toUpperCase()}</div>
-                          <div class="text-xs text-matrix-300">Last: ${new Date(p.lastScanAt).toLocaleString()}</div>
-                          <div class="text-xs ${p.vulnerabilities > 0 ? 'text-yellow-300' : 'text-cyber-300'}">Vulns: ${p.vulnerabilities}</div>`;
+
+      const nameDiv = document.createElement('div');
+      nameDiv.className = "text-white font-mono";
+      nameDiv.textContent = p.name; // Safe: textContent
+      card.appendChild(nameDiv);
+
+      const ecoDiv = document.createElement('div');
+      ecoDiv.className = "text-xs text-cyber-300";
+      ecoDiv.textContent = `ECO: ${p.ecosystem.toUpperCase()}`;
+      card.appendChild(ecoDiv);
+
+      const lastDiv = document.createElement('div');
+      lastDiv.className = "text-xs text-matrix-300";
+      lastDiv.textContent = `Last: ${new Date(p.lastScanAt).toLocaleString()}`;
+      card.appendChild(lastDiv);
+
+      const vulnsDiv = document.createElement('div');
+      vulnsDiv.className = `text-xs ${p.vulnerabilities > 0 ? 'text-yellow-300' : 'text-cyber-300'}`;
+      vulnsDiv.textContent = `Vulns: ${p.vulnerabilities}`;
+      card.appendChild(vulnsDiv);
+
       this.projectGrid.appendChild(card);
     }
   }
@@ -180,10 +168,10 @@ export class OrgDashboardHandler {
     // Use debounced request with 2 second delay to avoid rate limiting
     // Key includes orgId to prevent duplicates when requesting same org
     const requestKey = `org-dashboard-${organization.orgId || 'default'}`;
-    
-    await this.debouncedRequest.execute(requestKey, async () => {
+
+    await requestDebouncer.debounce(requestKey, async () => {
       await this._performLoadReportsAndProjects();
-    });
+    }, { delay: 2000 });
   }
 
   private async _performLoadReportsAndProjects() {
@@ -251,17 +239,17 @@ export class OrgDashboardHandler {
       interface OrgHStats {
         months: [
           {
-        api_calls: number,
-        critical_findings: number,
-        high_findings: number,
-        low_findings: number,
-        medium_findings: number,
-        month: string,
-        reports_generated: number,
-        scans_completed: number,
-        scans_failed: number,
-        total_findings: number
-      }
+            api_calls: number,
+            critical_findings: number,
+            high_findings: number,
+            low_findings: number,
+            medium_findings: number,
+            month: string,
+            reports_generated: number,
+            scans_completed: number,
+            scans_failed: number,
+            total_findings: number
+          }
         ]
       }
       //load organization historical stats
@@ -305,7 +293,7 @@ export class OrgDashboardHandler {
     }
     console.log("Overview Status:", overviewStatus);
     console.log("month", overviewMonth);
-    
+
 
     // Transform scan history to reports format
     const reports = scanHistory.map(scan => {
@@ -419,7 +407,7 @@ export class OrgDashboardHandler {
     this.ecoSelect = ecoSelect;
   }
 
-}   
+}
 
 export class DashboardHandler {
   criticalElement: HTMLElement;
@@ -432,7 +420,6 @@ export class DashboardHandler {
   chartSvg: HTMLElement;
   currentReportsFiltered: any[] = [];
   ecoSelect: HTMLSelectElement;
-  private debouncedRequest: DebouncedRequest = new DebouncedRequest();
 
 
   renderOverview(data: any) {
@@ -462,11 +449,40 @@ export class DashboardHandler {
     this.reportBody.innerHTML = '';
     for (const r of reports) {
       const tr = document.createElement('tr');
-      tr.innerHTML = `<td class="py-2 pr-4 text-gray-400">${r.id.slice(-6)}</td>
-                        <td class="py-2 pr-4">${r.project}</td>
-                        <td class="py-2 pr-4"><span class="${this.sevClass(r.severity)}">${r.severity.toUpperCase()}</span></td>
-                        <td class="py-2 pr-4">${r.issues}</td>
-                        <td class="py-2">${new Date(r.createdAt).toLocaleString()}</td>`;
+
+      // ID
+      const tdId = document.createElement('td');
+      tdId.className = "py-2 pr-4 text-gray-400";
+      tdId.textContent = r.id.slice(-6);
+      tr.appendChild(tdId);
+
+      // Project
+      const tdProject = document.createElement('td');
+      tdProject.className = "py-2 pr-4";
+      tdProject.textContent = r.project; // Safe: textContent
+      tr.appendChild(tdProject);
+
+      // Severity
+      const tdSev = document.createElement('td');
+      tdSev.className = "py-2 pr-4";
+      const spanSev = document.createElement('span');
+      spanSev.className = this.sevClass(r.severity);
+      spanSev.textContent = r.severity.toUpperCase();
+      tdSev.appendChild(spanSev);
+      tr.appendChild(tdSev);
+
+      // Issues
+      const tdIssues = document.createElement('td');
+      tdIssues.className = "py-2 pr-4";
+      tdIssues.textContent = String(r.issues);
+      tr.appendChild(tdIssues);
+
+      // Date
+      const tdDate = document.createElement('td');
+      tdDate.className = "py-2";
+      tdDate.textContent = new Date(r.createdAt).toLocaleString();
+      tr.appendChild(tdDate);
+
       this.reportBody.appendChild(tr);
     }
   }
@@ -477,10 +493,27 @@ export class DashboardHandler {
     for (const p of projects) {
       const card = document.createElement('div');
       card.className = 'terminal-border bg-black/60 rounded-lg p-4 flex flex-col gap-1';
-      card.innerHTML = `<div class="text-white font-mono">${p.name}</div>
-                          <div class="text-xs text-cyber-300">ECO: ${p.ecosystem.toUpperCase()}</div>
-                          <div class="text-xs text-matrix-300">Last: ${new Date(p.lastScanAt).toLocaleString()}</div>
-                          <div class="text-xs ${p.vulnerabilities > 0 ? 'text-yellow-300' : 'text-cyber-300'}">Vulns: ${p.vulnerabilities}</div>`;
+
+      const nameDiv = document.createElement('div');
+      nameDiv.className = "text-white font-mono";
+      nameDiv.textContent = p.name; // Safe: textContent
+      card.appendChild(nameDiv);
+
+      const ecoDiv = document.createElement('div');
+      ecoDiv.className = "text-xs text-cyber-300";
+      ecoDiv.textContent = `ECO: ${p.ecosystem.toUpperCase()}`;
+      card.appendChild(ecoDiv);
+
+      const lastDiv = document.createElement('div');
+      lastDiv.className = "text-xs text-matrix-300";
+      lastDiv.textContent = `Last: ${new Date(p.lastScanAt).toLocaleString()}`;
+      card.appendChild(lastDiv);
+
+      const vulnsDiv = document.createElement('div');
+      vulnsDiv.className = `text-xs ${p.vulnerabilities > 0 ? 'text-yellow-300' : 'text-cyber-300'}`;
+      vulnsDiv.textContent = `Vulns: ${p.vulnerabilities}`;
+      card.appendChild(vulnsDiv);
+
       this.projectGrid.appendChild(card);
     }
   }
@@ -540,10 +573,10 @@ export class DashboardHandler {
   async loadReportsAndProjects() {
     // Use debounced request with 2 second delay to avoid rate limiting
     const requestKey = 'user-dashboard-analytics';
-    
-    await this.debouncedRequest.execute(requestKey, async () => {
+
+    await requestDebouncer.debounce(requestKey, async () => {
       await this._performLoadReportsAndProjects();
-    });
+    }, { delay: 2000 });
   }
 
   private async _performLoadReportsAndProjects() {
@@ -702,4 +735,4 @@ export class DashboardHandler {
     this.ecoSelect = ecoSelect;
   }
 
-}   
+}

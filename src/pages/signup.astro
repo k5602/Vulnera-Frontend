@@ -234,7 +234,7 @@ import Footer from "../components/Footer.astro";
   <Footer />
   <script>
     import { authService } from "../utils/api/auth-service";
-    import { isAuthenticated, refreshAuth } from "../utils/api/auth-store";
+    import { isAuthenticated } from "../utils/api/auth-store";
     import { organization } from "../modules/orgData";
 
     if (isAuthenticated()) {
@@ -244,12 +244,12 @@ import Footer from "../components/Footer.astro";
     // ---- FIX: Strong typing ----
     const form = document.getElementById("signup-form") as HTMLFormElement;
     const submitBtn = document.getElementById(
-      "submit-btn"
+      "submit-btn",
     ) as HTMLButtonElement;
 
     const errorDiv = document.getElementById("error-message") as HTMLDivElement;
     const successDiv = document.getElementById(
-      "success-message"
+      "success-message",
     ) as HTMLDivElement;
 
     // ---- FIX: Add parameter type ----
@@ -266,15 +266,15 @@ import Footer from "../components/Footer.astro";
     }
 
     const togglePasswordBtn = document.getElementById(
-      "toggle-password"
+      "toggle-password",
     ) as HTMLButtonElement;
     const toggleConfirmPasswordBtn = document.getElementById(
-      "toggle-confirmPassword"
+      "toggle-confirmPassword",
     ) as HTMLButtonElement;
 
     togglePasswordBtn.addEventListener("click", () => {
       const passwordInput = document.getElementById(
-        "password"
+        "password",
       ) as HTMLInputElement;
       if (passwordInput.type === "password") {
         passwordInput.type = "text";
@@ -286,7 +286,7 @@ import Footer from "../components/Footer.astro";
     });
     toggleConfirmPasswordBtn.addEventListener("click", () => {
       const passwordInput = document.getElementById(
-        "confirm"
+        "confirm",
       ) as HTMLInputElement;
       if (passwordInput.type === "password") {
         passwordInput.type = "text";
@@ -361,25 +361,17 @@ import Footer from "../components/Footer.astro";
         showSuccess("Account created! Redirecting to dashboard...");
       }
 
-      // Refresh auth state to get CSRF token and user data (if backend creates session)
-      try {
-        // refreshAuth may be a no-op if backend doesn't auto-login on register
-        const success = await refreshAuth();
-        if (success) {
-          localStorage.setItem("last_token_refresh", Date.now().toString());
-        }
-      } catch {
-        // ignore refresh errors here; we still redirect
-      }
+      // No need to refresh auth here - register() already sets the user and CSRF token
+      // from the response. This saves a network request.
 
       if (organization.signOrg) {
         setTimeout(() => {
           window.location.replace("/orgsignup");
-        }, 800);
+        }, 300);
       } else {
         setTimeout(() => {
           window.location.replace("/dashboard");
-        }, 800);
+        }, 300);
       }
     });
   </script>

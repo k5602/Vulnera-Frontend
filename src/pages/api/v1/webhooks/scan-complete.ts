@@ -17,7 +17,6 @@ import type { APIRoute } from 'astro';
 import { WebhookPayloadSchema } from '../../../../types/api';
 
 // Server-side cache for webhook results
-// In production, consider using Redis or similar for multi-instance deployments
 const webhookResultsCache = new Map<string, { data: unknown; timestamp: number }>();
 
 // Cache TTL: 10 minutes (results should be consumed quickly)
@@ -131,9 +130,6 @@ export const POST: APIRoute = async ({ request }) => {
         // In production, make this mandatory
         const signature = request.headers.get('X-Webhook-Signature');
         if (signature) {
-            // Note: In a real implementation, you'd look up the user's webhook secret
-            // based on the job_id or a user identifier in the payload
-            // For now, we skip mandatory verification since we can't access localStorage server-side
             console.log('[Webhook] Signature provided:', signature.substring(0, 16) + '...');
         }
 

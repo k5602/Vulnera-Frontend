@@ -339,23 +339,11 @@ const {
         </script>
         <script>
             import { tokenRefreshManager } from "../utils/api/token-refresh";
+            import { isAuthenticated } from "../utils/api/auth-store";
 
-            // Only start auto-refresh on authenticated pages
-            if (typeof window !== "undefined") {
-                const publicPaths = [
-                    "/",
-                    "/login",
-                    "/signup",
-                    "/pricing",
-                    "/vulnera-ai",
-                ];
-                const currentPath =
-                    window.location.pathname.replace(/\/$/, "") || "/";
-
-                // Don't start refresh on public pages
-                if (!publicPaths.includes(currentPath)) {
-                    tokenRefreshManager.startAutoRefresh();
-                }
+            // Only start auto-refresh if the user is authenticated
+            if (typeof window !== "undefined" && isAuthenticated()) {
+                tokenRefreshManager.startAutoRefresh();
             }
         </script>
     </body>

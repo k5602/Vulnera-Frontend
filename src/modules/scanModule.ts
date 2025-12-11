@@ -661,8 +661,9 @@ export class ScanHandler {
   }
 
   async pollJobStatus(jobId: string, repoInfo?: { owner: string; repo: string }) {
-    const POLL_INTERVAL = 2000; // 2 seconds
-    const MAX_ATTEMPTS = 150; // 5 minutes timeout (150 * 2s)
+    // Increase interval to reduce request frequency
+    const POLL_INTERVAL = 3000; // 3 seconds between requests
+    const MAX_ATTEMPTS = 100; // ~5 minutes timeout (100 * 3s)
     let attempts = 0;
 
     // Prevent multiple polling instances
