@@ -76,39 +76,6 @@ import Footer from "../components/Footer.astro";
           method="post"
           novalidate
         >
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-            <div>
-              <label
-                for="firstName"
-                class="block text-xs sm:text-sm text-cyber-300 mb-1"
-                >FIRST_NAME</label
-              >
-              <input
-                id="firstName"
-                name="firstName"
-                type="text"
-                required
-                class="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg bg-black/60 border border-cyber-400/30 focus:border-cyber-400 focus:ring-2 focus:ring-cyber-400 text-white placeholder-gray-500 text-sm sm:text-base"
-                placeholder="Ada"
-              />
-            </div>
-            <div>
-              <label
-                for="lastName"
-                class="block text-xs sm:text-sm text-cyber-300 mb-1"
-                >LAST_NAME</label
-              >
-              <input
-                id="lastName"
-                name="lastName"
-                type="text"
-                required
-                class="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg bg-black/60 border border-cyber-400/30 focus:border-cyber-400 focus:ring-2 focus:ring-cyber-400 text-white placeholder-gray-500 text-sm sm:text-base"
-                placeholder="Lovelace"
-              />
-            </div>
-          </div>
-
           <div>
             <label
               for="email"
@@ -292,12 +259,6 @@ import Footer from "../components/Footer.astro";
       // Clear any existing session to ensure a clean registration
       clearStore();
 
-      const firstName = (
-        document.getElementById("firstName") as HTMLInputElement
-      ).value.trim();
-      const lastName = (
-        document.getElementById("lastName") as HTMLInputElement
-      ).value.trim();
       const email = (
         document.getElementById("email") as HTMLInputElement
       ).value.trim();
@@ -309,7 +270,7 @@ import Footer from "../components/Footer.astro";
         .checked;
 
       // ----- VALIDATION -----
-      if (!firstName || !lastName || !email || !pass) {
+      if (!email || !pass) {
         showError("Please fill out all fields.");
         return;
       }

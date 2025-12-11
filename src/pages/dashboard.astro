@@ -6,8 +6,13 @@ export const prerender = false;
 ---
 
 <script>
-  import { setupAuthGuard } from "../utils/auth-guard";
-  setupAuthGuard({ requireAuth: true });
+  import { userStore, csrfTokenStore } from "../utils/store";
+
+  const user = userStore.get();
+  const csrfToken = csrfTokenStore.get();
+  if (!user || !csrfToken) {
+    return Astro.redirect("/login?next=" + Astro.url.pathname);
+  }
 </script>
 
 <Layout
@@ -107,7 +112,7 @@ export const prerender = false;
             id="stat-critical"
             class="text-2xl sm:text-3xl lg:text-4xl text-red-400 font-mono"
           >
-            0
+            --
           </div>
         </div>
         <div class="terminal-border bg-black/60 rounded-lg p-4 sm:p-6">
@@ -118,7 +123,7 @@ export const prerender = false;
             id="stat-high"
             class="text-2xl sm:text-3xl lg:text-4xl text-orange-400 font-mono"
           >
-            0
+            --
           </div>
         </div>
         <div class="terminal-border bg-black/60 rounded-lg p-4 sm:p-6">
@@ -129,16 +134,16 @@ export const prerender = false;
             id="stat-medium"
             class="text-2xl sm:text-3xl lg:text-4xl text-yellow-400 font-mono"
           >
-            0
+            --
           </div>
         </div>
         <div class="terminal-border bg-black/60 rounded-lg p-4 sm:p-6">
           <div class="text-cyber-400 text-xs sm:text-sm mb-1">LOW_FINDINGS</div>
           <div
             id="stat-low"
-            class="text-sm sm:text-base text-matrix-300 font-mono break-anywhere"
+            class="text-2xl sm:text-3xl lg:text-4xl text-matrix-400 font-mono"
           >
-            0
+            --
           </div>
         </div>
       </div>
@@ -175,7 +180,7 @@ export const prerender = false;
         <div class="terminal-border bg-black/70 rounded-xl p-4 sm:p-6">
           <div class="flex items-center justify-between mb-3">
             <h2 class="text-cyber-400 font-mono text-lg">ACTIVITY</h2>
-            <span class="text-xs text-gray-400">THIS_MONTH</span>
+            <span id="month-tag" class="text-xs text-gray-400">THIS_MONTH</span>
           </div>
           <ul
             id="recent-list"
@@ -221,11 +226,29 @@ export const prerender = false;
       <!-- Projects Grid -->
       <section class="mt-8 sm:mt-10">
         <div class="terminal-border bg-black/70 rounded-xl p-4 sm:p-6">
-          <h2 class="text-cyber-400 font-mono text-lg mb-3">PROJECTS</h2>
-          <div
-            id="projects-grid"
-            class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
-          >
+          <h2 class="text-cyber-400 font-mono text-lg mb-3">HISTORICAL_USAGE</h2>
+            <div class="overflow-x-auto">
+              <table
+                class="min-w-full text-left text-sm text-matrix-300 font-mono"
+              >
+                <thead class="text-cyber-300">
+                  <tr>
+                    <th class="py-2 pr-4">MONTH</th>
+                    <th class="py-2 pr-2">REPORTS</th>
+                    <th class="py-2 text-center w-[80px]">CRITICAL</th>
+                    <th class="py-2 text-center w-[80px]">HIGH</th>
+                    <th class="py-2 text-center w-[80px]">MEDIUM</th>
+                    <th class="py-2 text-center w-[80px]">LOW</th>
+                    <th class="py-2 pr-4 text-center w-[80px]">TOTAL</th>
+                    <th class="py-2 pl-4">TOTAL_SCANS</th>
+                    <th class="py-2">API_CALLS</th>
+                  </tr>
+                </thead>
+                <tbody id="historical-usage-tbody">
+                  <tr><td class="py-2" colspan="5">Loading…</td></tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </section>
@@ -245,9 +268,10 @@ export const prerender = false;
       document.getElementById("stat-low")!,
       document.getElementById("recent-list")!,
       document.getElementById("reports-tbody")!,
-      document.getElementById("projects-grid")!,
+      document.getElementById("historical-usage-tbody")!,
       document.getElementById("trend-svg")!,
       document.getElementById("filter-ecosystem")! as HTMLSelectElement,
+      document.getElementById("month-tag")! as HTMLElement,
     );
 
     dashboardHandler.loadReportsAndProjects();

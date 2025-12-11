@@ -7,7 +7,7 @@ import {
 } from "react";
 import { POST } from "../api/api-manage";
 import ENDPOINTS from "../utils/api/endpoints";
-import { clearCsrfToken, csrfTokenStore } from "../utils/store";
+import { clearCsrfToken, clearStore, csrfTokenStore } from "../utils/store";
 
 interface User {
   user_id: string;
@@ -95,8 +95,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Logout
   const logout = async () => {
     await POST(ENDPOINTS.AUTH.POST_logout);
-    clearCsrfToken();
-    setUser(null);
+    //clears all store data on logout
+    clearStore();
+    window.location.href = "/login";
   };
 
   return (

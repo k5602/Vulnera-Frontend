@@ -14,7 +14,7 @@
  */
 
 import axios from "axios";
-import { clearCsrfToken, csrfTokenStore } from "../utils/store";
+import { clearStore, csrfTokenStore } from "../utils/store";
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -71,7 +71,7 @@ api.interceptors.response.use(
 
     // 401 Unauthorized → user must log in
     if (error.response.status === 401) {
-      clearCsrfToken();
+      clearStore();
       window.location.href = "/login";
     }
 

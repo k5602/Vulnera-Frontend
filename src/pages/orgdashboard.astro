@@ -10,19 +10,23 @@ export const prerender = false;
   description="Overview of reports, projects, and recent activity."
 >
   <script>
-    import { setupAuthGuard } from "../utils/auth-guard";
-    import { loadOrgData, organization } from "../modules/orgData.js";
-    import { getCurrentUser } from "../utils/api/auth-store";
-    setupAuthGuard({ requireAuth: true });
+    import { organizationStore, userStore, csrfTokenStore } from "../utils/store";
+
+  const user = userStore.get();
+  const csrfToken = csrfTokenStore.get();
+  if (!user || !csrfToken) {
+    return Astro.redirect("/login?next=" + Astro.url.pathname);
+  }
+    
     const subtitleEl = document.getElementById("dash-subtitle") as HTMLElement;
-    await loadOrgData(localStorage.getItem("orgId")!);
-    const currentUser = getCurrentUser();
-    subtitleEl.innerHTML = `ORGANIZATION_NAME: ${organization.orgName || "N/A"} ||
-                            DESCRIPTION: ${organization.orgDescription || "N/A"} ||
-                            TIER: ${organization.tier || "N/A"} ||
-                            CREATED_AT: ${organization.createdAt.toString() || "N/A"} ||
-                            MEMBERS_COUNT: ${organization.membersCount.toString() || "N/A"} ||
-                            Role: ${organization.ownerId === currentUser?.id ? "Owner" : "Member"}`;
+    const currentUser = userStore.get();
+    const organization = organizationStore.get();
+    subtitleEl.innerHTML = `ORGANIZATION_NAME: ${organization?.name || "NONE"} ||
+                            DESCRIPTION: ${organization?.description || "NONE"} ||
+                            TIER: ${organization?.tier || "NONE"} ||
+                            CREATED_AT: ${organization?.createdAt.toString() || "N/A"} ||
+                            MEMBERS_COUNT: ${organization?.membersCount.toString() || "N/A"} ||
+                            Role: ${organization?.ownerId === currentUser?.id ? "Owner" : "Member"}`;
   </script>
 
   <Navigation />
@@ -112,7 +116,7 @@ export const prerender = false;
           </div>
           <div
             id="criticalFindings"
-            class="text-2xl sm:text-3xl lg:text-4xl text-yellow-400 font-mono"
+            class="text-2xl sm:text-3xl lg:text-4xl text-red-400 font-mono"
           >
             --
           </div>
@@ -123,7 +127,7 @@ export const prerender = false;
           </div>
           <div
             id="highFindings"
-            class="text-2xl sm:text-3xl lg:text-4xl text-white font-mono"
+            class="text-2xl sm:text-3xl lg:text-4xl text-orange-400 font-mono"
           >
             --
           </div>
@@ -134,7 +138,7 @@ export const prerender = false;
           </div>
           <div
             id="mediumFindings"
-            class="text-2xl sm:text-3xl lg:text-4xl text-white font-mono"
+            class="text-2xl sm:text-3xl lg:text-4xl text-yellow-400 font-mono"
           >
             --
           </div>
@@ -143,7 +147,7 @@ export const prerender = false;
           <div class="text-cyber-400 text-xs sm:text-sm mb-1">LOW_FINDINGS</div>
           <div
             id="lowFindings"
-            class="text-2xl sm:text-3xl lg:text-4xl text-white font-mono"
+            class="text-2xl sm:text-3xl lg:text-4xl text-matrix-400 font-mono"
           >
             --
           </div>
