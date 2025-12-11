@@ -52,3 +52,5 @@ const END_PONITS = {
         GET_historical_usage: 'api/v1/me/analytics/usage',
     }
 }
+
+export default END_PONITS;

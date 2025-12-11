@@ -6,7 +6,7 @@ import {
   type ReactNode,
 } from "react";
 import { POST } from "../api/api-manage";
-import endpoints from "../utils/endpoints";
+import END_PONITS from "../utils/api/endpoints";
 import { setCsrfToken, clearCsrfToken } from "../api/api-manage";
 
 interface User {
@@ -47,7 +47,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // Login
   const login = async (email: string, password: string) => {
-    const res = await POST(endpoints.auth.login, { email, password });
+    const res = await POST(END_PONITS.AUTH.POST_login, { email, password });
 
     // Save CSRF token
     setCsrfToken(res.data.csrf_token);
@@ -62,7 +62,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // Register
   const register = async (email: string, password: string) => {
-    const res = await POST(endpoints.auth.register, { email, password });
+    const res = await POST(END_PONITS.AUTH.POST_register, { email, password });
 
     setCsrfToken(res.data.csrf_token);
 
@@ -76,7 +76,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Refresh → rehydrate session
   const refreshToken = async () => {
     try {
-      const res = await POST(endpoints.auth.refresh);
+      const res = await POST(END_PONITS.AUTH.POST_refresh_token);
 
       setCsrfToken(res.data.csrf_token);
 
@@ -96,7 +96,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // Logout
   const logout = async () => {
-    await POST(endpoints.auth.logout);
+    await POST(END_PONITS.AUTH.POST_logout);
     clearCsrfToken();
     setUser(null);
   };
