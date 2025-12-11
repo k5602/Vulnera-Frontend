@@ -1,7 +1,6 @@
-import { apiClient } from '../utils/index.js';
-import { getSeverityTextColor } from '../utils/severity.js';
+import { GET } from '../api/api-manage.js';
+import ENDPOINTS from '../utils/api/endpoints.js';
 import { organization, loadUserOrganization } from './orgData.js';
-import { requestDebouncer } from '../utils/api/request-debounce.js';
 
 export class OrgDashboardHandler {
   criticalElement: HTMLElement;
@@ -32,10 +31,6 @@ export class OrgDashboardHandler {
     }
   }
 
-  sevClass(s: string) {
-    return getSeverityTextColor(s);
-  }
-
 
   renderReports(reports: any[]) {
     if (!this.reportBody) return;
@@ -59,7 +54,6 @@ export class OrgDashboardHandler {
       const tdSev = document.createElement('td');
       tdSev.className = "py-2 pr-4";
       const spanSev = document.createElement('span');
-      spanSev.className = this.sevClass(r.severity);
       spanSev.textContent = r.severity.toUpperCase();
       tdSev.appendChild(spanSev);
       tr.appendChild(tdSev);
@@ -77,37 +71,6 @@ export class OrgDashboardHandler {
       tr.appendChild(tdDate);
 
       this.reportBody.appendChild(tr);
-    }
-  }
-
-  renderProjects(projects: any[]) {
-    if (!this.projectGrid) return;
-    this.projectGrid.innerHTML = '';
-    for (const p of projects) {
-      const card = document.createElement('div');
-      card.className = 'terminal-border bg-black/60 rounded-lg p-4 flex flex-col gap-1';
-
-      const nameDiv = document.createElement('div');
-      nameDiv.className = "text-white font-mono";
-      nameDiv.textContent = p.name; // Safe: textContent
-      card.appendChild(nameDiv);
-
-      const ecoDiv = document.createElement('div');
-      ecoDiv.className = "text-xs text-cyber-300";
-      ecoDiv.textContent = `ECO: ${p.ecosystem.toUpperCase()}`;
-      card.appendChild(ecoDiv);
-
-      const lastDiv = document.createElement('div');
-      lastDiv.className = "text-xs text-matrix-300";
-      lastDiv.textContent = `Last: ${new Date(p.lastScanAt).toLocaleString()}`;
-      card.appendChild(lastDiv);
-
-      const vulnsDiv = document.createElement('div');
-      vulnsDiv.className = `text-xs ${p.vulnerabilities > 0 ? 'text-yellow-300' : 'text-cyber-300'}`;
-      vulnsDiv.textContent = `Vulns: ${p.vulnerabilities}`;
-      card.appendChild(vulnsDiv);
-
-      this.projectGrid.appendChild(card);
     }
   }
 
@@ -166,11 +129,7 @@ export class OrgDashboardHandler {
   async loadReportsAndProjects() {
     // Use debounced request with 2 second delay to avoid rate limiting
     // Key includes orgId to prevent duplicates when requesting same org
-    const requestKey = `org-dashboard-${organization.orgId || 'default'}`;
-
-    await requestDebouncer.debounce(requestKey, async () => {
-      await this._performLoadReportsAndProjects();
-    }, { delay: 2000 });
+    this._performLoadReportsAndProjects();
   }
 
   private async _performLoadReportsAndProjects() {
@@ -182,7 +141,7 @@ export class OrgDashboardHandler {
         scanHistory = JSON.parse(storedHistory);
       }
     } catch (e) {
-      logger.error("Failed to load local scan history", e);
+      console.error("Failed to load local scan history", e);
     }
 
 
@@ -215,9 +174,9 @@ export class OrgDashboardHandler {
       }
 
       try {
-        const res = await apiClient.get<OrgStats>(`/api/v1/organizations/${organization.orgId}/analytics/dashboard`);
+        const res = await GET(ENDPOINTS.ORG_ANALYTICS.GET_dashboard_stats(organization.orgId));
 
-        if (res.ok && res.data) {
+        if (res.status === 200 && res.data) {
           const data = res.data;
           criticalFindings = data.critical_this_month;
           highFindings = data.high_this_month;
@@ -227,12 +186,12 @@ export class OrgDashboardHandler {
 
           console.log("Org Stats Data:", data);
         } else if (res.status === 404) {
-          logger.debug("Organization not found, using local scan history only");
+          console.debug("Organization not found, using local scan history only");
         } else {
-          logger.debug("Failed to load organization stats:", res.status);
+          console.debug("Failed to load organization stats:", res.status);
         }
       } catch (e) {
-        logger.debug("Failed to load organization stats:", e);
+        console.debug("Failed to load organization stats:", e);
       }
 
       interface OrgHStats {
@@ -253,9 +212,9 @@ export class OrgDashboardHandler {
       }
       //load organization historical stats
       try {
-        const res = await apiClient.get<OrgHStats>(`/api/v1/organizations/${organization.orgId}/analytics/usage`);
+        const res = await GET(ENDPOINTS.ORG_ANALYTICS.GET_historical_usage(organization.orgId));
 
-        if (res.ok && res.data) {
+        if (res.status === 200 && res.data) {
           const data = res.data.months[0];
           mCriticalFindings = data.critical_findings;
           mHighFindings = data.high_findings;
@@ -264,15 +223,15 @@ export class OrgDashboardHandler {
 
           console.log("Org history Stats Data:", data);
         } else if (res.status === 404) {
-          logger.debug("Organization not found, using local scan history only");
+          console.debug("Organization not found, using local scan history only");
         } else {
-          logger.debug("Failed to load organization stats:", res.status);
+          console.debug("Failed to load organization stats:", res.status);
         }
       } catch (e) {
-        logger.debug("Failed to load organization stats:", e);
+        console.debug("Failed to load organization stats:", e);
       }
     } else {
-      logger.debug("Organization ID not available, skipping organization analytics");
+      console.debug("Organization ID not available, skipping organization analytics");
     }
     // Calculate overview stats
 
@@ -360,7 +319,6 @@ export class OrgDashboardHandler {
       `Total Scans: ${overviewMonth.scans}`,
       `Total Vulnerabilities: ${overviewMonth.findingsMonth}`,
     ]);
-    this.renderProjects(filteredProjects);
     this.renderChartData(trend);
   }
 
@@ -415,10 +373,11 @@ export class DashboardHandler {
   lowElement: HTMLElement;
   monthActivity: HTMLElement;
   reportBody: HTMLElement;
-  projectGrid: HTMLElement;
+  historicalUsageBody: HTMLElement;
   chartSvg: HTMLElement;
   currentReportsFiltered: any[] = [];
   ecoSelect: HTMLSelectElement;
+  monthTag: HTMLElement;
 
 
   renderOverview(data: any) {
@@ -436,10 +395,6 @@ export class DashboardHandler {
       li.textContent = it;
       this.monthActivity.appendChild(li);
     }
-  }
-
-  sevClass(s: string) {
-    return getSeverityTextColor(s);
   }
 
 
@@ -465,7 +420,6 @@ export class DashboardHandler {
       const tdSev = document.createElement('td');
       tdSev.className = "py-2 pr-4";
       const spanSev = document.createElement('span');
-      spanSev.className = this.sevClass(r.severity);
       spanSev.textContent = r.severity.toUpperCase();
       tdSev.appendChild(spanSev);
       tr.appendChild(tdSev);
@@ -485,35 +439,67 @@ export class DashboardHandler {
       this.reportBody.appendChild(tr);
     }
   }
+  renderHistoricalUsage(usage: any[]) {
+    if (!this.historicalUsageBody) return;
+    this.historicalUsageBody.innerHTML = '';
+    for (const r of usage) {
+      const tr = document.createElement('tr');
 
-  renderProjects(projects: any[]) {
-    if (!this.projectGrid) return;
-    this.projectGrid.innerHTML = '';
-    for (const p of projects) {
-      const card = document.createElement('div');
-      card.className = 'terminal-border bg-black/60 rounded-lg p-4 flex flex-col gap-1';
+      // month
+      const tdMonth = document.createElement('td');
+      tdMonth.className = "py-2 pr-4 text-gray-400";
+      tdMonth.textContent = r.month;
+      tr.appendChild(tdMonth);
 
-      const nameDiv = document.createElement('div');
-      nameDiv.className = "text-white font-mono";
-      nameDiv.textContent = p.name; // Safe: textContent
-      card.appendChild(nameDiv);
+      // reports
+      const tdReports = document.createElement('td');
+      tdReports.className = "py-2 pr-2 text-gray-400";
+      tdReports.textContent = String(r.reports_generated);
+      tr.appendChild(tdReports);
 
-      const ecoDiv = document.createElement('div');
-      ecoDiv.className = "text-xs text-cyber-300";
-      ecoDiv.textContent = `ECO: ${p.ecosystem.toUpperCase()}`;
-      card.appendChild(ecoDiv);
+      // criticals
+      const tdCriticals = document.createElement('td');
+      tdCriticals.className = "py-2 pr-2 text-red-400";
+      tdCriticals.textContent = String(r.critical_findings);
+      tr.appendChild(tdCriticals);
 
-      const lastDiv = document.createElement('div');
-      lastDiv.className = "text-xs text-matrix-300";
-      lastDiv.textContent = `Last: ${new Date(p.lastScanAt).toLocaleString()}`;
-      card.appendChild(lastDiv);
+      // highs
+      const tdHighs = document.createElement('td');
+      tdHighs.className = "py-2 pr-2 text-orange-400";
+      tdHighs.textContent = String(r.high_findings);
+      tr.appendChild(tdHighs);
 
-      const vulnsDiv = document.createElement('div');
-      vulnsDiv.className = `text-xs ${p.vulnerabilities > 0 ? 'text-yellow-300' : 'text-cyber-300'}`;
-      vulnsDiv.textContent = `Vulns: ${p.vulnerabilities}`;
-      card.appendChild(vulnsDiv);
+      // mediums
+      const tdMediums = document.createElement('td');
+      tdMediums.className = "py-2 pr-2 text-yellow-400";
+      tdMediums.textContent = String(r.medium_findings);
+      tr.appendChild(tdMediums);
 
-      this.projectGrid.appendChild(card);
+      // lows
+      const tdLows = document.createElement('td');
+      tdLows.className = "py-2 pr-2 text-matrix-400";
+      tdLows.textContent = String(r.low_findings);
+      tr.appendChild(tdLows);
+
+      // totals
+      const tdTotals = document.createElement('td');
+      tdTotals.className = "py-2 pr-2 text-white-400";
+      tdTotals.textContent = String(r.total_findings);
+      tr.appendChild(tdTotals);
+
+      // total scans
+      const tdTotalScans = document.createElement('td');
+      tdTotalScans.className = "py-2 pr-2 text-white-400";
+      tdTotalScans.textContent = String(r.scans_completed);
+      tr.appendChild(tdTotalScans);
+
+      // api calls
+      const tdApiCalls = document.createElement('td');
+      tdApiCalls.className = "py-2 pr-2 text-white-400";
+      tdApiCalls.textContent = String(r.api_calls);
+      tr.appendChild(tdApiCalls);
+
+      this.historicalUsageBody.appendChild(tr);
     }
   }
 
@@ -573,9 +559,7 @@ export class DashboardHandler {
     // Use debounced request with 2 second delay to avoid rate limiting
     const requestKey = 'user-dashboard-analytics';
 
-    await requestDebouncer.debounce(requestKey, async () => {
-      await this._performLoadReportsAndProjects();
-    }, { delay: 2000 });
+    this._performLoadReportsAndProjects();
   }
 
   private async _performLoadReportsAndProjects() {
@@ -587,7 +571,7 @@ export class DashboardHandler {
         scanHistory = JSON.parse(storedHistory);
       }
     } catch (e) {
-      logger.error("Failed to load local scan history", e);
+      console.error("Failed to load local scan history", e);
     }
 
     // Removed organization check as we are now using user analytics
@@ -611,11 +595,13 @@ export class DashboardHandler {
     let lowFindings = 0;
     let totalScan = 0;
     let totalVuln = 0;
+    let currMonth = "";
+    let historicalUsage: any[] = [];
 
     try {
-      const res = await apiClient.get<UserDashboardStats>(`/api/v1/me/analytics/dashboard`);
+      const res = await GET(ENDPOINTS.PERSONAL_ANALYTICS.GET_stats);
 
-      if (res.ok && res.data) {
+      if (res.status === 200 && res.data) {
         const data = res.data;
         criticalFindings = data.critical_this_month;
         highFindings = data.high_this_month;
@@ -623,12 +609,21 @@ export class DashboardHandler {
         lowFindings = data.low_this_month;
         totalScan = data.scans_this_month;
         totalVuln = data.findings_this_month;
-      } else if (res.status === 404 || !res.ok) {
+        currMonth = data.current_month;
+      } else if (res.status === 404 || res.status !== 200) {
         // No analytics data available yet (user is new or hasn't scanned anything)
-        logger.debug("No analytics data available, using local scan history only", { status: res.status });
+        console.debug("No analytics data available, using local scan history only", { status: res.status });
+      }
+
+      const resHist = await GET(ENDPOINTS.PERSONAL_ANALYTICS.GET_historical_usage);
+
+      if (resHist.status === 200 && resHist.data) {
+        historicalUsage = resHist.data.months;
+      } else if (resHist.status === 404 || resHist.status !== 200) {
+        console.debug("No historical analytics data available, using local scan history only", { status: resHist.status });
       }
     } catch (e) {
-      logger.debug("Failed to load user analytics (expected for new users):", e);
+      console.debug("Failed to load user analytics (expected for new users):", e);
       // Continue with local scan history data
     }
     // Calculate overview stats
@@ -658,28 +653,6 @@ export class DashboardHandler {
 
     this.currentReportsFiltered = reports;
 
-    // Group by project for projects view
-    const projectsMap: any = {};
-    scanHistory.forEach(scan => {
-      const projectName = scan.project || 'File Upload';
-      if (!projectsMap[projectName]) {
-        projectsMap[projectName] = {
-          name: projectName,
-          ecosystem: scan.ecosystems?.[0] || 'multiple',
-          lastScanAt: scan.timestamp,
-          vulnerabilities: 0,
-          scans: 0
-        };
-      }
-      projectsMap[projectName].vulnerabilities += scan.vulnerabilities || 0;
-      projectsMap[projectName].scans += 1;
-      // Keep most recent scan time
-      if (new Date(scan.timestamp) > new Date(projectsMap[projectName].lastScanAt)) {
-        projectsMap[projectName].lastScanAt = scan.timestamp;
-      }
-    });
-    const projects = Object.values(projectsMap);
-
     // Calculate 7-day trend
     const now = new Date();
     const trend = [];
@@ -696,16 +669,16 @@ export class DashboardHandler {
     }
 
     // Apply filters (client-side) to reports/projects
-    const filteredProjects = projects.filter((p: any) => (this.ecoSelect.value === 'all' ? true : p.ecosystem === this.ecoSelect.value));
 
     this.renderOverview(overviewStatus);
+    this.monthTag.textContent = `Month: ${currMonth}`;
     this.renderMonthActivity([
       `Scans this month: ${totalScan}`,
       `Findings this month: ${totalVuln}`,
     ]);
-    this.renderProjects(filteredProjects);
     this.renderChartData(trend);
     this.renderReports(reports);
+    this.renderHistoricalUsage(historicalUsage);
   }
 
   // changeDashboard method removed as it depends on organization object which is not used anymore
@@ -720,18 +693,20 @@ export class DashboardHandler {
     lowElement: HTMLElement,
     monthActivity: HTMLElement,
     reportBody: HTMLElement,
-    projectGrid: HTMLElement,
+    historicalUsageBody: HTMLElement,
     chartSvg: HTMLElement,
-    ecoSelect: HTMLSelectElement) {
+    ecoSelect: HTMLSelectElement,
+    monthTag: HTMLElement) {
     this.criticalElement = criticalElement;
     this.highElement = highElement;
     this.medElement = medElement;
     this.lowElement = lowElement;
     this.monthActivity = monthActivity;
     this.reportBody = reportBody;
-    this.projectGrid = projectGrid;
+    this.historicalUsageBody = historicalUsageBody;
     this.chartSvg = chartSvg;
     this.ecoSelect = ecoSelect;
+    this.monthTag = monthTag;
   }
 
 }

@@ -135,17 +135,11 @@ export const prerender = false;
 
   <Footer />
   <script>
-    import { authService } from "../utils/api/auth-service";
-    import { organizationService } from "../utils/api/organization-service";
-    import { clearAuth, isAuthenticated } from "../utils/api/auth-store";
-    import { setId } from "../modules/orgData";
+    import { POST } from "../api/api-manage";
+import { setId } from "../modules/orgData";
+import ENDPOINTS from "../utils/api/endpoints";
 
     // Redirect if already logged in
-    if (isAuthenticated()) {
-      const params = new URLSearchParams(window.location.search);
-      const next = params.get("next") || "/dashboard";
-      window.location.replace(next);
-    }
 
     // ----------------------------
     // Safe element getters (TS safe)
@@ -208,14 +202,14 @@ export const prerender = false;
         submitBtn.textContent = "> AUTHENTICATING...";
 
         // Use authService for login
-        const loginResult = await authService.login({
+        const loginResult = await POST(ENDPOINTS.AUTH.POST_login, {
           email,
           password,
           remember_me: rememberMe,
         });
 
-        if (!loginResult.success) {
-          showError(loginResult.error || "Invalid email or password.");
+        if (loginResult.status !== 200) {
+          showError(loginResult.statusText || "Invalid email or password.");
           submitBtn.disabled = false;
           submitBtn.innerHTML = "<span class='mr-2'>&gt;</span> LOGIN";
           return;
@@ -225,8 +219,8 @@ export const prerender = false;
         localStorage.setItem("last_token_refresh", Date.now().toString());
 
         // Use organizationService to check and set current organization
-        const orgResult = await organizationService.list();
-        if (orgResult.success && orgResult.data && orgResult.data.length > 0) {
+        const orgResult = await POST(ENDPOINTS.ORGANIZATION.GET_user_org, {});
+        if (orgResult.status === 200 && orgResult.data && orgResult.data.length > 0) {
           // Set first org as current
           setId(orgResult.data[0].id);
         }
@@ -246,7 +240,6 @@ export const prerender = false;
     ) as HTMLButtonElement | null;
     if (clearBtn) {
       clearBtn.addEventListener("click", () => {
-        clearAuth();
         showSuccess("Session cleared.");
       });
     }

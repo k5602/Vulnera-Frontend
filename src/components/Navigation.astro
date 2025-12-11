@@ -148,8 +148,10 @@ import Logo from "./Logo.astro";
 </nav>
 
 <script>
-    import { authService } from "../utils/api/index";
-    import { organization } from "../modules/orgData";
+    import { POST } from "../api/api-manage";
+import { organization } from "../modules/orgData";
+import ENDPOINTS from "../utils/api/endpoints";
+import { isAuthenticatedStore } from "../utils/store";
     // Mobile sidebar toggle
     const toggleBtn = document.getElementById("menu-toggle");
     const orgDashLink = document.getElementById(
@@ -184,7 +186,7 @@ import Logo from "./Logo.astro";
     function updateNavVisibility() {
         const authElements = document.querySelectorAll(".nav-auth-only");
         const guestElements = document.querySelectorAll(".nav-guest-only");
-        const isLoggedIn = authService.isAuthenticated();
+        const isLoggedIn = isAuthenticatedStore.get();
 
         if (isLoggedIn) {
             authElements.forEach((el) => el.classList.remove("hidden"));
@@ -197,7 +199,7 @@ import Logo from "./Logo.astro";
 
     // Logout handler
     async function handleLogout() {
-        await authService.logout();
+        await POST(ENDPOINTS.AUTH.POST_logout, {});
         organization.falseIsOrganization();
         organization.falseSignOrganization();
         window.location.href = "/login";

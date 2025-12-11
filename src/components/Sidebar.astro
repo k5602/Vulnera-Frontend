@@ -451,16 +451,18 @@ const linksToRender = isDocs ? docsLinks : mainLinks;
     }
   });
 
+import { POST } from "../api/api-manage";
   // Auth-based visibility
-  import { authService } from "../utils/api/index";
   import { organization } from "../modules/orgData";
+import ENDPOINTS from "../utils/api/endpoints";
+  import { isAuthenticatedStore } from "../utils/store";
 
   function updateSidebarVisibility() {
     const authElements = sidebar?.querySelectorAll(".auth-only");
     const guestElements = sidebar?.querySelectorAll(".guest-only");
     const homeElement = document.getElementById("home-page");
     const orgDashSidebar = document.getElementById("org-dash-sidebar");
-    const isLoggedIn = authService.isAuthenticated();
+    const isLoggedIn = isAuthenticatedStore.get();
 
     if (isLoggedIn) {
       authElements?.forEach((el) =>
@@ -492,7 +494,7 @@ const linksToRender = isDocs ? docsLinks : mainLinks;
 
   // Logout functionality
   async function handleLogout() {
-    await authService.logout();
+    await POST(ENDPOINTS.AUTH.POST_logout, {});
     window.location.href = "/login";
   }
 
