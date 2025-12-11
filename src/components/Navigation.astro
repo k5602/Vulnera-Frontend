@@ -149,9 +149,8 @@ import Logo from "./Logo.astro";
 
 <script>
     import { POST } from "../api/api-manage";
-import { organization } from "../modules/orgData";
-import ENDPOINTS from "../utils/api/endpoints";
-import { isAuthenticatedStore } from "../utils/store";
+    import ENDPOINTS from "../utils/api/endpoints";
+    import { isAuthenticatedStore, isOrgStore, clearStore } from "../utils/store";
     // Mobile sidebar toggle
     const toggleBtn = document.getElementById("menu-toggle");
     const orgDashLink = document.getElementById(
@@ -160,7 +159,8 @@ import { isAuthenticatedStore } from "../utils/store";
 
     // Show/hide organization dashboard link based on organization status
     function updateOrgDashLink() {
-        if (organization.isOrganization && orgDashLink) {
+        const hasOrg = isOrgStore.get();
+        if (hasOrg && orgDashLink) {
             orgDashLink.style.display = "";
         } else if (orgDashLink) {
             orgDashLink.style.display = "none";
@@ -197,25 +197,42 @@ import { isAuthenticatedStore } from "../utils/store";
         }
     }
 
-    // Logout handler
-    async function handleLogout() {
-        await POST(ENDPOINTS.AUTH.POST_logout, {});
-        organization.falseIsOrganization();
-        organization.falseSignOrganization();
-        window.location.href = "/login";
+    const logoutBtn = document.getElementById("nav-logout-btn") as HTMLButtonElement;
+    if (logoutBtn) {
+        logoutBtn.addEventListener("click", async () => {
+            try {
+                logoutBtn.disabled = true;
+                logoutBtn.innerText = "Logging out...";
+                const response = await POST(ENDPOINTS.AUTH.POST_logout);
+                if (response.status === 200) {
+                    // Clear store and redirect to login
+                    clearStore();
+                    window.location.href = "/login";
+                }
+            } catch (error) {
+                console.error("Logout error:", error);
+                alert("An error occurred during logout. Please try again.");
+                logoutBtn.disabled = false;
+                logoutBtn.innerText = "LOGOUT";
+            }
+        });
     }
 
-    const logoutBtn = document.getElementById("nav-logout-btn");
-    if (logoutBtn) {
-        logoutBtn.addEventListener("click", handleLogout);
-    }
+    const authSubscription = isAuthenticatedStore.subscribe(() => {
+        updateNavVisibility();
+    });
+
+    const orgSubscription = isOrgStore.subscribe(() => {
+        updateOrgDashLink();
+    });
 
     // Initialize
     updateNavVisibility();
+    updateOrgDashLink();
 
-    // Listen for storage changes (multi-tab sync)
-    window.addEventListener("storage", () => {
-        updateNavVisibility();
-        updateOrgDashLink();
+    window.addEventListener("beforeunload", () => {
+        authSubscription();
+        orgSubscription();
     });
+
 </script>

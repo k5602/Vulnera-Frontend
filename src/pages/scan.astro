@@ -7,6 +7,17 @@ import Footer from "../components/Footer.astro";
 import ScanReportIsland from "../components/report/ScanReportIsland";
 ---
 
+<script>
+  import { userStore, csrfTokenStore } from "../utils/store";
+
+  const user = userStore.get();
+  const csrfToken = csrfTokenStore.get();
+  if (!user || !csrfToken) {
+    return Astro.redirect("/login?next=" + Astro.url.pathname);
+  }
+</script>
+
+
 <Layout
   title="Scan — Vulnera"
   description="Upload manifests or import repositories for scanning."

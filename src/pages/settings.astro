@@ -6,6 +6,16 @@ import Navigation from "../components/Navigation.astro";
 import Footer from "../components/Footer.astro";
 ---
 
+<script>
+  import { userStore, csrfTokenStore } from "../utils/store";
+
+  const user = userStore.get();
+  const csrfToken = csrfTokenStore.get();
+  if (!user || !csrfToken) {
+    return Astro.redirect("/login?next=" + Astro.url.pathname);
+  }
+</script>
+
 <Layout
   title="Settings — Vulnera"
   description="Manage your API keys and account settings."

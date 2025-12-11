@@ -5,7 +5,7 @@
 //- user info
 //- organization info
 
-import {atom} from 'nanostores';
+import {atom, computed} from 'nanostores';
 import {persistentAtom} from '@nanostores/persistent';
 
 export interface User {
@@ -27,26 +27,18 @@ export interface Organization {
 }
 
 export const csrfTokenStore = persistentAtom<string | null>('csrfToken', null, {encode: JSON.stringify, decode: JSON.parse});
-
-export const isAuthenticatedStore = atom<boolean>(false);
-
 export const userStore = persistentAtom<User | null>('user', null, {encode: JSON.stringify, decode: JSON.parse});
-
+export const isAuthenticatedStore = computed(userStore, (user) => user !== null);
 export const organizationStore = persistentAtom<Organization | null>('organization', null, {encode: JSON.stringify, decode: JSON.parse});
-
+export const isOrgStore = computed(organizationStore, (organization) => organization !== null);
 export const isLoadingStore = atom<boolean>(false);
 
 export const clearCsrfToken = () => csrfTokenStore.set(null);
-
-export const clearIsAuthenticated = () => isAuthenticatedStore.set(false);
-
 export const clearUser = () => userStore.set(null);
-
 export const clearOrganization = () => organizationStore.set(null);
 
 export const clearStore = () => {
     clearCsrfToken();
-    clearIsAuthenticated();
     clearUser();
     clearOrganization();
 }
