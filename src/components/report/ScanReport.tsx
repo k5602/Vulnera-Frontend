@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
 import { usePagination } from '../../hooks/usePagination';
-import { apiClient } from '../../utils/api/client';
-import { enrichService, type EnrichedFinding } from '../../utils/api/enrich-service';
-import { llmService, type FixResponse } from '../../utils/api/llm-service';
+// import { apiClient } from '../../utils/api/client';
+// import { enrichService, type EnrichedFinding } from '../../utils/api/enrich-service';
+// import { llmService, type FixResponse } from '../../utils/api/llm-service';
 import { getSeverityClasses, SEVERITY_ORDER, type SeverityLevel } from '../../utils/severity';
 import { API_ENDPOINTS } from '../../config/api';
 
