@@ -5,20 +5,21 @@ import { organization, loadUserOrganization } from './orgData.js';
 export class OrgDashboardHandler {
   criticalElement: HTMLElement;
   highElement: HTMLElement;
-  medElement: HTMLElement;
-  lowElement: HTMLElement;
+  scanElement: HTMLElement;
+  totalFindingsElement: HTMLElement;
   monthActivity: HTMLElement;
   reportBody: HTMLElement;
-  projectGrid: HTMLElement;
+  historicalUsageBody: HTMLElement;
   chartSvg: HTMLElement;
   currentReportsFiltered: any[] = [];
   ecoSelect: HTMLSelectElement;
+  monthTag: HTMLElement;
 
   renderOverview(data: any) {
-    if (this.criticalElement) this.criticalElement.textContent = String(data.mCriticalFindings ?? 0);
-    if (this.highElement) this.highElement.textContent = String(data.mHighFindings ?? 0);
-    if (this.medElement) this.medElement.textContent = String(data.mMediumFindings ?? 0);
-    if (this.lowElement) this.lowElement.textContent = String(data.mLowFindings ?? 0);
+    if (this.criticalElement) this.criticalElement.textContent = String(data.criticalFindings ?? "--");
+    if (this.highElement) this.highElement.textContent = String(data.highFindings ?? "--");
+    if (this.scanElement) this.scanElement.textContent = String(data.scans ?? "--");
+    if (this.totalFindingsElement) this.totalFindingsElement.textContent = String(data.findingsMonth ?? "--");
   }
 
   renderMonthActivity(list: any[]) {
@@ -71,6 +72,70 @@ export class OrgDashboardHandler {
       tr.appendChild(tdDate);
 
       this.reportBody.appendChild(tr);
+    }
+  }
+
+  renderHistoricalUsage(usage: any[]) {
+    if (!this.historicalUsageBody) return;
+    this.historicalUsageBody.innerHTML = '';
+    for (const r of usage) {
+      const tr = document.createElement('tr');
+
+      // month
+      const tdMonth = document.createElement('td');
+      tdMonth.className = "py-2 pr-4 text-gray-400";
+      tdMonth.textContent = r.month;
+      tr.appendChild(tdMonth);
+
+      // reports
+      const tdReports = document.createElement('td');
+      tdReports.className = "py-2 pr-2 text-gray-400";
+      tdReports.textContent = String(r.reports_generated);
+      tr.appendChild(tdReports);
+
+      // criticals
+      const tdCriticals = document.createElement('td');
+      tdCriticals.className = "py-2 pr-2 text-red-400";
+      tdCriticals.textContent = String(r.critical_findings);
+      tr.appendChild(tdCriticals);
+
+      // highs
+      const tdHighs = document.createElement('td');
+      tdHighs.className = "py-2 pr-2 text-orange-400";
+      tdHighs.textContent = String(r.high_findings);
+      tr.appendChild(tdHighs);
+
+      // mediums
+      const tdMediums = document.createElement('td');
+      tdMediums.className = "py-2 pr-2 text-yellow-400";
+      tdMediums.textContent = String(r.medium_findings);
+      tr.appendChild(tdMediums);
+
+      // lows
+      const tdLows = document.createElement('td');
+      tdLows.className = "py-2 pr-2 text-matrix-400";
+      tdLows.textContent = String(r.low_findings);
+      tr.appendChild(tdLows);
+
+      // totals
+      const tdTotals = document.createElement('td');
+      tdTotals.className = "py-2 pr-2 text-white-400";
+      tdTotals.textContent = String(r.total_findings);
+      tr.appendChild(tdTotals);
+
+      // total scans
+      const tdTotalScans = document.createElement('td');
+      tdTotalScans.className = "py-2 pr-2 text-white-400";
+      tdTotalScans.textContent = String(r.scans_completed);
+      tr.appendChild(tdTotalScans);
+
+      // api calls
+      const tdApiCalls = document.createElement('td');
+      tdApiCalls.className = "py-2 pr-2 text-white-400";
+      tdApiCalls.textContent = String(r.api_calls);
+      tr.appendChild(tdApiCalls);
+
+      this.historicalUsageBody.appendChild(tr);
     }
   }
 
@@ -155,10 +220,7 @@ export class OrgDashboardHandler {
     let scans = 0;
     let currMonth = "";
     let findingsMonth = 0;
-    let mCriticalFindings = 0;
-    let mHighFindings = 0;
-    let mMediumFindings = 0;
-    let mLowFindings = 0;
+    let historicalUsage = [];
 
     // Skip organization API calls if orgId is not available
     if (organization.orgId) {
@@ -178,13 +240,8 @@ export class OrgDashboardHandler {
 
         if (res.status === 200 && res.data) {
           const data = res.data;
-          criticalFindings = data.critical_this_month;
-          highFindings = data.high_this_month;
-          scans = data.scans_this_month;
-          currMonth = data.current_month;
-          findingsMonth = data.findings_this_month;
+          historicalUsage = data.months
 
-          console.log("Org Stats Data:", data);
         } else if (res.status === 404) {
           console.debug("Organization not found, using local scan history only");
         } else {
@@ -212,20 +269,16 @@ export class OrgDashboardHandler {
       }
       //load organization historical stats
       try {
-        const res = await GET(ENDPOINTS.ORG_ANALYTICS.GET_historical_usage(organization.orgId));
+        const resHist = await GET(ENDPOINTS.ORG_ANALYTICS.GET_historical_usage(organization.orgId));
 
-        if (res.status === 200 && res.data) {
-          const data = res.data.months[0];
-          mCriticalFindings = data.critical_findings;
-          mHighFindings = data.high_findings;
-          mMediumFindings = data.medium_findings;
-          mLowFindings = data.low_findings;
+        if (resHist.status === 200 && resHist.data) {
+          const data = resHist.data.months;
 
           console.log("Org history Stats Data:", data);
-        } else if (res.status === 404) {
+        } else if (resHist.status === 404) {
           console.debug("Organization not found, using local scan history only");
         } else {
-          console.debug("Failed to load organization stats:", res.status);
+          console.debug("Failed to load organization stats:", resHist.status);
         }
       } catch (e) {
         console.debug("Failed to load organization stats:", e);
@@ -242,16 +295,6 @@ export class OrgDashboardHandler {
       currMonth,
       findingsMonth
     };
-
-    const overviewStatus = {
-      mCriticalFindings,
-      mHighFindings,
-      mMediumFindings,
-      mLowFindings
-    }
-    console.log("Overview Status:", overviewStatus);
-    console.log("month", overviewMonth);
-
 
     // Transform scan history to reports format
     const reports = scanHistory.map(scan => {
@@ -309,9 +352,8 @@ export class OrgDashboardHandler {
     }
 
     // Apply filters (client-side) to reports/projects
-    const filteredProjects = projects.filter((p: any) => (this.ecoSelect.value === 'all' ? true : p.ecosystem === this.ecoSelect.value));
 
-    this.renderOverview(overviewStatus);
+    this.renderOverview(overviewMonth);
     this.renderMonthActivity([
       `Month: ${overviewMonth.currMonth}`,
       `Critical Findings: ${overviewMonth.criticalFindings}`,
@@ -320,6 +362,8 @@ export class OrgDashboardHandler {
       `Total Vulnerabilities: ${overviewMonth.findingsMonth}`,
     ]);
     this.renderChartData(trend);
+    this.renderReports(reports);
+    this.renderHistoricalUsage(historicalUsage);
   }
 
   changeDashboard(selection: string) {
@@ -346,22 +390,24 @@ export class OrgDashboardHandler {
 
   constructor(criticalElement: HTMLElement,
     highElement: HTMLElement,
-    medElement: HTMLElement,
-    lowElement: HTMLElement,
+    scanElement: HTMLElement,
+    totalFindingsElement: HTMLElement,
     monthActivity: HTMLElement,
     reportBody: HTMLElement,
-    projectGrid: HTMLElement,
+    historicalUsageBody: HTMLElement,
     chartSvg: HTMLElement,
-    ecoSelect: HTMLSelectElement) {
+    ecoSelect: HTMLSelectElement,
+    monthTag: HTMLElement) {
     this.criticalElement = criticalElement;
     this.highElement = highElement;
-    this.medElement = medElement;
-    this.lowElement = lowElement;
+    this.scanElement = scanElement;
+    this.totalFindingsElement = totalFindingsElement;
     this.monthActivity = monthActivity;
     this.reportBody = reportBody;
-    this.projectGrid = projectGrid;
+    this.historicalUsageBody = historicalUsageBody;
     this.chartSvg = chartSvg;
     this.ecoSelect = ecoSelect;
+    this.monthTag = monthTag;
   }
 
 }
@@ -439,6 +485,7 @@ export class DashboardHandler {
       this.reportBody.appendChild(tr);
     }
   }
+
   renderHistoricalUsage(usage: any[]) {
     if (!this.historicalUsageBody) return;
     this.historicalUsageBody.innerHTML = '';
