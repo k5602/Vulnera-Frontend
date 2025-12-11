@@ -1,244 +1,188 @@
 ---
-// Navigation component for the site
 import Logo from "./Logo.astro";
 ---
 
 <nav
-    class="absolute top-0 left-0 right-0 z-20 p-6 bg-black/80 backdrop-blur-sm border-b border-cyber-500/30"
-    aria-label="Main"
+  class="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-md border-b border-cyber-400/20"
+  aria-label="Main navigation"
 >
-    <div class="max-w-7xl mx-auto flex justify-between items-center">
-        <div class="flex items-center gap-4">
-            <!-- Burger Menu Toggle Button (Visible on mobile lg:hidden) -->
-            <button
-                id="menu-toggle"
-                class="lg:hidden text-cyber-400 hover:text-cyber-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyber-400 rounded p-2 transition-colors"
-                aria-label="Toggle menu"
-                aria-expanded="false"
-            >
-                <svg
-                    class="w-6 h-6"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    viewBox="0 0 24 24"
-                >
-                    <line x1="3" y1="12" x2="21" y2="12"></line>
-                    <line x1="3" y1="6" x2="21" y2="6"></line>
-                    <line x1="3" y1="18" x2="21" y2="18"></line>
-                </svg>
-            </button>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-16">
+      <!-- Logo & Brand -->
+      <div class="flex items-center gap-3">
+        <button
+          id="mobile-menu-btn"
+          class="lg:hidden p-2 rounded-lg text-cyber-400 hover:bg-cyber-400/10 transition-colors"
+          aria-label="Toggle menu"
+          aria-expanded="false"
+        >
+          <svg
+            class="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 6h16M4 12h16M4 18h16"></path>
+          </svg>
+        </button>
 
-            <a
-                href="/"
-                class="flex items-center gap-2 group focus:outline-none"
-                aria-label="Brand home"
-            >
-                <Logo class="w-10 h-10" />
-                <span
-                    class="text-cyber-400 font-bold text-xl font-mono tracking-wider group-hover:text-cyber-300 transition-colors"
-                    >VULNERA_</span
-                >
-            </a>
-        </div>
+        <a href="/" class="flex items-center gap-2 group">
+          <Logo class="w-8 h-8" />
+          <span
+            class="text-xl font-bold bg-gradient-to-r from-cyber-400 to-matrix-400 bg-clip-text text-transparent"
+          >
+            VULNERA
+          </span>
+        </a>
+      </div>
 
-        <!-- Navigation Links (Hidden on mobile, visible on desktop lg:flex) -->
-        <div class="hidden lg:flex items-center gap-6">
-            <!-- Guest Only Links -->
-            <a
-                href="/pricing"
-                class="nav-guest-only text-matrix-300 hover:text-cyber-400 font-mono text-sm tracking-wider transition-colors duration-300 relative group"
-            >
-                <span class="relative z-10">PRICING</span>
-                <span
-                    class="absolute bottom-0 left-0 w-0 h-0.5 bg-cyber-400 transition-all duration-300 group-hover:w-full"
-                ></span>
-            </a>
+      <!-- Desktop Navigation -->
+      <div class="hidden lg:flex items-center gap-6">
+        <a
+          href="/"
+          class="text-sm text-matrix-300 hover:text-cyber-400 transition-colors font-medium"
+        >
+          HOME
+        </a>
+        <a
+          href="https://k5602.github.io/Vulnera/"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="text-sm text-matrix-300 hover:text-cyber-400 transition-colors font-medium"
+        >
+          DOCS
+        </a>
+        
+        <!-- Guest Only Links -->
+        <a
+          href="/pricing"
+          class="nav-guest text-sm text-matrix-300 hover:text-cyber-400 transition-colors font-medium"
+        >
+          PRICING
+        </a>
+        <a
+          href="/login"
+          class="nav-guest px-4 py-2 rounded-lg border border-cyber-400/50 text-cyber-400 hover:bg-cyber-400/10 transition-all font-medium text-sm"
+        >
+          LOGIN
+        </a>
+        <a
+          href="/signup"
+          class="nav-guest px-4 py-2 rounded-lg bg-gradient-to-r from-cyber-400 to-matrix-400 text-black hover:shadow-lg hover:shadow-cyber-400/50 transition-all font-bold text-sm"
+        >
+          SIGN UP
+        </a>
 
-            <!-- Shared Links -->
-            <a
-                href="https://k5602.github.io/Vulnera/"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="text-matrix-300 hover:text-cyber-400 font-mono text-sm tracking-wider transition-colors duration-300 relative group"
-            >
-                <span class="relative z-10">DOCS</span>
-                <span
-                    class="absolute bottom-0 left-0 w-0 h-0.5 bg-cyber-400 transition-all duration-300 group-hover:w-full"
-                ></span>
-            </a>
-
-            <a
-                href="/login"
-                class="nav-guest-only text-matrix-300 hover:text-cyber-400 font-mono text-sm tracking-wider transition-colors duration-300 relative group"
-            >
-                <span class="relative z-10">LOGIN</span>
-                <span
-                    class="absolute bottom-0 left-0 w-0 h-0.5 bg-cyber-400 transition-all duration-300 group-hover:w-full"
-                ></span>
-            </a>
-
-            <!-- Auth Only Links -->
-            <a
-                id="dash-link"
-                href="/dashboard"
-                class="nav-auth-only hidden text-matrix-300 hover:text-cyber-400 font-mono text-sm tracking-wider transition-colors duration-300 relative group"
-            >
-                <span class="relative z-10">DASHBOARD</span>
-                <span
-                    class="absolute bottom-0 left-0 w-0 h-0.5 bg-cyber-400 transition-all duration-300 group-hover:w-full"
-                ></span>
-            </a>
-
-            <!-- Organization Dashboard (visible only if in organization) -->
-            <a
-                id="org-dash-link"
-                href="/orgdashboard"
-                class="nav-auth-only hidden text-matrix-300 hover:text-cyber-400 font-mono text-sm tracking-wider transition-colors duration-300 relative group"
-            >
-                <span class="relative z-10">ORG</span>
-                <span
-                    class="absolute bottom-0 left-0 w-0 h-0.5 bg-cyber-400 transition-all duration-300 group-hover:w-full"
-                ></span>
-            </a>
-
-            <a
-                href="/scan"
-                class="nav-auth-only hidden text-matrix-300 hover:text-cyber-400 font-mono text-sm tracking-wider transition-colors duration-300 relative group"
-            >
-                <span class="relative z-10">SCAN</span>
-                <span
-                    class="absolute bottom-0 left-0 w-0 h-0.5 bg-cyber-400 transition-all duration-300 group-hover:w-full"
-                ></span>
-            </a>
-
-            <!-- LLM/AI Feature -->
-            <a
-                href="/llm"
-                class="nav-auth-only hidden text-matrix-300 hover:text-cyber-400 font-mono text-sm tracking-wider transition-colors duration-300 relative group"
-            >
-                <span class="relative z-10">AI</span>
-                <span
-                    class="absolute bottom-0 left-0 w-0 h-0.5 bg-cyber-400 transition-all duration-300 group-hover:w-full"
-                ></span>
-            </a>
-
-            <a
-                href="/settings"
-                class="nav-auth-only hidden text-matrix-300 hover:text-cyber-400 font-mono text-sm tracking-wider transition-colors duration-300 relative group"
-            >
-                <span class="relative z-10">SETTINGS</span>
-                <span
-                    class="absolute bottom-0 left-0 w-0 h-0.5 bg-cyber-400 transition-all duration-300 group-hover:w-full"
-                ></span>
-            </a>
-            <button
-                id="nav-logout-btn"
-                class="nav-auth-only hidden text-red-400 hover:text-red-300 font-mono text-sm tracking-wider transition-colors duration-300 relative group"
-            >
-                <span class="relative z-10">LOGOUT</span>
-                <span
-                    class="absolute bottom-0 left-0 w-0 h-0.5 bg-red-400 transition-all duration-300 group-hover:w-full"
-                ></span>
-            </button>
-        </div>
+        <!-- Auth Only Links -->
+        <a
+          href="/dashboard"
+          class="nav-auth hidden text-sm text-matrix-300 hover:text-cyber-400 transition-colors font-medium"
+        >
+          DASHBOARD
+        </a>
+        <a
+          id="org-dash-nav"
+          href="/orgdashboard"
+          class="nav-auth hidden text-sm text-matrix-300 hover:text-cyber-400 transition-colors font-medium"
+        >
+          ORGANIZATION
+        </a>
+        <a
+          href="/scan"
+          class="nav-auth hidden text-sm text-matrix-300 hover:text-cyber-400 transition-colors font-medium"
+        >
+          SCAN
+        </a>
+        <a
+          href="/llm"
+          class="nav-auth hidden text-sm text-matrix-300 hover:text-cyber-400 transition-colors font-medium"
+        >
+          AI ANALYZE
+        </a>
+        <a
+          href="/settings"
+          class="nav-auth hidden text-sm text-matrix-300 hover:text-cyber-400 transition-colors font-medium"
+        >
+          SETTINGS
+        </a>
+        <button
+          id="logout-btn"
+          class="nav-auth hidden px-4 py-2 rounded-lg border border-red-400/50 text-red-400 hover:bg-red-400/10 transition-all font-medium text-sm"
+        >
+          LOGOUT
+        </button>
+      </div>
     </div>
+  </div>
 </nav>
 
-<script type="module">
-    import { POST } from "../api/api-manage";
-    import ENDPOINTS from "../utils/api/endpoints";
-    import { isAuthenticatedStore, isOrgStore, clearStore, csrfTokenStore } from "../utils/store";
-    // Mobile sidebar toggle
-    const toggleBtn = document.getElementById("menu-toggle");
-    const orgDashLink = document.getElementById(
-        "org-dash-link",
-    ) as HTMLAnchorElement;
+<script>
+  import { isAuthenticatedStore, isOrgStore, clearStore } from "../utils/store";
+  import { POST } from "../api/api-manage";
+  import ENDPOINTS from "../utils/api/endpoints";
 
-    // Show/hide organization dashboard link based on organization status
-    function updateOrgDashLink() {
-        const hasOrg = isOrgStore.get();
-        if (hasOrg && orgDashLink) {
-            orgDashLink.style.display = "";
-        } else if (orgDashLink) {
-            orgDashLink.style.display = "none";
-        }
+  const mobileMenuBtn = document.getElementById("mobile-menu-btn");
+  const logoutBtn = document.getElementById("logout-btn") as HTMLButtonElement;
+  const orgDashNav = document.getElementById("org-dash-nav");
+
+  // Update navigation visibility based on auth state
+  function updateNavVisibility() {
+    const authElements = document.querySelectorAll(".nav-auth");
+    const guestElements = document.querySelectorAll(".nav-guest");
+    const isLoggedIn = isAuthenticatedStore.get();
+    const hasOrg = isOrgStore.get();
+
+    if (isLoggedIn) {
+      authElements.forEach((el) => (el as HTMLElement).classList.remove("hidden"));
+      guestElements.forEach((el) => (el as HTMLElement).classList.add("hidden"));
+      
+      // Show/hide org dashboard based on org status
+      if (orgDashNav) {
+        orgDashNav.style.display = hasOrg ? "" : "none";
+      }
+    } else {
+      authElements.forEach((el) => (el as HTMLElement).classList.add("hidden"));
+      guestElements.forEach((el) => (el as HTMLElement).classList.remove("hidden"));
     }
+  }
 
-    updateOrgDashLink();
+  // Handle mobile menu toggle
+  mobileMenuBtn?.addEventListener("click", () => {
+    const sidebar = document.getElementById("mobile-sidebar");
+    const isOpen = sidebar?.classList.toggle("sidebar-open");
+    mobileMenuBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+  });
 
-    // Dispatch event for Sidebar component to handle
-    function toggleMobileSidebar() {
-        window.dispatchEvent(new CustomEvent("toggle-mobile-sidebar"));
-        const isOpen = document
-            .getElementById("sidebar")
-            ?.classList.contains("mobile-open");
-        toggleBtn?.setAttribute("aria-expanded", isOpen ? "true" : "false");
+  // Handle logout
+  logoutBtn?.addEventListener("click", async () => {
+    try {
+      logoutBtn.disabled = true;
+      logoutBtn.textContent = "LOGGING OUT...";
+      await POST(ENDPOINTS.AUTH.POST_logout);
+      clearStore();
+      window.location.href = "/login";
+    } catch (error) {
+      console.error("Logout error:", error);
+      alert("Logout failed. Please try again.");
+      logoutBtn.disabled = false;
+      logoutBtn.textContent = "LOGOUT";
     }
+  });
 
-    if (toggleBtn) {
-        toggleBtn.addEventListener("click", toggleMobileSidebar);
-    }
+  // Subscribe to store changes
+  const unsubscribeAuth = isAuthenticatedStore.subscribe(updateNavVisibility);
+  const unsubscribeOrg = isOrgStore.subscribe(updateNavVisibility);
 
-    // Update navigation visibility based on auth state
-    function updateNavVisibility() {
-        const authElements = document.querySelectorAll(".nav-auth-only");
-        const guestElements = document.querySelectorAll(".nav-guest-only");
-        const isLoggedIn = isAuthenticatedStore.get();
-        const csrfToken = csrfTokenStore.get();
+  // Initial update
+  updateNavVisibility();
 
-        if (isLoggedIn || csrfToken) {
-            authElements.forEach((el) => el.classList.remove("hidden"));
-            guestElements.forEach((el) => el.classList.add("hidden"));
-        } else {
-            authElements.forEach((el) => el.classList.add("hidden"));
-            guestElements.forEach((el) => el.classList.remove("hidden"));
-        }
-    }
-
-    const logoutBtn = document.getElementById("nav-logout-btn") as HTMLButtonElement;
-    if (logoutBtn) {
-        logoutBtn.addEventListener("click", async () => {
-            try {
-                logoutBtn.disabled = true;
-                logoutBtn.innerText = "Logging out...";
-                const response = await POST(ENDPOINTS.AUTH.POST_logout);
-                if (response.status === 200) {
-                    // Clear store and redirect to login
-                    clearStore();
-                    window.location.href = "/login";
-                }
-            } catch (error) {
-                console.error("Logout error:", error);
-                alert("An error occurred during logout. Please try again.");
-                logoutBtn.disabled = false;
-                logoutBtn.innerText = "LOGOUT";
-            }
-        });
-    }
-
-    const authSubscription = isAuthenticatedStore.subscribe(() => {
-        updateNavVisibility();
-    });
-
-    const csrfSubscription = csrfTokenStore.subscribe(() => {
-        updateNavVisibility();
-    });
-
-    const orgSubscription = isOrgStore.subscribe(() => {
-        updateOrgDashLink();
-    });
-
-    // Initialize
-    updateNavVisibility();
-    updateOrgDashLink();
-
-    window.addEventListener("beforeunload", () => {
-        authSubscription();
-        orgSubscription();
-        csrfSubscription();
-    });
-
+  // Cleanup
+  window.addEventListener("beforeunload", () => {
+    unsubscribeAuth();
+    unsubscribeOrg();
+  });
 </script>

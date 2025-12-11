@@ -1,7 +1,22 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import Navigation from "../components/Navigation.astro";
+export const prerender = false;
 ---
+
+<script>
+  import { userStore } from "../utils/store";
+  import { startSessionMonitor } from "../utils/session-monitor";
+
+  const user = userStore.get();
+  if (!user) {
+    const currentPath = window.location.pathname;
+    window.location.href = `/login?next=${encodeURIComponent(currentPath)}`;
+  } else {
+    // Start monitoring session for this protected page
+    startSessionMonitor();
+  }
+</script>
 
 <Layout title="Vulnero bot — Intelligent Security Assistant">
   <Navigation />
