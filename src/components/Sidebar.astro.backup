@@ -1,0 +1,541 @@
+---
+// Enhanced interactive sidebar with animations and effects
+
+import Logo from "./Logo.astro";
+
+const currentPath = Astro.url.pathname;
+const isDocs = currentPath.startsWith("/docs");
+
+interface Link {
+  href: string;
+  label: string;
+  icon: string;
+  guestOnly: boolean;
+  authOnly: boolean;
+  id?: string;
+  target?: string;
+}
+
+const mainLinks: Link[] = [
+  {
+    href: "/",
+    label: "HOME",
+    icon: "home",
+    guestOnly: false,
+    authOnly: false,
+    id: "home-page",
+  },
+  {
+    href: "/dashboard",
+    label: "DASHBOARD",
+    icon: "dashboard",
+    guestOnly: false,
+    authOnly: true,
+  },
+  {
+    href: "/orgdashboard",
+    label: "ORG_DASHBOARD",
+    icon: "dashboard",
+    guestOnly: false,
+    authOnly: true,
+    id: "org-dash-sidebar",
+  },
+  {
+    href: "/scan",
+    label: "SCAN",
+    icon: "scan",
+    guestOnly: false,
+    authOnly: true,
+  },
+  {
+    href: "/llm",
+    label: "ANALYZE_AI",
+    icon: "bot",
+    guestOnly: false,
+    authOnly: true,
+  },
+  {
+    href: "https://k5602.github.io/Vulnera/",
+    label: "DOCS",
+    icon: "docs",
+    guestOnly: false,
+    authOnly: false,
+    target: "_blank",
+  },
+  {
+    href: "/settings",
+    label: "SETTINGS",
+    icon: "settings",
+    guestOnly: false,
+    authOnly: true,
+  },
+  {
+    href: "/login",
+    label: "LOGIN",
+    icon: "login",
+    guestOnly: true,
+    authOnly: false,
+  },
+];
+
+const docsLinks: Link[] = [
+  {
+    href: "/docs/overview",
+    label: "OVERVIEW",
+    icon: "book",
+    guestOnly: false,
+    authOnly: false,
+  },
+  {
+    href: "/docs/getting-started",
+    label: "GET STARTED",
+    icon: "rocket",
+    guestOnly: false,
+    authOnly: false,
+  },
+  {
+    href: "/docs/api",
+    label: "API REF",
+    icon: "code",
+    guestOnly: false,
+    authOnly: false,
+  },
+  {
+    href: "/docs/configuration",
+    label: "CONFIG",
+    icon: "settings",
+    guestOnly: false,
+    authOnly: false,
+  },
+];
+
+const icons: Record<string, string> = {
+  home: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6",
+  scan: "M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z",
+  dashboard:
+    "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z",
+  docs: "M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
+  settings:
+    "M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z",
+  login:
+    "M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1",
+  logout:
+    "M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1",
+  "arrow-left": "M10 19l-7-7m0 0l7-7m-7 7h18",
+  book: "M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253",
+  rocket:
+    "M15.59 14.37a6 6 0 01-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 006.16-12.12A14.98 14.98 0 009.631 8.41m5.96 5.96a14.926 14.926 0 01-5.841 2.58m-.119-8.54a6 6 0 00-7.381 5.84h4.8m2.581-5.84a14.927 14.927 0 00-2.58 5.84m2.699 2.7c-.103.021-.207.041-.311.06a15.09 15.09 0 01-2.448-2.448 14.9 14.9 0 01.06-.312m-2.24 2.39a4.493 4.493 0 00-1.757 4.306 4.493 4.493 0 004.306-1.758M16.5 9a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z",
+  code: "M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4",
+  bot: "M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z",
+};
+
+const linksToRender = isDocs ? docsLinks : mainLinks;
+---
+
+<aside
+  id="sidebar"
+  class:list={[
+    "fixed left-0 top-0 h-screen bg-gradient-to-b from-black via-cyber-950/20 to-black backdrop-blur-md border-r border-cyber-500/30 shadow-[0_0_30px_rgba(0,229,209,0.15)] z-30 transition-all duration-300 ease-in-out",
+    { "docs-sidebar": isDocs }
+  ]}
+  aria-label="Main sidebar navigation"
+>
+  <!-- Main Content Wrapper (Handles overflow for inner content) -->
+  <div class="relative w-full h-full overflow-hidden">
+    <!-- Animated Background Gradient -->
+    <div class="absolute inset-0 opacity-20 pointer-events-none">
+      <div
+        class="absolute top-0 left-0 w-full h-1/3 bg-linear-to-b from-cyber-400/20 to-transparent animate-pulse"
+      >
+      </div>
+      <div
+        class="absolute bottom-0 left-0 w-full h-1/3 bg-linear-to-t from-matrix-400/20 to-transparent animate-pulse"
+        style="animation-delay: 1s;"
+      >
+      </div>
+    </div>
+
+    <!-- Vertical Scanline Effect -->
+    <div class="absolute inset-0 pointer-events-none overflow-hidden opacity-30">
+      <div class="scanline"></div>
+    </div>
+
+    <!-- Logo Section with Animation -->
+    <div class="px-4 pt-6 pb-4 mb-2 relative border-b border-cyber-500/20">
+      <div class="flex items-center justify-center gap-3 relative">
+        <Logo class="flex-shrink-0" />
+        <div class="sidebar-text opacity-0 pointer-events-none transition-all duration-300 overflow-hidden">
+          <span class="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyber-400 to-matrix-400 tracking-wider whitespace-nowrap">
+            VULNERA
+          </span>
+          <div class="text-[10px] text-cyber-600 font-mono tracking-widest mt-0.5">
+            SECURITY SUITE
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Links -->
+    <nav
+      class="flex flex-col gap-1 px-3 py-4 relative z-10 overflow-y-auto scrollbar-thin scrollbar-thumb-cyber-700 scrollbar-track-transparent"
+      aria-label="Sidebar navigation"
+    >
+      {linksToRender.map((link) => (
+        <a
+          href={link.href}
+          class={`sidebar-link group relative flex items-center h-11 px-2 rounded-md hover:bg-gradient-to-r hover:from-cyber-500/10 hover:via-cyber-500/5 hover:to-transparent border border-transparent hover:border-cyber-500/20 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyber-400 overflow-hidden ${link.guestOnly ? 'guest-only' : ''} ${link.authOnly ? 'auth-only' : ''}`}
+          data-label={link.label}
+          id={link.id}
+          style={link.guestOnly || link.authOnly ? 'display: none' : ''}
+          target={link.target}
+          rel={link.target === "_blank" ? "noopener noreferrer" : undefined}
+        >
+          <!-- Ripple Effect Container -->
+          <span class="ripple-container absolute inset-0 overflow-hidden"></span>
+
+          <!-- Active Indicator -->
+          <span
+            class="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-0 bg-gradient-to-b from-cyber-400 via-cyber-500 to-matrix-400 rounded-r-full transition-all duration-300 group-hover:h-6 shadow-[0_0_8px_rgba(0,229,209,0.6)]"
+          ></span>
+
+          <div class="flex items-center justify-center w-12 h-12 relative z-10">
+            <svg
+              class="w-6 h-6 text-cyber-400 group-hover:text-cyber-300 group-hover:scale-110 transition-all duration-300"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d={icons[link.icon]}
+              ></path>
+            </svg>
+          </div>
+          <span
+            class="sidebar-text ml-3 text-matrix-300 group-hover:text-cyber-300 whitespace-nowrap opacity-0 pointer-events-none transition-all duration-300 font-mono font-bold tracking-wider relative z-10"
+            >{link.label}</span
+          >
+
+          <!-- Enhanced Tooltip -->
+          <div
+            class="sidebar-tooltip absolute left-full ml-3 px-4 py-2 bg-linear-to-r from-black/95 to-cyber-900/50 terminal-border rounded-lg text-cyber-400 text-sm whitespace-nowrap opacity-0 pointer-events-none transition-all duration-200 z-50 shadow-lg"
+          >
+            <span class="font-mono">{link.label}</span>
+            <div
+              class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-2 h-2 bg-cyber-400 rounded-full animate-ping"
+            >
+            </div>
+          </div>
+        </a>
+      ))}
+
+      <!-- Logout (auth only) -->
+      <button
+        id="sidebar-logout-btn"
+        class="sidebar-link auth-only group relative flex items-center h-11 px-2 rounded-md hover:bg-gradient-to-r hover:from-red-500/10 hover:via-red-500/5 hover:to-transparent border border-transparent hover:border-red-500/20 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400 w-full overflow-hidden mt-auto"
+        data-label="Logout"
+        style="display: none"
+      >
+        <!-- Ripple Effect Container -->
+        <span class="ripple-container absolute inset-0 overflow-hidden"></span>
+
+        <!-- Active Indicator -->
+        <span
+          class="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-0 bg-gradient-to-b from-red-500 to-red-700 rounded-r-full transition-all duration-300 group-hover:h-6 shadow-[0_0_8px_rgba(239,68,68,0.6)]"
+        ></span>
+
+        <div class="flex items-center justify-center w-12 h-12 relative z-10">
+          <svg
+            class="w-6 h-6 text-red-400 group-hover:text-red-300 group-hover:scale-110 group-hover:translate-x-1 transition-all duration-300"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d={icons.logout}
+            ></path>
+          </svg>
+        </div>
+        <span
+          class="sidebar-text ml-3 text-red-300 group-hover:text-red-200 whitespace-nowrap opacity-0 pointer-events-none transition-all duration-300 font-mono font-bold tracking-wider relative z-10"
+          >LOGOUT</span
+        >
+
+        <!-- Enhanced Tooltip -->
+        <div
+          class="sidebar-tooltip absolute left-full ml-3 px-4 py-2 bg-linear-to-r from-black/95 to-red-900/50 terminal-border rounded-lg text-red-400 text-sm whitespace-nowrap opacity-0 pointer-events-none transition-all duration-200 z-50 shadow-lg"
+        >
+          <span class="font-mono">Logout</span>
+          <div
+            class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-2 h-2 bg-red-400 rounded-full animate-ping"
+          >
+          </div>
+        </div>
+      </button>
+    </nav>
+  </div>
+
+  <!-- Toggle Button with Animation (Moved outside wrapper) -->
+  
+</aside>
+
+<style>
+  /* Sidebar default (hidden/drawer) state */
+  #sidebar {
+    width: 240px;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+  }
+
+  /* Open state (triggered by mobile-open class) */
+  #sidebar.mobile-open {
+    transform: translateX(0);
+  }
+
+  /* Ensure text is always visible in drawer mode */
+  .sidebar-text {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(0);
+  }
+
+  /* Scanline animation */
+  .scanline {
+    position: absolute;
+    top: -100%;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      to bottom,
+      transparent 0%,
+      rgba(0, 229, 209, 0.03) 45%,
+      rgba(0, 229, 209, 0.08) 50%,
+      rgba(0, 229, 209, 0.03) 55%,
+      transparent 100%
+    );
+    animation: scan-down 8s linear infinite;
+  }
+
+  @keyframes scan-down {
+    0% {
+      top: -100%;
+    }
+    100% {
+      top: 100%;
+    }
+  }
+
+  /* Active link indicator */
+  .sidebar-link[aria-current="page"] {
+    background: linear-gradient(90deg, rgba(0, 229, 209, 0.15), transparent);
+    border-color: rgba(0, 229, 209, 0.4);
+    box-shadow: 0 0 15px rgba(0, 229, 209, 0.2);
+  }
+
+  .sidebar-link[aria-current="page"] .absolute.left-0 {
+    height: 1.5rem !important;
+  }
+
+  /* Ripple effect animation */
+  @keyframes ripple {
+    0% {
+      transform: scale(0);
+      opacity: 0.5;
+    }
+    100% {
+      transform: scale(4);
+      opacity: 0;
+    }
+  }
+
+  .ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(26, 255, 239, 0.5);
+    pointer-events: none;
+    animation: ripple 0.6s ease-out;
+  }
+
+  /* Glowing effect on hover */
+  .sidebar-link:hover {
+    box-shadow: inset 0 0 20px rgba(26, 255, 239, 0.1);
+  }
+
+  /* Icon animations */
+  .sidebar-link svg {
+    filter: drop-shadow(0 0 0px rgba(26, 255, 239, 0));
+    transition: filter 0.3s ease-in-out;
+  }
+
+  .sidebar-link:hover svg {
+    filter: drop-shadow(0 0 8px rgba(26, 255, 239, 0.6));
+  }
+
+  /* Scrollbar styling */
+  #sidebar nav::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  #sidebar nav::-webkit-scrollbar-track {
+    background: rgba(26, 255, 239, 0.05);
+  }
+
+  #sidebar nav::-webkit-scrollbar-thumb {
+    background: rgba(26, 255, 239, 0.3);
+    border-radius: 2px;
+  }
+
+  #sidebar nav::-webkit-scrollbar-thumb:hover {
+    background: rgba(26, 255, 239, 0.5);
+  }
+
+  /* Persistent sidebar for docs on large screens */
+  @media (min-width: 1536px) {
+    #sidebar.docs-sidebar {
+      transform: translateX(0) !important;
+    }
+  }
+
+  body.vt-preload #sidebar {
+    opacity: 0 !important;
+    transform: translateX(-100%) !important;
+    pointer-events: none !important;
+  }
+</style>
+
+<script type="module">
+  // Sidebar functionality
+  const sidebar = document.getElementById("sidebar");
+  const sidebarLinks = document.querySelectorAll(".sidebar-link");
+
+  // Ripple effect function
+  function createRipple(event: MouseEvent, element: HTMLElement) {
+    const rippleContainer = element.querySelector(".ripple-container");
+    if (!rippleContainer) return;
+
+    const ripple = document.createElement("span");
+    const rect = rippleContainer.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+    const x = event.clientX - rect.left - size / 2;
+    const y = event.clientY - rect.top - size / 2;
+
+    ripple.style.width = ripple.style.height = `${size}px`;
+    ripple.style.left = `${x}px`;
+    ripple.style.top = `${y}px`;
+    ripple.classList.add("ripple");
+
+    rippleContainer.appendChild(ripple);
+
+    setTimeout(() => ripple.remove(), 600);
+  }
+
+  // Add ripple effect to all sidebar links
+  sidebarLinks.forEach((link) => {
+    link.addEventListener("click", (e) => {
+      createRipple(e as MouseEvent, link as HTMLElement);
+    });
+  });
+
+  // Highlight active page
+  const currentPath = window.location.pathname;
+  sidebarLinks.forEach((link) => {
+    const href = link.getAttribute("href");
+    if (href === currentPath || (href === "/" && currentPath === "/")) {
+      link.setAttribute("aria-current", "page");
+    }
+  });
+
+  import { POST } from "../api/api-manage";
+  // Auth-based visibility
+  import ENDPOINTS from "../utils/api/endpoints";
+  import { isAuthenticatedStore, isOrgStore } from "../utils/store";
+
+  function updateSidebarVisibility() {
+    const authElements = sidebar?.querySelectorAll(".auth-only");
+    const guestElements = sidebar?.querySelectorAll(".guest-only");
+    const homeElement = document.getElementById("home-page");
+    const orgDashSidebar = document.getElementById("org-dash-sidebar");
+    const isLoggedIn = isAuthenticatedStore.get();
+    const isOrganization = isOrgStore.get();
+
+    if (isLoggedIn) {
+      authElements?.forEach((el) =>
+        (el as HTMLElement).style.removeProperty("display"),
+      );
+      guestElements?.forEach(
+        (el) => ((el as HTMLElement).style.display = "none"),
+      );
+      if (homeElement) homeElement.style.display = "none";
+
+      // Show organization dashboard link only if user is in an organization
+      if (isOrganization && orgDashSidebar) {
+        orgDashSidebar.style.removeProperty("display");
+      } else if (orgDashSidebar) {
+        orgDashSidebar.style.display = "none";
+      }
+    } else {
+      authElements?.forEach(
+        (el) => ((el as HTMLElement).style.display = "none"),
+      );
+      guestElements?.forEach((el) =>
+        (el as HTMLElement).style.removeProperty("display"),
+      );
+      if (orgDashSidebar) {
+        orgDashSidebar.style.display = "none";
+      }
+    }
+  }
+
+  // Logout functionality
+  async function handleLogout() {
+    await POST(ENDPOINTS.AUTH.POST_logout, {});
+    window.location.href = "/login";
+  }
+
+  // Initialize on load
+  updateSidebarVisibility();
+
+  // Setup logout button
+  const logoutBtn = document.getElementById("sidebar-logout-btn");
+  logoutBtn?.addEventListener("click", handleLogout);
+
+  // Subscribe to store changes
+  const authSubscription = isAuthenticatedStore.subscribe(() => {
+    updateSidebarVisibility();
+  });
+
+  const orgSubscription = isOrgStore.subscribe(() => {
+    updateSidebarVisibility();
+  });
+
+  // Listen for storage changes (multi-tab sync)
+  window.addEventListener("storage", updateSidebarVisibility);
+
+  // Mobile menu toggle (triggered from Navigation component)
+  window.addEventListener("toggle-mobile-sidebar", () => {
+    sidebar?.classList.toggle("mobile-open");
+  });
+
+  // Cleanup on page unload
+  window.addEventListener("beforeunload", () => {
+    authSubscription();
+    orgSubscription();
+  });
+
+  // Close sidebar when clicking outside
+  document.addEventListener("click", (e) => {
+    if (
+      sidebar?.classList.contains("mobile-open") &&
+      !sidebar.contains(e.target as Node) &&
+      !(e.target as HTMLElement)?.closest("#menu-toggle")
+    ) {
+      sidebar?.classList.remove("mobile-open");
+    }
+  });
+</script> 
