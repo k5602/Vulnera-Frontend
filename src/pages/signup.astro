@@ -284,8 +284,13 @@ import Footer from "../components/Footer.astro";
       }
     });
 
+    import { clearStore } from "../utils/store"; // Import clearStore
+
     form.addEventListener("submit", async (e: Event) => {
       e.preventDefault();
+
+      // Clear any existing session to ensure a clean registration
+      clearStore();
 
       const firstName = (
         document.getElementById("firstName") as HTMLInputElement

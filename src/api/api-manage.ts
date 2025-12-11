@@ -18,11 +18,9 @@ import { clearCsrfToken, csrfTokenStore } from "../utils/store";
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 
-let csrfToken: string | null = csrfTokenStore.get();
-
 const api = axios.create({
   baseURL: BASE_URL,
-  withCredentials: true, // VERY IMPORTANT for cookie-based auth
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
@@ -32,11 +30,26 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     const method = config.method?.toUpperCase();
+    const url = config.url || "";
+
+    // Exclude CSRF for Login & Register
+    // (These endpoints return the token; they don't consume it)
+    const EXCLUDED_CSRF_ENDPOINTS = [
+      "/api/v1/auth/login",
+      "/api/v1/auth/register",
+    ];
+
+    const isExcluded = EXCLUDED_CSRF_ENDPOINTS.some((endpoint) =>
+      url.includes(endpoint)
+    );
 
     // Add CSRF token to unsafe methods
     const requiresCsrf = ["POST", "PUT", "PATCH", "DELETE"];
 
-    if (requiresCsrf.includes(method!) && csrfToken) {
+    // Read CSRF token dynamically from store on EVERY request
+    const csrfToken = csrfTokenStore.get();
+
+    if (requiresCsrf.includes(method!) && csrfToken && !isExcluded) {
       if (config.headers && typeof config.headers.set === "function") {
         config.headers.set("X-CSRF-Token", csrfToken);
       } else {
