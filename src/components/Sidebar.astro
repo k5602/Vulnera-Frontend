@@ -451,11 +451,12 @@ const linksToRender = isDocs ? docsLinks : mainLinks;
     }
   });
 
-import { POST } from "../api/api-manage";
+  import { POST } from "../api/api-manage";
   // Auth-based visibility
-  import { organization } from "../modules/orgData";
-import ENDPOINTS from "../utils/api/endpoints";
-  import { isAuthenticatedStore } from "../utils/store";
+  import ENDPOINTS from "../utils/api/endpoints";
+  import { isAuthenticatedStore, isOrgStore } from "../utils/store";
+
+  let isOrganization = isOrgStore.get();
 
   function updateSidebarVisibility() {
     const authElements = sidebar?.querySelectorAll(".auth-only");
@@ -474,7 +475,7 @@ import ENDPOINTS from "../utils/api/endpoints";
       if (homeElement) homeElement.style.display = "none";
 
       // Show organization dashboard link only if user is in an organization
-      if (organization.isOrganization && orgDashSidebar) {
+      if (isOrganization && orgDashSidebar) {
         orgDashSidebar.style.removeProperty("display");
       } else if (orgDashSidebar) {
         orgDashSidebar.style.display = "none";

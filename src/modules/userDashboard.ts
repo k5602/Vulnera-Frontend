@@ -1,6 +1,9 @@
 import { GET } from '../api/api-manage.js';
 import ENDPOINTS from '../utils/api/endpoints.js';
-import { organization, loadUserOrganization } from './orgData.js';
+import { organizationStore } from '../utils/store.js';
+import { loadUserOrganization } from './orgData.js';
+
+let organization = organizationStore.get();
 
 export class OrgDashboardHandler {
   criticalElement: HTMLElement;
@@ -210,7 +213,7 @@ export class OrgDashboardHandler {
     }
 
 
-    if (!organization.orgId) {
+    if (!organization?.id) {
       await loadUserOrganization();
       this.changeDashboard('organization');
     }
@@ -223,7 +226,7 @@ export class OrgDashboardHandler {
     let historicalUsage = [];
 
     // Skip organization API calls if orgId is not available
-    if (organization.orgId) {
+    if (organization?.id) {
       interface OrgStats {
         critical_this_month: number,
         current_month: string,
@@ -236,7 +239,7 @@ export class OrgDashboardHandler {
       }
 
       try {
-        const res = await GET(ENDPOINTS.ORG_ANALYTICS.GET_dashboard_stats(organization.orgId));
+        const res = await GET(ENDPOINTS.ORG_ANALYTICS.GET_historical_usage(organization?.id));
 
         if (res.status === 200 && res.data) {
           const data = res.data;
@@ -269,7 +272,7 @@ export class OrgDashboardHandler {
       }
       //load organization historical stats
       try {
-        const resHist = await GET(ENDPOINTS.ORG_ANALYTICS.GET_historical_usage(organization.orgId));
+        const resHist = await GET(ENDPOINTS.ORG_ANALYTICS.GET_historical_usage(organization?.id));
 
         if (resHist.status === 200 && resHist.data) {
           const data = resHist.data.months;
@@ -334,7 +337,6 @@ export class OrgDashboardHandler {
         projectsMap[projectName].lastScanAt = scan.timestamp;
       }
     });
-    const projects = Object.values(projectsMap);
 
     // Calculate 7-day trend
     const now = new Date();
@@ -354,8 +356,8 @@ export class OrgDashboardHandler {
     // Apply filters (client-side) to reports/projects
 
     this.renderOverview(overviewMonth);
+    this.monthTag.textContent = overviewMonth.currMonth;
     this.renderMonthActivity([
-      `Month: ${overviewMonth.currMonth}`,
       `Critical Findings: ${overviewMonth.criticalFindings}`,
       `High Findings: ${overviewMonth.highFindings}`,
       `Total Scans: ${overviewMonth.scans}`,
@@ -371,17 +373,17 @@ export class OrgDashboardHandler {
     const subtitleEl = document.getElementById('dash-subtitle') as HTMLElement;
     if (selection == "organization") {
       titleEl.innerHTML = `<span class="text-cyber-400">&gt;</span> ORGANIZATION_DASHBOARD`;
-      subtitleEl.innerHTML = `ORGANIZATION_NAME: ${organization.orgName || 'N/A'} ||
-                                DESCRIPTION: ${organization.orgDescription || 'N/A'} ||
-                                TIER: ${organization.tier || 'N/A'} ||
-                                CREATED_AT: ${organization.createdAt || 'N/A'} ||
-                                MEMBERS_COUNT: ${organization.membersCount || 'N/A'}`;
+      subtitleEl.innerHTML = `ORGANIZATION_NAME: ${organization?.name || 'N/A'} ||
+                                DESCRIPTION: ${organization?.description || 'N/A'} ||
+                                TIER: ${organization?.tier || 'N/A'} ||
+                                CREATED_AT: ${organization?.createdAt || 'N/A'} ||
+                                MEMBERS_COUNT: ${organization?.membersCount || 'N/A'}`;
     };
     if (selection == "member") {
       titleEl.innerHTML = `<span class="text-cyber-400">&gt;</span> MEMBER_DASHBOARD`;
-      subtitleEl.innerHTML = `MEMBER_OF_ORGANIZATION: ${organization.orgName || 'N/A'} ||
-                                DESCRIPTION: ${organization.orgDescription || 'N/A'} ||
-                                CREATED_AT: ${organization.createdAt || 'N/A'}`;
+      subtitleEl.innerHTML = `MEMBER_OF_ORGANIZATION: ${organization?.name || 'N/A'} ||
+                                DESCRIPTION: ${organization?.description || 'N/A'} ||
+                                CREATED_AT: ${organization?.createdAt || 'N/A'}`;
     }
   }
 

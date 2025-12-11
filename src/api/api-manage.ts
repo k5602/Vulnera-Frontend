@@ -81,6 +81,8 @@ api.interceptors.response.use(
 
 // API HELPERS
 export const GET = (url: string, config?: any) => api.get(url, config);
+export const PUT = (url: string, data?: any, config?: any) =>
+  api.put(url, data, config);
 export const POST = (url: string, data?: any, config?: any) =>
   api.post(url, data, config);
 export const PATCH = (url: string, data?: any, config?: any) =>

@@ -280,8 +280,6 @@ export const prerender = false;
       document.getElementById("month-tag")! as HTMLElement,
     );
 
-    dashboardHandler.loadReportsAndProjects();
-
     // Defer binding and initial load until idle to free up the main thread on first paint
     const scheduleIdle = (cb: any) => {
       if (typeof window.requestIdleCallback === "function") {
