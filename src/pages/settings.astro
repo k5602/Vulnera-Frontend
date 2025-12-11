@@ -12,7 +12,7 @@ import Footer from "../components/Footer.astro";
   const user = userStore.get();
   const csrfToken = csrfTokenStore.get();
   if (!user || !csrfToken) {
-    return Astro.redirect("/login?next=" + Astro.url.pathname);
+    window.location.href = "/login";
   }
 </script>
 

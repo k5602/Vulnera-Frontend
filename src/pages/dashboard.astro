@@ -11,7 +11,8 @@ export const prerender = false;
   const user = userStore.get();
   const csrfToken = csrfTokenStore.get();
   if (!user || !csrfToken) {
-    return Astro.redirect("/login?next=" + Astro.url.pathname);
+    // Redirect to login if not authenticated
+    window.location.href = "/login";
   }
 </script>
 
