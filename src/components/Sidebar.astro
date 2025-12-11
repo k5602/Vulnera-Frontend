@@ -409,116 +409,116 @@ const linksToRender = isDocs ? docsLinks : mainLinks;
   }
 </style>
 
-<script>
-  // Sidebar functionality
-  const sidebar = document.getElementById("sidebar");
-  const sidebarLinks = document.querySelectorAll(".sidebar-link");
+// <script>
+//   // Sidebar functionality
+//   const sidebar = document.getElementById("sidebar");
+//   const sidebarLinks = document.querySelectorAll(".sidebar-link");
 
-  // Ripple effect function
-  function createRipple(event: MouseEvent, element: HTMLElement) {
-    const rippleContainer = element.querySelector(".ripple-container");
-    if (!rippleContainer) return;
+//   // Ripple effect function
+//   function createRipple(event: MouseEvent, element: HTMLElement) {
+//     const rippleContainer = element.querySelector(".ripple-container");
+//     if (!rippleContainer) return;
 
-    const ripple = document.createElement("span");
-    const rect = rippleContainer.getBoundingClientRect();
-    const size = Math.max(rect.width, rect.height);
-    const x = event.clientX - rect.left - size / 2;
-    const y = event.clientY - rect.top - size / 2;
+//     const ripple = document.createElement("span");
+//     const rect = rippleContainer.getBoundingClientRect();
+//     const size = Math.max(rect.width, rect.height);
+//     const x = event.clientX - rect.left - size / 2;
+//     const y = event.clientY - rect.top - size / 2;
 
-    ripple.style.width = ripple.style.height = `${size}px`;
-    ripple.style.left = `${x}px`;
-    ripple.style.top = `${y}px`;
-    ripple.classList.add("ripple");
+//     ripple.style.width = ripple.style.height = `${size}px`;
+//     ripple.style.left = `${x}px`;
+//     ripple.style.top = `${y}px`;
+//     ripple.classList.add("ripple");
 
-    rippleContainer.appendChild(ripple);
+//     rippleContainer.appendChild(ripple);
 
-    setTimeout(() => ripple.remove(), 600);
-  }
+//     setTimeout(() => ripple.remove(), 600);
+//   }
 
-  // Add ripple effect to all sidebar links
-  sidebarLinks.forEach((link) => {
-    link.addEventListener("click", (e) => {
-      createRipple(e as MouseEvent, link as HTMLElement);
-    });
-  });
+//   // Add ripple effect to all sidebar links
+//   sidebarLinks.forEach((link) => {
+//     link.addEventListener("click", (e) => {
+//       createRipple(e as MouseEvent, link as HTMLElement);
+//     });
+//   });
 
-  // Highlight active page
-  const currentPath = window.location.pathname;
-  sidebarLinks.forEach((link) => {
-    const href = link.getAttribute("href");
-    if (href === currentPath || (href === "/" && currentPath === "/")) {
-      link.setAttribute("aria-current", "page");
-    }
-  });
+//   // Highlight active page
+//   const currentPath = window.location.pathname;
+//   sidebarLinks.forEach((link) => {
+//     const href = link.getAttribute("href");
+//     if (href === currentPath || (href === "/" && currentPath === "/")) {
+//       link.setAttribute("aria-current", "page");
+//     }
+//   });
 
-  // Auth-based visibility
-  import { authService } from "../utils/api/index";
-  import { organization } from "../modules/orgData";
+//   // Auth-based visibility
+//   import { authService } from "../utils/api/index";
+//   import { organization } from "../modules/orgData";
 
-  function updateSidebarVisibility() {
-    const authElements = sidebar?.querySelectorAll(".auth-only");
-    const guestElements = sidebar?.querySelectorAll(".guest-only");
-    const homeElement = document.getElementById("home-page");
-    const orgDashSidebar = document.getElementById("org-dash-sidebar");
-    const isLoggedIn = authService.isAuthenticated();
+//   function updateSidebarVisibility() {
+//     const authElements = sidebar?.querySelectorAll(".auth-only");
+//     const guestElements = sidebar?.querySelectorAll(".guest-only");
+//     const homeElement = document.getElementById("home-page");
+//     const orgDashSidebar = document.getElementById("org-dash-sidebar");
+//     const isLoggedIn = authService.isAuthenticated();
 
-    if (isLoggedIn) {
-      authElements?.forEach((el) =>
-        (el as HTMLElement).style.removeProperty("display"),
-      );
-      guestElements?.forEach(
-        (el) => ((el as HTMLElement).style.display = "none"),
-      );
-      if (homeElement) homeElement.style.display = "none";
+//     if (isLoggedIn) {
+//       authElements?.forEach((el) =>
+//         (el as HTMLElement).style.removeProperty("display"),
+//       );
+//       guestElements?.forEach(
+//         (el) => ((el as HTMLElement).style.display = "none"),
+//       );
+//       if (homeElement) homeElement.style.display = "none";
 
-      // Show organization dashboard link only if user is in an organization
-      if (organization.isOrganization && orgDashSidebar) {
-        orgDashSidebar.style.removeProperty("display");
-      } else if (orgDashSidebar) {
-        orgDashSidebar.style.display = "none";
-      }
-    } else {
-      authElements?.forEach(
-        (el) => ((el as HTMLElement).style.display = "none"),
-      );
-      guestElements?.forEach((el) =>
-        (el as HTMLElement).style.removeProperty("display"),
-      );
-      if (orgDashSidebar) {
-        orgDashSidebar.style.display = "none";
-      }
-    }
-  }
+//       // Show organization dashboard link only if user is in an organization
+//       if (organization.isOrganization && orgDashSidebar) {
+//         orgDashSidebar.style.removeProperty("display");
+//       } else if (orgDashSidebar) {
+//         orgDashSidebar.style.display = "none";
+//       }
+//     } else {
+//       authElements?.forEach(
+//         (el) => ((el as HTMLElement).style.display = "none"),
+//       );
+//       guestElements?.forEach((el) =>
+//         (el as HTMLElement).style.removeProperty("display"),
+//       );
+//       if (orgDashSidebar) {
+//         orgDashSidebar.style.display = "none";
+//       }
+//     }
+//   }
 
-  // Logout functionality
-  async function handleLogout() {
-    await authService.logout();
-    window.location.href = "/login";
-  }
+//   // Logout functionality
+//   async function handleLogout() {
+//     await authService.logout();
+//     window.location.href = "/login";
+//   }
 
-  // Initialize on load
-  updateSidebarVisibility();
+//   // Initialize on load
+//   updateSidebarVisibility();
 
-  // Setup logout button
-  const logoutBtn = document.getElementById("sidebar-logout-btn");
-  logoutBtn?.addEventListener("click", handleLogout);
+//   // Setup logout button
+//   const logoutBtn = document.getElementById("sidebar-logout-btn");
+//   logoutBtn?.addEventListener("click", handleLogout);
 
-  // Listen for storage changes (multi-tab sync)
-  window.addEventListener("storage", updateSidebarVisibility);
+//   // Listen for storage changes (multi-tab sync)
+//   window.addEventListener("storage", updateSidebarVisibility);
 
-  // Mobile menu toggle (triggered from Navigation component)
-  window.addEventListener("toggle-mobile-sidebar", () => {
-    sidebar?.classList.toggle("mobile-open");
-  });
+//   // Mobile menu toggle (triggered from Navigation component)
+//   window.addEventListener("toggle-mobile-sidebar", () => {
+//     sidebar?.classList.toggle("mobile-open");
+//   });
 
-  // Close sidebar when clicking outside
-  document.addEventListener("click", (e) => {
-    if (
-      sidebar?.classList.contains("mobile-open") &&
-      !sidebar.contains(e.target as Node) &&
-      !(e.target as HTMLElement)?.closest("#menu-toggle")
-    ) {
-      sidebar?.classList.remove("mobile-open");
-    }
-  });
-</script>
+//   // Close sidebar when clicking outside
+//   document.addEventListener("click", (e) => {
+//     if (
+//       sidebar?.classList.contains("mobile-open") &&
+//       !sidebar.contains(e.target as Node) &&
+//       !(e.target as HTMLElement)?.closest("#menu-toggle")
+//     ) {
+//       sidebar?.classList.remove("mobile-open");
+//     }
+//   });
+// </script>
