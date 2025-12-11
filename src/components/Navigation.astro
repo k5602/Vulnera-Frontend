@@ -150,7 +150,7 @@ import Logo from "./Logo.astro";
 <script type="module">
     import { POST } from "../api/api-manage";
     import ENDPOINTS from "../utils/api/endpoints";
-    import { isAuthenticatedStore, isOrgStore, clearStore } from "../utils/store";
+    import { isAuthenticatedStore, isOrgStore, clearStore, csrfTokenStore } from "../utils/store";
     // Mobile sidebar toggle
     const toggleBtn = document.getElementById("menu-toggle");
     const orgDashLink = document.getElementById(
@@ -187,8 +187,9 @@ import Logo from "./Logo.astro";
         const authElements = document.querySelectorAll(".nav-auth-only");
         const guestElements = document.querySelectorAll(".nav-guest-only");
         const isLoggedIn = isAuthenticatedStore.get();
+        const csrfToken = csrfTokenStore.get();
 
-        if (isLoggedIn) {
+        if (isLoggedIn || csrfToken) {
             authElements.forEach((el) => el.classList.remove("hidden"));
             guestElements.forEach((el) => el.classList.add("hidden"));
         } else {
@@ -222,6 +223,10 @@ import Logo from "./Logo.astro";
         updateNavVisibility();
     });
 
+    const csrfSubscription = csrfTokenStore.subscribe(() => {
+        updateNavVisibility();
+    });
+
     const orgSubscription = isOrgStore.subscribe(() => {
         updateOrgDashLink();
     });
@@ -233,6 +238,7 @@ import Logo from "./Logo.astro";
     window.addEventListener("beforeunload", () => {
         authSubscription();
         orgSubscription();
+        csrfSubscription();
     });
 
 </script>
