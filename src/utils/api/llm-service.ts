@@ -6,6 +6,7 @@
 
 import { apiClient, type ApiResponse } from './client';
 import { API_ENDPOINTS } from '../../config/api';
+import { logger } from '../logger';
 
 // ============================================================================
 // Request Types
@@ -105,8 +106,19 @@ class LlmService {
      * ```
      */
     async explain(payload: ExplainRequest): Promise<ApiResponse<ExplainResponse>> {
+        logger.debug('llmService.explain: Request initiated', {
+            vulnerability_id: payload.vulnerability_id,
+            description: payload.description,
+            affected_component: payload.affected_component,
+            audience: payload.audience,
+            endpoint: API_ENDPOINTS.LLM.EXPLAIN,
+        });
+
         // Validate required fields
         if (!payload.vulnerability_id) {
+            logger.error('llmService.explain: Missing vulnerability_id', {
+                payload,
+            });
             return {
                 ok: false,
                 status: 400,
@@ -115,6 +127,9 @@ class LlmService {
         }
 
         if (!payload.description) {
+            logger.error('llmService.explain: Missing description', {
+                payload,
+            });
             return {
                 ok: false,
                 status: 400,
@@ -123,6 +138,9 @@ class LlmService {
         }
 
         if (!payload.affected_component) {
+            logger.error('llmService.explain: Missing affected_component', {
+                payload,
+            });
             return {
                 ok: false,
                 status: 400,
@@ -130,12 +148,58 @@ class LlmService {
             };
         }
 
-        return apiClient.post<ExplainResponse>(API_ENDPOINTS.LLM.EXPLAIN, {
+        const requestPayload = {
             vulnerability_id: payload.vulnerability_id,
             description: payload.description,
             affected_component: payload.affected_component,
             audience: payload.audience || 'technical',
+        };
+
+        logger.debug('llmService.explain: Sending request', {
+            url: API_ENDPOINTS.LLM.EXPLAIN,
+            payload: requestPayload,
         });
+
+        try {
+            const response = await apiClient.post<ExplainResponse>(
+                API_ENDPOINTS.LLM.EXPLAIN,
+                requestPayload
+            );
+
+            console.log(response);
+            
+
+            logger.debug('llmService.explain: Response received', {
+                ok: response.ok,
+                status: response.status,
+                hasData: !!response.data,
+                dataType: typeof response.data,
+                dataKeys: response.data ? Object.keys(response.data as any) : [],
+                hasError: !!response.error,
+                error: response.error,
+            });
+
+            if (response.data) {
+                logger.debug('llmService.explain: Response data details', {
+                    summary: response.data.summary?.substring(0, 100) || 'N/A',
+                    explanation: response.data.explanation?.substring(0, 100) || 'N/A',
+                    impact: response.data.impact?.substring(0, 100) || 'N/A',
+                    technical_details: response.data.technical_details?.substring(0, 100) || 'N/A',
+                    remediation: response.data.remediation?.substring(0, 100) || 'N/A',
+                    confidence: response.data.confidence,
+                });
+            }
+
+            return response;
+        } catch (error) {
+            logger.error('llmService.explain: Exception caught', {
+                vulnerability_id: payload.vulnerability_id,
+                errorMessage: error instanceof Error ? error.message : String(error),
+                errorType: error instanceof Error ? error.constructor.name : typeof error,
+                error,
+            });
+            throw error;
+        }
     }
 
     /**
@@ -159,8 +223,20 @@ class LlmService {
      * ```
      */
     async fix(payload: FixRequest): Promise<ApiResponse<FixResponse>> {
+        logger.debug('llmService.fix: Request initiated', {
+            vulnerability_id: payload.vulnerability_id,
+            context: payload.context,
+            language: payload.language,
+            hasVulnerableCode: !!payload.vulnerable_code,
+            vulnerableCodePreview: payload.vulnerable_code?.substring(0, 50) || 'N/A',
+            endpoint: API_ENDPOINTS.LLM.FIX,
+        });
+
         // Validate required fields
         if (!payload.vulnerability_id) {
+            logger.error('llmService.fix: Missing vulnerability_id', {
+                payload,
+            });
             return {
                 ok: false,
                 status: 400,
@@ -168,12 +244,58 @@ class LlmService {
             };
         }
 
-        return apiClient.post<FixResponse>(API_ENDPOINTS.LLM.FIX, {
+        const requestPayload = {
             vulnerability_id: payload.vulnerability_id,
             context: payload.context || 'N/A',
             language: payload.language || 'javascript',
             vulnerable_code: payload.vulnerable_code || 'Vulnerability reference',
+        };
+
+        logger.debug('llmService.fix: Sending request', {
+            url: API_ENDPOINTS.LLM.FIX,
+            payload: {
+                vulnerability_id: requestPayload.vulnerability_id,
+                context: requestPayload.context,
+                language: requestPayload.language,
+                vulnerableCodeLength: requestPayload.vulnerable_code.length,
+            },
         });
+
+        try {
+            const response = await apiClient.post<FixResponse>(
+                API_ENDPOINTS.LLM.FIX,
+                requestPayload
+            );
+
+            logger.debug('llmService.fix: Response received', {
+                ok: response.ok,
+                status: response.status,
+                hasData: !!response.data,
+                dataType: typeof response.data,
+                dataKeys: response.data ? Object.keys(response.data as any) : [],
+                hasError: !!response.error,
+                error: response.error,
+            });
+
+            if (response.data) {
+                logger.debug('llmService.fix: Response data details', {
+                    confidence: response.data.confidence,
+                    explanation: response.data.explanation?.substring(0, 100) || 'N/A',
+                    fixedCodeLength: response.data.fixed_code?.length || 0,
+                    fixedCodePreview: response.data.fixed_code?.substring(0, 100) || 'N/A',
+                });
+            }
+
+            return response;
+        } catch (error) {
+            logger.error('llmService.fix: Exception caught', {
+                vulnerability_id: payload.vulnerability_id,
+                errorMessage: error instanceof Error ? error.message : String(error),
+                errorType: error instanceof Error ? error.constructor.name : typeof error,
+                error,
+            });
+            throw error;
+        }
     }
 
     /**
@@ -195,8 +317,19 @@ class LlmService {
      * ```
      */
     async query(payload: QueryRequest): Promise<ApiResponse<QueryResponse>> {
+        logger.debug('llmService.query: Request initiated', {
+            queryLength: payload.query.length,
+            queryPreview: payload.query.substring(0, 50),
+            hasContext: !!payload.context,
+            contextPreview: payload.context?.substring(0, 50) || 'N/A',
+            endpoint: API_ENDPOINTS.LLM.QUERY,
+        });
+
         // Validate required fields
         if (!payload.query) {
+            logger.error('llmService.query: Missing query', {
+                payload,
+            });
             return {
                 ok: false,
                 status: 400,
@@ -204,10 +337,54 @@ class LlmService {
             };
         }
 
-        return apiClient.post<QueryResponse>(API_ENDPOINTS.LLM.QUERY, {
+        const requestPayload = {
             query: payload.query,
             context: payload.context || '',
+        };
+
+        logger.debug('llmService.query: Sending request', {
+            url: API_ENDPOINTS.LLM.QUERY,
+            payload: {
+                queryLength: requestPayload.query.length,
+                contextLength: requestPayload.context.length,
+            },
         });
+
+        try {
+            const response = await apiClient.post<QueryResponse>(
+                API_ENDPOINTS.LLM.QUERY,
+                requestPayload
+            );
+
+            logger.debug('llmService.query: Response received', {
+                ok: response.ok,
+                status: response.status,
+                hasData: !!response.data,
+                dataType: typeof response.data,
+                dataKeys: response.data ? Object.keys(response.data as any) : [],
+                hasError: !!response.error,
+                error: response.error,
+            });
+
+            if (response.data) {
+                logger.debug('llmService.query: Response data details', {
+                    response: response.data.response?.substring(0, 100) || 'N/A',
+                    answer: response.data.answer?.substring(0, 100) || 'N/A',
+                    referencesCount: response.data.references?.length || 0,
+                    confidence: response.data.confidence,
+                });
+            }
+
+            return response;
+        } catch (error) {
+            logger.error('llmService.query: Exception caught', {
+                queryPreview: payload.query.substring(0, 50),
+                errorMessage: error instanceof Error ? error.message : String(error),
+                errorType: error instanceof Error ? error.constructor.name : typeof error,
+                error,
+            });
+            throw error;
+        }
     }
 }
 
