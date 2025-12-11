@@ -409,7 +409,7 @@ const linksToRender = isDocs ? docsLinks : mainLinks;
   }
 </style>
 
-<script>
+<script type="module">
   // Sidebar functionality
   const sidebar = document.getElementById("sidebar");
   const sidebarLinks = document.querySelectorAll(".sidebar-link");
@@ -451,6 +451,7 @@ const linksToRender = isDocs ? docsLinks : mainLinks;
     }
   });
 
+  import { POST } from "../api/api-manage";
   import { POST } from "../api/api-manage";
   // Auth-based visibility
   import ENDPOINTS from "../utils/api/endpoints";
@@ -524,4 +525,4 @@ const linksToRender = isDocs ? docsLinks : mainLinks;
       sidebar?.classList.remove("mobile-open");
     }
   });
-</script>
+</script> 
