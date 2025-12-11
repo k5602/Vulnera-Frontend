@@ -4,6 +4,17 @@ import Navigation from "../components/Navigation.astro";
 import Footer from "../components/Footer.astro";
 ---
 
+<script>
+  import { userStore, csrfTokenStore } from "../utils/store";
+
+  const user = userStore.get();
+  const csrfToken = csrfTokenStore.get();
+  if (!user || !csrfToken) {
+    window.location.href = "/login";
+  }
+</script>
+
+
 <Layout
     title="Create Organization — Vulnera"
     description="Create your organization account to manage team vulnerabilities."
@@ -140,12 +151,7 @@ import Footer from "../components/Footer.astro";
 
     <Footer />
     <script>
-        // import { isAuthenticated } from "../utils/api/auth-store";
         import { OrgSignupOrgData } from "../modules/orgData";
-
-        // if (isAuthenticated()) {
-        //     window.location.replace("/orgdashboard");
-        // }
 
         const form = document.getElementById("org-signup-form") as HTMLFormElement;
 
