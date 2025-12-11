@@ -6,7 +6,7 @@ import {
   type ReactNode,
 } from "react";
 import { POST } from "../api/api-manage";
-import END_PONITS from "../utils/api/endpoints";
+import ENDPOINTS from "../utils/api/endpoints";
 import { setCsrfToken, clearCsrfToken } from "../api/api-manage";
 
 interface User {
@@ -31,6 +31,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Refresh → rehydrate session
+  const refreshToken = async () => {
+    try {
+      const res = await POST(ENDPOINTS.AUTH.POST_refresh_token);
+
+      setCsrfToken(res.data.csrf_token);
+
+      // No user info returned → you must store it manually after login
+      // So we re-fetch user info from a protected endpoint.
+      if (!user) {
+        // We cannot get user from backend, so keep current or null.
+      }
+    } catch {
+      clearCsrfToken();
+      setUser(null);
+      throw new Error("Session expired");
+    }
+  };
+
   // Load session on first mount
   useEffect(() => {
     const init = async () => {
@@ -43,11 +62,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     };
     init();
-  }, []);
+  }, []); 
 
   // Login
   const login = async (email: string, password: string) => {
-    const res = await POST(END_PONITS.AUTH.POST_login, { email, password });
+    const res = await POST(ENDPOINTS.AUTH.POST_login, { email, password });
 
     // Save CSRF token
     setCsrfToken(res.data.csrf_token);
@@ -62,7 +81,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // Register
   const register = async (email: string, password: string) => {
-    const res = await POST(END_PONITS.AUTH.POST_register, { email, password });
+    const res = await POST(ENDPOINTS.AUTH.POST_register, { email, password });
 
     setCsrfToken(res.data.csrf_token);
 
@@ -73,30 +92,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  // Refresh → rehydrate session
-  const refreshToken = async () => {
-    try {
-      const res = await POST(END_PONITS.AUTH.POST_refresh_token);
-
-      setCsrfToken(res.data.csrf_token);
-
-      // No user info returned → you must store it manually after login
-      // So we re-fetch user info from a protected endpoint IF you want.
-      // Since your API has NO /me endpoint, we rely on stored user.
-      if (!user) {
-        // We cannot get user from backend, so keep current or null.
-        // Optionally: create a dedicated /api/v1/me endpoint later.
-      }
-    } catch {
-      clearCsrfToken();
-      setUser(null);
-      throw new Error("Session expired");
-    }
-  };
-
   // Logout
   const logout = async () => {
-    await POST(END_PONITS.AUTH.POST_logout);
+    await POST(ENDPOINTS.AUTH.POST_logout);
     clearCsrfToken();
     setUser(null);
   };
