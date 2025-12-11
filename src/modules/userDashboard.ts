@@ -1,5 +1,4 @@
 import { apiClient } from '../utils/index.js';
-import { logger } from '../utils/logger.js';
 import { getSeverityTextColor } from '../utils/severity.js';
 import { organization, loadUserOrganization } from './orgData.js';
 import { requestDebouncer } from '../utils/api/request-debounce.js';

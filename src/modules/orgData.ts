@@ -1,7 +1,6 @@
+import { GET, POST } from '../api/api-manage';
+import ENDPOINTS from '../utils/api/endpoints';
 import { message } from './message';
-import { organizationService } from '../utils/api/organization-service';
-import { logger } from '../utils/logger';
-import { getCurrentUser } from '../utils/api/auth-store';
 
 /** Type definition for OrgData constructor parameter */
 export interface OrgDataInit {
@@ -32,12 +31,12 @@ export class OrgData {
     trueIsOrganization() {
         this.isOrganization = true;
         localStorage.setItem('isOrganization', 'true');
-        logger.debug('isOrganization set to true');
+        console.debug('isOrganization set to true');
     }
     falseIsOrganization() {
         this.isOrganization = false;
         localStorage.removeItem('isOrganization');
-        logger.debug('isOrganization set to false');
+        console.debug('isOrganization set to false');
     }
     trueSignOrganization() {
         this.signOrg = true;
@@ -95,12 +94,12 @@ function formatDate(dateString: string) {
 async function loadOrgData(orgId: string | null) {
     // Skip if orgId is not available
     if (!orgId || orgId === 'null' || orgId === 'undefined') {
-        logger.debug('Organization ID not available, skipping organization data load');
+        console.debug('Organization ID not available, skipping organization data load');
         return;
     }
 
-    const result = await organizationService.get(orgId);
-    if (result.success && result.data) {
+    const result = await GET(ENDPOINTS.ORGANIZATION.GET_org_details(orgId));
+    if (result.status == 200 && result.data) {
         const data = result.data;
         organization.orgName = data.name;
         organization.orgDescription = data.description || '';
@@ -148,15 +147,14 @@ export class OrgSignupOrgData {
             this.successDiv
         );
 
-        const result = await organizationService.create({
+        const result = await POST(ENDPOINTS.ORGANIZATION.POST_new_org, {
             name: this.formData.orgName,
-            description: this.formData.orgDescription
+            description: this.formData.orgDescription,
         });
+        console.debug('Organization creation response', { status: result.status });
 
-        logger.debug('Organization creation response', { success: result.success, status: result.status });
-
-        if (!result.success) {
-            messageHandler.showError(result.error || "Organization creation failed.");
+        if (result.status !== 200) {
+            messageHandler.showError(result.statusText || "Organization creation failed.");
             this.submitBtn.disabled = false;
             this.submitBtn.textContent = "CREATE_ORG";
             return;
@@ -193,50 +191,50 @@ export class OrgSignupOrgData {
 
 export async function loadUserOrganization() {
     try {
-        const result = await organizationService.list();
-        logger.debug('loadUserOrganization response', { success: result.success, status: result.status, data: result.data });
+        const result = await GET(ENDPOINTS.ORGANIZATION.GET_user_org);
+        console.debug('loadUserOrganization response', { status: result.status, data: result.data });
 
-        if (result.success && result.data && result.data.length > 0) {
-            const orgList = result.data;
-            const currentUser = getCurrentUser();
-            logger.debug('Current user for org matching', { currentUser });
+        // if (result.status == 200 && result.data && result.data.length > 0) {
+        //     const orgList = result.data;
+        //     const currentUser = getCurrentUser();
+        //     console.debug('Current user for org matching', { currentUser });
 
-            let targetOrg = orgList[0];
-            if (currentUser) {
-                const ownedOrg = orgList.find((o) => o.owner_id === currentUser.id);
-                if (ownedOrg) {
-                    targetOrg = ownedOrg;
-                    logger.debug('Found owned organization', { orgId: targetOrg.id });
-                } else {
-                    logger.debug('No owned organization found, using first available', { orgId: targetOrg.id });
-                }
-            } else {
-                logger.warn('No current user found when loading organizations');
-            }
+        //     let targetOrg = orgList[0];
+        //     if (currentUser) {
+        //         const ownedOrg = orgList.find((o) => o.owner_id === currentUser.id);
+        //         if (ownedOrg) {
+        //             targetOrg = ownedOrg;
+        //             console.debug('Found owned organization', { orgId: targetOrg.id });
+        //         } else {
+        //             console.debug('No owned organization found, using first available', { orgId: targetOrg.id });
+        //         }
+        //     } else {
+        //         console.warn('No current user found when loading organizations');
+        //     }
 
-            // Update the existing organization object's properties
-            const orgData: OrgDataInit = {
-                id: targetOrg.id,
-                name: targetOrg.name,
-                description: targetOrg.description || '',
-                created_at: targetOrg.created_at,
-                updated_at: targetOrg.updated_at,
-                owner_id: targetOrg.owner_id,
-                members_count: targetOrg.member_count || 0,
-                tier: 'free', // Default tier
-                isOrganization: true,
-                signOrg: false,
-            };
+        //     // Update the existing organization object's properties
+        //     const orgData: OrgDataInit = {
+        //         id: targetOrg.id,
+        //         name: targetOrg.name,
+        //         description: targetOrg.description || '',
+        //         created_at: targetOrg.created_at,
+        //         updated_at: targetOrg.updated_at,
+        //         owner_id: targetOrg.owner_id,
+        //         members_count: targetOrg.member_count || 0,
+        //         tier: 'free', // Default tier
+        //         isOrganization: true,
+        //         signOrg: false,
+        //     };
 
-            const newOrgData = new OrgData(orgData);
-            Object.assign(organization, newOrgData);
-            logger.debug('Organization loaded successfully', { orgId: organization.orgId });
-            return true;
-        } else {
-            logger.warn('No organizations found in API response');
-        }
+        //     const newOrgData = new OrgData(orgData);
+        //     Object.assign(organization, newOrgData);
+        //     console.debug('Organization loaded successfully', { orgId: organization.orgId });
+        //     return true;
+        // } else {
+        //     console.warn('No organizations found in API response');
+        // }
     } catch (e) {
-        logger.error('Failed to load organization', { error: e instanceof Error ? e.message : String(e) });
+        console.error('Failed to load organization', { error: e instanceof Error ? e.message : String(e) });
     }
     return false;
 }

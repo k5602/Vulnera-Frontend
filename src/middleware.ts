@@ -1,5 +1,4 @@
 import { defineMiddleware } from 'astro:middleware';
-import { logger } from './utils/logger';
 
 /**
  * API Proxy Middleware
@@ -34,7 +33,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
         // Build the target URL
         const targetUrl = new URL(url.pathname + url.search, backendUrl);
 
-        logger.debug('[Middleware] Proxying request', {
+        console.debug('[Middleware] Proxying request', {
             from: url.pathname,
             to: targetUrl.href,
             method: request.method,
@@ -73,7 +72,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
             headers: newHeaders,
         });
     } catch (error) {
-        logger.error('[Middleware] Proxy error', {
+        console.error('[Middleware] Proxy error', {
             path: url.pathname,
             error: error instanceof Error ? error.message : String(error),
         });
