@@ -136,10 +136,8 @@ export const prerender = false;
   <Footer />
   <script>
     import { POST } from "../api/api-manage";
-import { setId } from "../modules/orgData";
-import ENDPOINTS from "../utils/api/endpoints";
-
-    // Redirect if already logged in
+    import ENDPOINTS from "../utils/api/endpoints";
+    import { csrfTokenStore, userStore, clearStore } from "../utils/store";
 
     // ----------------------------
     // Safe element getters (TS safe)
@@ -185,9 +183,6 @@ import ENDPOINTS from "../utils/api/endpoints";
         const passwordEl = document.getElementById(
           "password"
         ) as HTMLInputElement | null;
-        const rememberEl = document.getElementById(
-          "remember"
-        ) as HTMLInputElement | null;
 
         if (!emailEl || !passwordEl) {
           showError("Missing form fields.");
@@ -196,36 +191,34 @@ import ENDPOINTS from "../utils/api/endpoints";
 
         const email = emailEl.value.trim();
         const password = passwordEl.value;
-        const rememberMe = rememberEl?.checked ?? false;
 
         submitBtn.disabled = true;
         submitBtn.textContent = "> AUTHENTICATING...";
 
-        // Use authService for login
-        const loginResult = await POST(ENDPOINTS.AUTH.POST_login, {
-          email,
-          password,
-          remember_me: rememberMe,
-        });
+        try {
+          const res = await POST(ENDPOINTS.AUTH.POST_login, { email, password });
 
-        if (loginResult.status !== 200) {
-          showError(loginResult.statusText || "Invalid email or password.");
+          const data = res?.data ?? {};
+          if (!data?.csrf_token || !data?.user_id || !data?.email) {
+            throw new Error("Invalid login response.");
+          }
+
+          // Save CSRF token and user to store
+          csrfTokenStore.set(data.csrf_token);
+          userStore.set({
+            id: data.user_id,
+            email: data.email,
+            role: data.roles ?? [],
+            isOrgMember: false,
+          });
+
+          showSuccess("Login successful! Redirecting...");
+        } catch (error) {
+          showError((error as Error).message || "Invalid email or password.");
           submitBtn.disabled = false;
           submitBtn.innerHTML = "<span class='mr-2'>&gt;</span> LOGIN";
           return;
         }
-
-        // Update last refresh timestamp to prevent immediate refresh on dashboard load
-        localStorage.setItem("last_token_refresh", Date.now().toString());
-
-        // Use organizationService to check and set current organization
-        const orgResult = await POST(ENDPOINTS.ORGANIZATION.GET_user_org, {});
-        if (orgResult.status === 200 && orgResult.data && orgResult.data.length > 0) {
-          // Set first org as current
-          setId(orgResult.data[0].id);
-        }
-
-        showSuccess("Login successful! Redirecting...");
 
         const next =
           new URLSearchParams(window.location.search).get("next") ||
@@ -240,6 +233,7 @@ import ENDPOINTS from "../utils/api/endpoints";
     ) as HTMLButtonElement | null;
     if (clearBtn) {
       clearBtn.addEventListener("click", () => {
+        clearStore();
         showSuccess("Session cleared.");
       });
     }
