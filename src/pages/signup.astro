@@ -8,14 +8,6 @@ import Footer from "../components/Footer.astro";
   title="Sign Up — Vulnera"
   description="Create your Vulnera account to start scanning and reporting vulnerabilities."
 >
-  <!-- Guest Guard - Redirect to dashboard if already authenticated -->
-  <script>
-    import { isAuthenticated } from "../utils/api/auth-store";
-    if (isAuthenticated()) {
-      window.location.replace("/dashboard");
-    }
-  </script>
-
   <Navigation />
 
   <!-- Signup Section -->
@@ -233,13 +225,8 @@ import Footer from "../components/Footer.astro";
 
   <Footer />
   <script>
-    import { authService } from "../utils/api/auth-service";
-    import { isAuthenticated } from "../utils/api/auth-store";
-    import { organization } from "../modules/orgData";
-
-    if (isAuthenticated()) {
-      window.location.replace("/dashboard");
-    }
+    import { POST } from "../api/api-manage";
+    import ENDPOINTS from "../utils/api/endpoints";
 
     // ---- FIX: Strong typing ----
     const form = document.getElementById("signup-form") as HTMLFormElement;
@@ -337,41 +324,25 @@ import Footer from "../components/Footer.astro";
         return;
       }
 
-      // ----- REQUEST using authService -----
+      // ----- REQUEST using direct POST -----
       submitBtn.disabled = true;
       submitBtn.textContent = "REGISTERING...";
 
-      const result = await authService.register({
-        first_name: firstName,
-        last_name: lastName,
-        email,
-        password: pass,
-      });
+      try {
+        await POST(ENDPOINTS.AUTH.POST_register, {
+          email,
+          password: pass,
+        });
 
-      if (!result.success) {
-        showError(result.error || "Registration failed.");
+        showSuccess("Account created! Redirecting to login...");
+
+        setTimeout(() => {
+          window.location.replace("/login");
+        }, 1000);
+      } catch (error) {
+        showError((error as Error).message || "Registration failed.");
         submitBtn.disabled = false;
         submitBtn.innerHTML = "<span class='mr-2'>&gt;</span> INIT_SIGNUP";
-        return;
-      }
-
-      if (organization.signOrg) {
-        showSuccess("Account created! Redirecting to organization creation...");
-      } else {
-        showSuccess("Account created! Redirecting to dashboard...");
-      }
-
-      // No need to refresh auth here - register() already sets the user and CSRF token
-      // from the response. This saves a network request.
-
-      if (organization.signOrg) {
-        setTimeout(() => {
-          window.location.replace("/orgsignup");
-        }, 300);
-      } else {
-        setTimeout(() => {
-          window.location.replace("/dashboard");
-        }, 300);
       }
     });
   </script>

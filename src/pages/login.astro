@@ -135,17 +135,9 @@ export const prerender = false;
 
   <Footer />
   <script>
-    import { authService } from "../utils/api/auth-service";
-    import { organizationService } from "../utils/api/organization-service";
-    import { clearAuth, isAuthenticated } from "../utils/api/auth-store";
-    import { setId } from "../modules/orgData";
-
-    // Redirect if already logged in
-    if (isAuthenticated()) {
-      const params = new URLSearchParams(window.location.search);
-      const next = params.get("next") || "/dashboard";
-      window.location.replace(next);
-    }
+    import { POST } from "../api/api-manage";
+    import ENDPOINTS from "../utils/api/endpoints";
+    import { csrfTokenStore, userStore, clearStore } from "../utils/store";
 
     // ----------------------------
     // Safe element getters (TS safe)
@@ -191,9 +183,6 @@ export const prerender = false;
         const passwordEl = document.getElementById(
           "password"
         ) as HTMLInputElement | null;
-        const rememberEl = document.getElementById(
-          "remember"
-        ) as HTMLInputElement | null;
 
         if (!emailEl || !passwordEl) {
           showError("Missing form fields.");
@@ -202,36 +191,34 @@ export const prerender = false;
 
         const email = emailEl.value.trim();
         const password = passwordEl.value;
-        const rememberMe = rememberEl?.checked ?? false;
 
         submitBtn.disabled = true;
         submitBtn.textContent = "> AUTHENTICATING...";
 
-        // Use authService for login
-        const loginResult = await authService.login({
-          email,
-          password,
-          remember_me: rememberMe,
-        });
+        try {
+          const res = await POST(ENDPOINTS.AUTH.POST_login, { email, password });
 
-        if (!loginResult.success) {
-          showError(loginResult.error || "Invalid email or password.");
+          const data = res?.data ?? {};
+          if (!data?.csrf_token || !data?.user_id || !data?.email) {
+            throw new Error("Invalid login response.");
+          }
+
+          // Save CSRF token and user to store
+          csrfTokenStore.set(data.csrf_token);
+          userStore.set({
+            id: data.user_id,
+            email: data.email,
+            role: data.roles ?? [],
+            isOrgMember: false,
+          });
+
+          showSuccess("Login successful! Redirecting...");
+        } catch (error) {
+          showError((error as Error).message || "Invalid email or password.");
           submitBtn.disabled = false;
           submitBtn.innerHTML = "<span class='mr-2'>&gt;</span> LOGIN";
           return;
         }
-
-        // Update last refresh timestamp to prevent immediate refresh on dashboard load
-        localStorage.setItem("last_token_refresh", Date.now().toString());
-
-        // Use organizationService to check and set current organization
-        const orgResult = await organizationService.list();
-        if (orgResult.success && orgResult.data && orgResult.data.length > 0) {
-          // Set first org as current
-          setId(orgResult.data[0].id);
-        }
-
-        showSuccess("Login successful! Redirecting...");
 
         const next =
           new URLSearchParams(window.location.search).get("next") ||
@@ -246,7 +233,7 @@ export const prerender = false;
     ) as HTMLButtonElement | null;
     if (clearBtn) {
       clearBtn.addEventListener("click", () => {
-        clearAuth();
+        clearStore();
         showSuccess("Session cleared.");
       });
     }
