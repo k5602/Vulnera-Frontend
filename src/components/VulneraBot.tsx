@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { isAuthenticated as isAuthenticatedStore } from '../utils/api/auth-store';
 import { apiClient } from '../utils/api/client';
-import { logger } from '../utils/logger';
 import { API_ENDPOINTS } from '../config/api';
 
 /** Extract error message from unknown error types */
@@ -96,7 +95,7 @@ export default function VulneraBot() {
             });
 
             if (!response.ok) {
-                logger.warn('LLM Query failed', { status: response.status, error: response.error });
+                console.warn('LLM Query failed', { status: response.status, error: response.error });
                 // Safely extract error message from unknown error type
                 const err = response.error as Record<string, unknown> | string | undefined;
                 const errorMsg = typeof err === 'string' ? err :
@@ -120,7 +119,7 @@ export default function VulneraBot() {
 
             setMessages(prev => [...prev, botMessage]);
         } catch (error: unknown) {
-            logger.error('Error querying LLM', { error: extractErrorMessage(error) });
+            console.error('Error querying LLM', { error: extractErrorMessage(error) });
             const errorMessage: Message = {
                 id: (Date.now() + 1).toString(),
                 text: `System Error: ${extractErrorMessage(error, 'Unable to connect to the server.')}`,
