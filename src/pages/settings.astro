@@ -8,15 +8,12 @@ import Footer from "../components/Footer.astro";
 
 <script>
   import { userStore } from "../utils/store";
-  import { startSessionMonitor } from "../utils/session-monitor";
 
   const user = userStore.get();
   if (!user) {
     const currentPath = window.location.pathname;
     window.location.href = `/login?next=${encodeURIComponent(currentPath)}`;
   } else {
-    // Start monitoring session for this protected page
-    startSessionMonitor();
   }
 </script>
 
@@ -154,135 +151,135 @@ import Footer from "../components/Footer.astro";
             </div>
 
             <!-- Create Organization Tab -->
-              <div id="create-org-tab" class="tab-content hidden">
-                <h2 class="text-2xl font-bold text-cyber-400 mb-6 font-mono">
-                  Create Organization
+            <div id="create-org-tab" class="tab-content hidden">
+              <h2 class="text-2xl font-bold text-cyber-400 mb-6 font-mono">
+                Create Organization
+              </h2>
+              <div class="space-y-6">
+                <div
+                  class="bg-cyber-900/10 border border-cyber-500/30 rounded-lg p-4"
+                >
+                  <h3 class="text-lg font-bold text-cyber-300 mb-4 font-mono">
+                    Organization Setup
+                  </h3>
+                  <p class="text-sm text-gray-400 mb-4">
+                    Create an organization to manage multiple users and
+                    projects.
+                  </p>
+                  <button
+                    id="create-organization"
+                    class="w-full bg-cyber-500/20 hover:bg-cyber-500/30 text-cyber-400 font-bold py-2 px-4 rounded transition-all duration-300 font-mono text-sm"
+                  >
+                    🏢 Create Organization
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Organization Settings Tab -->
+            <div id="org-settings">
+              <div id="org-settings-tab" class="tab-content hidden">
+                <h2 class="text-2xl font-bold text-orange-400 mb-6 font-mono">
+                  Organization Settings
                 </h2>
                 <div class="space-y-6">
                   <div
-                    class="bg-cyber-900/10 border border-cyber-500/30 rounded-lg p-4"
+                    class="bg-orange-900/10 border border-orange-500/30 rounded-lg p-4"
                   >
-                    <h3 class="text-lg font-bold text-cyber-300 mb-4 font-mono">
-                      Organization Setup
+                    <h3
+                      class="text-lg font-bold text-orange-500 mb-1 font-mono"
+                    >
+                      Organization Data
                     </h3>
-                    <p class="text-sm text-gray-400 mb-4">
-                      Create an organization to manage multiple users and
-                      projects.
+                    <p class="text-sm text-orange-300 mb-4">
+                      Manage your organization's settings and preferences.
+                    </p>
+                    <p>
+                      <strong class="text-orange-500 mb-1"
+                        >Organization Name:</strong
+                      >
+                      <input
+                        type="text"
+                        class="w-full mb-1 px-4 py-3 rounded-lg bg-black/60 border border-orange-400/30 focus:border-orange-400 focus:ring-2 focus:ring-orange-400 text-white placeholder-gray-500"
+                        id="org-name-display"
+                        value="Loading..."
+                      />
                     </p>
                     <button
-                      id="create-organization"
-                      class="w-full bg-cyber-500/20 hover:bg-cyber-500/30 text-cyber-400 font-bold py-2 px-4 rounded transition-all duration-300 font-mono text-sm"
+                      id="change-name"
+                      class="w-full bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 font-bold py-2 px-4 rounded transition-all duration-300 font-mono text-sm"
                     >
-                      🏢 Create Organization
+                      🏢 Change Organization Name
                     </button>
                   </div>
+                  <!-- Divider -->
+                  <div class="border-t border-matrix-500/30 my-6"></div>
+                  <p class="text-lg text-cyber-400 mb-4">Invite Member</p>
+                  <input
+                    type="text"
+                    class="w-full px-4 py-3 rounded-lg bg-black/60 border border-cyber-400/30 focus:border-cyber-400 focus:ring-2 focus:ring-cyber-400 text-white placeholder-gray-500"
+                    id="invite-member-input"
+                    placeholder="Enter Member Email"
+                  />
+                  <button
+                    id="invite-member"
+                    class="w-full bg-cyber-500/20 hover:bg-cyber-500/30 text-cyber-400 font-bold py-2 px-4 rounded transition-all duration-300 font-mono text-sm"
+                  >
+                    📧 Invite Member
+                  </button>
+                  <p class="text-lg text-cyber-400 mb-4">
+                    Transfer Organization Ownership
+                  </p>
+                  <input
+                    type="text"
+                    class="w-full px-4 py-3 rounded-lg bg-black/60 border border-cyber-400/30 focus:border-cyber-400 focus:ring-2 focus:ring-cyber-400 text-white placeholder-gray-500"
+                    id="transfer-ownership-input"
+                    placeholder="Enter New Owner ID"
+                  />
+
+                  <button
+                    id="transfer-ownership"
+                    class="w-full bg-cyber-500/20 hover:bg-cyber-500/30 text-cyber-400 font-bold py-2 px-4 rounded transition-all duration-300 font-mono text-sm"
+                  >
+                    🔄 Transfer Ownership
+                  </button>
+                  <!-- Divider -->
+                  <div class="border-t border-matrix-500/30 my-6"></div>
+                  <p class="text-lg text-red-400 mb-4">Remove Member</p>
+                  <input
+                    type="text"
+                    class="w-full px-4 py-3 rounded-lg bg-black/60 border border-red-400/30 focus:border-red-400 focus:ring-2 focus:ring-red-400 text-white placeholder-gray-500"
+                    id="remove-member-input"
+                    placeholder="Enter Member ID"
+                  />
+                  <button
+                    id="remove-member"
+                    class="w-full bg-red-500/20 hover:bg-red-500/30 text-red-400 font-bold py-2 px-4 rounded transition-all duration-300 font-mono text-sm"
+                  >
+                    ❌ Remove Member
+                  </button>
+                  <p class="text-lg text-red-400 mb-1">Leave Organization</p>
+                  <p class="text-sm text-red-200 mb-4">
+                    if you are the owner of the organization the organization
+                    will be permanently deleted after your exit. To prevent that
+                    transfer ownership before leaving
+                  </p>
+                  <button
+                    id="leave-organization"
+                    class="w-full bg-red-500/20 hover:bg-red-500/30 text-red-400 font-bold py-2 px-4 rounded transition-all duration-300 font-mono text-sm"
+                  >
+                    🚪 Leave Organization
+                  </button>
+                  <p class="text-lg text-red-400 mb-4">Delete Organization</p>
+                  <button
+                    id="delete-organization"
+                    class="w-full bg-red-500/20 hover:bg-red-500/30 text-red-400 font-bold py-2 px-4 rounded transition-all duration-300 font-mono text-sm"
+                  >
+                    🗑️ Delete Organization
+                  </button>
                 </div>
               </div>
-
-              <!-- Organization Settings Tab -->
-              <div id="org-settings">
-                <div id="org-settings-tab" class="tab-content hidden">
-                  <h2 class="text-2xl font-bold text-orange-400 mb-6 font-mono">
-                    Organization Settings
-                  </h2>
-                  <div class="space-y-6">
-                    <div
-                      class="bg-orange-900/10 border border-orange-500/30 rounded-lg p-4"
-                    >
-                      <h3
-                        class="text-lg font-bold text-orange-500 mb-1 font-mono"
-                      >
-                        Organization Data
-                      </h3>
-                      <p class="text-sm text-orange-300 mb-4">
-                        Manage your organization's settings and preferences.
-                      </p>
-                      <p>
-                        <strong class="text-orange-500 mb-1"
-                          >Organization Name:</strong
-                        >
-                        <input
-                          type="text"
-                          class="w-full mb-1 px-4 py-3 rounded-lg bg-black/60 border border-orange-400/30 focus:border-orange-400 focus:ring-2 focus:ring-orange-400 text-white placeholder-gray-500"
-                          id="org-name-display"
-                          value="Loading..."
-                        />
-                      </p>
-                      <button
-                        id="change-name"
-                        class="w-full bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 font-bold py-2 px-4 rounded transition-all duration-300 font-mono text-sm"
-                      >
-                        🏢 Change Organization Name
-                      </button>
-                    </div>
-                    <!-- Divider -->
-                    <div class="border-t border-matrix-500/30 my-6"></div>
-                    <p class="text-lg text-cyber-400 mb-4">Invite Member</p>
-                    <input
-                      type="text"
-                      class="w-full px-4 py-3 rounded-lg bg-black/60 border border-cyber-400/30 focus:border-cyber-400 focus:ring-2 focus:ring-cyber-400 text-white placeholder-gray-500"
-                      id="invite-member-input"
-                      placeholder="Enter Member Email"
-                    />
-                    <button
-                      id="invite-member"
-                      class="w-full bg-cyber-500/20 hover:bg-cyber-500/30 text-cyber-400 font-bold py-2 px-4 rounded transition-all duration-300 font-mono text-sm"
-                    >
-                      📧 Invite Member
-                    </button>
-                    <p class="text-lg text-cyber-400 mb-4">
-                      Transfer Organization Ownership
-                    </p>
-                    <input
-                      type="text"
-                      class="w-full px-4 py-3 rounded-lg bg-black/60 border border-cyber-400/30 focus:border-cyber-400 focus:ring-2 focus:ring-cyber-400 text-white placeholder-gray-500"
-                      id="transfer-ownership-input"
-                      placeholder="Enter New Owner ID"
-                    />
-
-                    <button
-                      id="transfer-ownership"
-                      class="w-full bg-cyber-500/20 hover:bg-cyber-500/30 text-cyber-400 font-bold py-2 px-4 rounded transition-all duration-300 font-mono text-sm"
-                    >
-                      🔄 Transfer Ownership
-                    </button>
-                    <!-- Divider -->
-                    <div class="border-t border-matrix-500/30 my-6"></div>
-                    <p class="text-lg text-red-400 mb-4">Remove Member</p>
-                    <input
-                      type="text"
-                      class="w-full px-4 py-3 rounded-lg bg-black/60 border border-red-400/30 focus:border-red-400 focus:ring-2 focus:ring-red-400 text-white placeholder-gray-500"
-                      id="remove-member-input"
-                      placeholder="Enter Member ID"
-                    />
-                    <button
-                      id="remove-member"
-                      class="w-full bg-red-500/20 hover:bg-red-500/30 text-red-400 font-bold py-2 px-4 rounded transition-all duration-300 font-mono text-sm"
-                    >
-                      ❌ Remove Member
-                    </button>
-                    <p class="text-lg text-red-400 mb-1">Leave Organization</p>
-                    <p class="text-sm text-red-200 mb-4">
-                      if you are the owner of the organization the organization
-                      will be permanently deleted after your exit. To prevent
-                      that transfer ownership before leaving
-                    </p>
-                    <button
-                      id="leave-organization"
-                      class="w-full bg-red-500/20 hover:bg-red-500/30 text-red-400 font-bold py-2 px-4 rounded transition-all duration-300 font-mono text-sm"
-                    >
-                      🚪 Leave Organization
-                    </button>
-                    <p class="text-lg text-red-400 mb-4">Delete Organization</p>
-                    <button
-                      id="delete-organization"
-                      class="w-full bg-red-500/20 hover:bg-red-500/30 text-red-400 font-bold py-2 px-4 rounded transition-all duration-300 font-mono text-sm"
-                    >
-                      🗑️ Delete Organization
-                    </button>
-                  </div>
-                </div>
-              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -403,7 +400,7 @@ import Footer from "../components/Footer.astro";
       </div>
 
       <script>
-import { isOrgStore, organizationStore } from "../utils/store";
+        import { isOrgStore, organizationStore } from "../utils/store";
 
         function updateOrgTab() {
           let organization = organizationStore.get();
@@ -448,7 +445,7 @@ import { isOrgStore, organizationStore } from "../utils/store";
               "text-cyber-400",
             );
             btn.classList.add("text-matrix-300");
-          });          
+          });
 
           // Show selected tab
           const selectedTab = document.getElementById(`${tabName}-tab`);
@@ -477,14 +474,16 @@ import { isOrgStore, organizationStore } from "../utils/store";
           updateOrgTab();
           //listen for name changes
           if (org && org.id) {
-            const orgNameInput = document.getElementById("org-name-display") as HTMLInputElement;
+            const orgNameInput = document.getElementById(
+              "org-name-display",
+            ) as HTMLInputElement;
             if (orgNameInput) {
               orgNameInput.value = org.name || "";
             }
           }
 
           const tabButtons = document.querySelectorAll(".settings-tab");
-           // Add click event listeners to tab buttons
+          // Add click event listeners to tab buttons
           tabButtons.forEach((button) => {
             button.addEventListener("click", () => {
               const tabName = button.getAttribute("data-tab");
@@ -558,7 +557,9 @@ import { isOrgStore, organizationStore } from "../utils/store";
           });
 
           transferOwnership.addEventListener("click", async () => {
-            await settingsHandler.transferOwnership(transferOwnershipInput.value);
+            await settingsHandler.transferOwnership(
+              transferOwnershipInput.value,
+            );
           });
 
           removeMember.addEventListener("click", async () => {
@@ -573,7 +574,6 @@ import { isOrgStore, organizationStore } from "../utils/store";
             await settingsHandler.deleteOrganization();
           });
 
-
           // Check for hash navigation on page load
           const hash = window.location.hash.replace("#", "");
           if (
@@ -587,544 +587,544 @@ import { isOrgStore, organizationStore } from "../utils/store";
           }
 
           // Close the DOMContentLoaded event listener
-          });
+        });
 
-          window.addEventListener("beforeunload", () => {
-            subscribeOrgStore();
-            subscribeIsOrg();
-          });
+        window.addEventListener("beforeunload", () => {
+          subscribeOrgStore();
+          subscribeIsOrg();
+        });
 
-          // async function loadApiKeys(forceRefresh = false) {
-          //   try {
-          //     console.debug("loadApiKeys called", { forceRefresh });
-          //     const response = await authService.listApiKeys(forceRefresh);
-          //     console.debug("listApiKeys response received", {
-          //       success: response.success,
-          //       status: response.status,
-          //       hasData: !!response.data,
-          //     });
+        // async function loadApiKeys(forceRefresh = false) {
+        //   try {
+        //     console.debug("loadApiKeys called", { forceRefresh });
+        //     const response = await authService.listApiKeys(forceRefresh);
+        //     console.debug("listApiKeys response received", {
+        //       success: response.success,
+        //       status: response.status,
+        //       hasData: !!response.data,
+        //     });
 
-          //     if (!response.success) {
-          //       let errorMsg = response.error || "Failed to load API keys";
+        //     if (!response.success) {
+        //       let errorMsg = response.error || "Failed to load API keys";
 
-          //       if (response.status === 404) {
-          //         // 404 means endpoint not implemented - show empty state
-          //         const container =
-          //           document.getElementById("api-keys-container");
-          //         if (container) {
-          //           container.innerHTML = `
-          //         <div class="text-center py-8">
-          //           <div class="text-yellow-400 mb-2">⚠️ API Keys Feature Not Available</div>
-          //           <p class="text-matrix-300 text-sm">
-          //             The backend API does not support API keys yet.<br/>
-          //             Please use JWT authentication or contact your administrator.
-          //           </p>
-          //         </div>
-          //       `;
-          //         }
-          //         return; // Don't throw error, just show message
-          //       }
+        //       if (response.status === 404) {
+        //         // 404 means endpoint not implemented - show empty state
+        //         const container =
+        //           document.getElementById("api-keys-container");
+        //         if (container) {
+        //           container.innerHTML = `
+        //         <div class="text-center py-8">
+        //           <div class="text-yellow-400 mb-2">⚠️ API Keys Feature Not Available</div>
+        //           <p class="text-matrix-300 text-sm">
+        //             The backend API does not support API keys yet.<br/>
+        //             Please use JWT authentication or contact your administrator.
+        //           </p>
+        //         </div>
+        //       `;
+        //         }
+        //         return; // Don't throw error, just show message
+        //       }
 
-          //       // Handle rate limiting
-          //       if (response.status === 429) {
-          //         const container =
-          //           document.getElementById("api-keys-container");
-          //         if (container) {
-          //           container.innerHTML = `
-          //         <div class="text-center py-8">
-          //           <div class="text-orange-400 mb-2">⏱️ Rate Limited</div>
-          //           <p class="text-matrix-300 text-sm">
-          //             ${errorMsg}<br/>
-          //             Try loading API keys again after the wait period.
-          //           </p>
-          //         </div>
-          //       `;
-          //         }
-          //         return; // Don't throw error, just show retry message
-          //       }
+        //       // Handle rate limiting
+        //       if (response.status === 429) {
+        //         const container =
+        //           document.getElementById("api-keys-container");
+        //         if (container) {
+        //           container.innerHTML = `
+        //         <div class="text-center py-8">
+        //           <div class="text-orange-400 mb-2">⏱️ Rate Limited</div>
+        //           <p class="text-matrix-300 text-sm">
+        //             ${errorMsg}<br/>
+        //             Try loading API keys again after the wait period.
+        //           </p>
+        //         </div>
+        //       `;
+        //         }
+        //         return; // Don't throw error, just show retry message
+        //       }
 
-          //       throw new Error(errorMsg + ` (HTTP ${response.status || 500})`);
-          //     }
+        //       throw new Error(errorMsg + ` (HTTP ${response.status || 500})`);
+        //     }
 
-          //     const data = response.data as any;
-          //     const container = document.getElementById("api-keys-container");
+        //     const data = response.data as any;
+        //     const container = document.getElementById("api-keys-container");
 
-          //     if (!container) return;
+        //     if (!container) return;
 
-          //     // Debug: Log the response structure
-          //     console.debug("API Keys Response", {
-          //       data,
-          //       type: typeof data,
-          //       isArray: Array.isArray(data),
-          //     });
+        //     // Debug: Log the response structure
+        //     console.debug("API Keys Response", {
+        //       data,
+        //       type: typeof data,
+        //       isArray: Array.isArray(data),
+        //     });
 
-          //     // Ensure data is an array - handle multiple response formats
-          //     let keys: any[] = [];
-          //     if (Array.isArray(data)) {
-          //       keys = data;
-          //     } else if (data?.data && Array.isArray(data.data)) {
-          //       keys = data.data;
-          //     } else if (data?.keys && Array.isArray(data.keys)) {
-          //       keys = data.keys;
-          //     } else if (data?.api_keys && Array.isArray(data.api_keys)) {
-          //       keys = data.api_keys;
-          //     } else if (data?.items && Array.isArray(data.items)) {
-          //       keys = data.items;
-          //     } else {
-          //       console.warn("Unknown API keys response format", data);
-          //     }
+        //     // Ensure data is an array - handle multiple response formats
+        //     let keys: any[] = [];
+        //     if (Array.isArray(data)) {
+        //       keys = data;
+        //     } else if (data?.data && Array.isArray(data.data)) {
+        //       keys = data.data;
+        //     } else if (data?.keys && Array.isArray(data.keys)) {
+        //       keys = data.keys;
+        //     } else if (data?.api_keys && Array.isArray(data.api_keys)) {
+        //       keys = data.api_keys;
+        //     } else if (data?.items && Array.isArray(data.items)) {
+        //       keys = data.items;
+        //     } else {
+        //       console.warn("Unknown API keys response format", data);
+        //     }
 
-          //     console.debug("Extracted keys", {
-          //       keys,
-          //       count: keys.length,
-          //       keyIds: keys.map((k: any) => k.id || k.key_id),
-          //     });
+        //     console.debug("Extracted keys", {
+        //       keys,
+        //       count: keys.length,
+        //       keyIds: keys.map((k: any) => k.id || k.key_id),
+        //     });
 
-          //     if (!keys || keys.length === 0) {
-          //       console.debug("No keys found, clearing container");
-          //       container.innerHTML = `
-          //     <div class="text-center py-8 text-matrix-300">
-          //       <p>No API keys yet. Generate one to get started.</p>
-          //     </div>
-          //   `;
-          //       return;
-          //     }
+        //     if (!keys || keys.length === 0) {
+        //       console.debug("No keys found, clearing container");
+        //       container.innerHTML = `
+        //     <div class="text-center py-8 text-matrix-300">
+        //       <p>No API keys yet. Generate one to get started.</p>
+        //     </div>
+        //   `;
+        //       return;
+        //     }
 
-          //     console.debug("Rendering keys to container", {
-          //       count: keys.length,
-          //     });
-          //     container.innerHTML = keys
-          //       .map((key: any) => {
-          //         // Extract key ID with multiple fallbacks to handle different response formats
-          //         const keyId =
-          //           key.key_id || key.id || key.uuid || key.api_key_id;
+        //     console.debug("Rendering keys to container", {
+        //       count: keys.length,
+        //     });
+        //     container.innerHTML = keys
+        //       .map((key: any) => {
+        //         // Extract key ID with multiple fallbacks to handle different response formats
+        //         const keyId =
+        //           key.key_id || key.id || key.uuid || key.api_key_id;
 
-          //         // Validate that we have a key ID before rendering
-          //         if (!keyId) {
-          //           console.warn("API key missing ID field", { key });
-          //           return "";
-          //         }
+        //         // Validate that we have a key ID before rendering
+        //         if (!keyId) {
+        //           console.warn("API key missing ID field", { key });
+        //           return "";
+        //         }
 
-          //         // Check if API supports is_active field (for toggling)
-          //         const hasActiveField = key.hasOwnProperty("is_active");
-          //         const isActive = key.is_active !== false; // Default to true if field doesn't exist
+        //         // Check if API supports is_active field (for toggling)
+        //         const hasActiveField = key.hasOwnProperty("is_active");
+        //         const isActive = key.is_active !== false; // Default to true if field doesn't exist
 
-          //         // Calculate expiry status
-          //         const expiresAt = key.expires_at
-          //           ? new Date(key.expires_at)
-          //           : null;
-          //         const isExpired = expiresAt && expiresAt < new Date();
+        //         // Calculate expiry status
+        //         const expiresAt = key.expires_at
+        //           ? new Date(key.expires_at)
+        //           : null;
+        //         const isExpired = expiresAt && expiresAt < new Date();
 
-          //         return `
-          //   <div class="terminal-border bg-black/50 rounded-lg p-4 flex items-center justify-between">
-          //     <div class="flex-1">
-          //       <div class="flex items-center gap-3 mb-2">
-          //         <h3 class="text-white font-mono font-bold">${key.name || "Unnamed Key"}</h3>
-          //         <span class="key-status-badge px-2 py-1 rounded text-xs font-mono ${
-          //           isExpired
-          //             ? "bg-red-500/20 text-red-400"
-          //             : isActive
-          //               ? "bg-green-500/20 text-green-400"
-          //               : "bg-orange-500/20 text-orange-400"
-          //         }" data-key-id="${keyId}">
-          //           ${isExpired ? "⏰ EXPIRED" : isActive ? "🔒 ACTIVE" : "🔓 INACTIVE"}
-          //         </span>
-          //       </div>
-          //       <p class="text-sm text-matrix-300 font-mono">Key: ${key.masked_key || key.key_preview || "••••••••"}</p>
-          //       ${key.description ? `<p class="text-sm text-gray-500 mt-1">${key.description}</p>` : ""}
-          //       <div class="flex items-center gap-4 mt-2 text-xs text-gray-600">
-          //         <span>Created: ${new Date(key.created_at).toLocaleDateString()}</span>
-          //         ${key.expires_at ? `<span>Expires: ${new Date(key.expires_at).toLocaleDateString()}</span>` : ""}
-          //         ${key.last_used_at ? `<span>Last used: ${new Date(key.last_used_at).toLocaleDateString()}</span>` : "<span>Never used</span>"}
-          //       </div>
-          //     </div>
-          //     <div class="flex gap-2">
-          //       ${
-          //         hasActiveField
-          //           ? `
-          //       <button
-          //         class="toggle-key-btn ${isActive ? "bg-orange-500/20 text-orange-400 hover:bg-orange-500/30" : "bg-green-500/20 text-green-400 hover:bg-green-500/30"} px-3 py-1 rounded text-sm font-mono transition-all duration-300"
-          //         data-key-id="${keyId}"
-          //         title="${isActive ? "Disable this API key" : "Enable this API key"}"
-          //       >
-          //         ${isActive ? "✎ Disable" : "✎ Enable"}
-          //       </button>
-          //       `
-          //           : ""
-          //       }
-          //       <button
-          //         class="delete-key-btn bg-red-500/20 text-red-400 hover:bg-red-500/30 px-3 py-1 rounded text-sm font-mono transition-all duration-300"
-          //         data-key-id="${keyId}"
-          //         title="Permanently delete this API key"
-          //       >
-          //         🗑️ Delete
-          //       </button>
-          //     </div>
-          //   </div>
-          // `;
-          //       })
-          //       .join("");
+        //         return `
+        //   <div class="terminal-border bg-black/50 rounded-lg p-4 flex items-center justify-between">
+        //     <div class="flex-1">
+        //       <div class="flex items-center gap-3 mb-2">
+        //         <h3 class="text-white font-mono font-bold">${key.name || "Unnamed Key"}</h3>
+        //         <span class="key-status-badge px-2 py-1 rounded text-xs font-mono ${
+        //           isExpired
+        //             ? "bg-red-500/20 text-red-400"
+        //             : isActive
+        //               ? "bg-green-500/20 text-green-400"
+        //               : "bg-orange-500/20 text-orange-400"
+        //         }" data-key-id="${keyId}">
+        //           ${isExpired ? "⏰ EXPIRED" : isActive ? "🔒 ACTIVE" : "🔓 INACTIVE"}
+        //         </span>
+        //       </div>
+        //       <p class="text-sm text-matrix-300 font-mono">Key: ${key.masked_key || key.key_preview || "••••••••"}</p>
+        //       ${key.description ? `<p class="text-sm text-gray-500 mt-1">${key.description}</p>` : ""}
+        //       <div class="flex items-center gap-4 mt-2 text-xs text-gray-600">
+        //         <span>Created: ${new Date(key.created_at).toLocaleDateString()}</span>
+        //         ${key.expires_at ? `<span>Expires: ${new Date(key.expires_at).toLocaleDateString()}</span>` : ""}
+        //         ${key.last_used_at ? `<span>Last used: ${new Date(key.last_used_at).toLocaleDateString()}</span>` : "<span>Never used</span>"}
+        //       </div>
+        //     </div>
+        //     <div class="flex gap-2">
+        //       ${
+        //         hasActiveField
+        //           ? `
+        //       <button
+        //         class="toggle-key-btn ${isActive ? "bg-orange-500/20 text-orange-400 hover:bg-orange-500/30" : "bg-green-500/20 text-green-400 hover:bg-green-500/30"} px-3 py-1 rounded text-sm font-mono transition-all duration-300"
+        //         data-key-id="${keyId}"
+        //         title="${isActive ? "Disable this API key" : "Enable this API key"}"
+        //       >
+        //         ${isActive ? "✎ Disable" : "✎ Enable"}
+        //       </button>
+        //       `
+        //           : ""
+        //       }
+        //       <button
+        //         class="delete-key-btn bg-red-500/20 text-red-400 hover:bg-red-500/30 px-3 py-1 rounded text-sm font-mono transition-all duration-300"
+        //         data-key-id="${keyId}"
+        //         title="Permanently delete this API key"
+        //       >
+        //         🗑️ Delete
+        //       </button>
+        //     </div>
+        //   </div>
+        // `;
+        //       })
+        //       .join("");
 
-          //     document.querySelectorAll(".toggle-key-btn").forEach((btn) => {
-          //       btn.addEventListener("click", async (e) => {
-          //         const button = e.currentTarget as HTMLElement;
-          //         const keyId = button.getAttribute("data-key-id");
-          //         const badge = document.querySelector(
-          //           `[data-key-id="${keyId}"].key-status-badge`,
-          //         ) as HTMLElement;
-          //         const isCurrentlyActive =
-          //           badge && badge.textContent?.includes("ACTIVE");
+        //     document.querySelectorAll(".toggle-key-btn").forEach((btn) => {
+        //       btn.addEventListener("click", async (e) => {
+        //         const button = e.currentTarget as HTMLElement;
+        //         const keyId = button.getAttribute("data-key-id");
+        //         const badge = document.querySelector(
+        //           `[data-key-id="${keyId}"].key-status-badge`,
+        //         ) as HTMLElement;
+        //         const isCurrentlyActive =
+        //           badge && badge.textContent?.includes("ACTIVE");
 
-          //         console.debug("Toggle button clicked", {
-          //           keyId,
-          //           isCurrentlyActive,
-          //           hasKeyId: !!keyId,
-          //         });
+        //         console.debug("Toggle button clicked", {
+        //           keyId,
+        //           isCurrentlyActive,
+        //           hasKeyId: !!keyId,
+        //         });
 
-          //         if (!keyId) {
-          //           console.error("Toggle: Key ID is missing or undefined", {
-          //             button,
-          //           });
-          //           alert(
-          //             "❌ Error: API key ID not found. Please refresh and try again.",
-          //           );
-          //           return;
-          //         }
+        //         if (!keyId) {
+        //           console.error("Toggle: Key ID is missing or undefined", {
+        //             button,
+        //           });
+        //           alert(
+        //             "❌ Error: API key ID not found. Please refresh and try again.",
+        //           );
+        //           return;
+        //         }
 
-          //         if (
-          //           confirm(
-          //             `⚠️ ${isCurrentlyActive ? "Disable" : "Enable"} API Key?\n\nAre you sure you want to ${isCurrentlyActive ? "disable" : "enable"} this API key?\n\nProceed?`,
-          //           )
-          //         ) {
-          //           await toggleApiKey(keyId, !isCurrentlyActive);
-          //         }
-          //       });
-          //     });
+        //         if (
+        //           confirm(
+        //             `⚠️ ${isCurrentlyActive ? "Disable" : "Enable"} API Key?\n\nAre you sure you want to ${isCurrentlyActive ? "disable" : "enable"} this API key?\n\nProceed?`,
+        //           )
+        //         ) {
+        //           await toggleApiKey(keyId, !isCurrentlyActive);
+        //         }
+        //       });
+        //     });
 
-          //     document.querySelectorAll(".delete-key-btn").forEach((btn) => {
-          //       btn.addEventListener("click", async (e) => {
-          //         const button = e.currentTarget as HTMLElement;
-          //         const keyId = button.getAttribute("data-key-id");
+        //     document.querySelectorAll(".delete-key-btn").forEach((btn) => {
+        //       btn.addEventListener("click", async (e) => {
+        //         const button = e.currentTarget as HTMLElement;
+        //         const keyId = button.getAttribute("data-key-id");
 
-          //         console.debug("Delete button clicked", {
-          //           keyId,
-          //           hasKeyId: !!keyId,
-          //         });
+        //         console.debug("Delete button clicked", {
+        //           keyId,
+        //           hasKeyId: !!keyId,
+        //         });
 
-          //         if (!keyId) {
-          //           console.error("Delete: Key ID is missing or undefined", {
-          //             button,
-          //           });
-          //           alert(
-          //             "❌ Error: API key ID not found. Please refresh and try again.",
-          //           );
-          //           return;
-          //         }
+        //         if (!keyId) {
+        //           console.error("Delete: Key ID is missing or undefined", {
+        //             button,
+        //           });
+        //           alert(
+        //             "❌ Error: API key ID not found. Please refresh and try again.",
+        //           );
+        //           return;
+        //         }
 
-          //         if (
-          //           confirm(
-          //             "⚠️ Delete API Key?\n\nAre you sure you want to permanently delete this API key?\n\n⚠️ This action cannot be undone\n⚠️ All services using this key will stop working immediately\n\nProceed with deletion?",
-          //           )
-          //         ) {
-          //           await deleteApiKey(keyId);
-          //         }
-          //       });
-          //     });
-          //   } catch (error) {
-          //     console.error("Error loading API keys", error);
-          //     const container = document.getElementById("api-keys-container");
-          //     if (container) {
-          //       const errorMsg =
-          //         error instanceof Error ? error.message : "Unknown error";
-          //       container.innerHTML = `
-          //     <div class="text-center py-8">
-          //       <div class="text-red-400 mb-2">❌ Failed to load API keys</div>
-          //       <p class="text-matrix-300 text-sm">${errorMsg}</p>
-          //       <button 
-          //         onclick="location.reload()" 
-          //         class="mt-4 px-4 py-2 bg-cyber-500 hover:bg-cyber-400 text-black font-mono text-sm rounded transition-colors"
-          //       >
-          //         Retry
-          //       </button>
-          //     </div>
-          //   `;
-          //     }
-          //   }
-          // }
+        //         if (
+        //           confirm(
+        //             "⚠️ Delete API Key?\n\nAre you sure you want to permanently delete this API key?\n\n⚠️ This action cannot be undone\n⚠️ All services using this key will stop working immediately\n\nProceed with deletion?",
+        //           )
+        //         ) {
+        //           await deleteApiKey(keyId);
+        //         }
+        //       });
+        //     });
+        //   } catch (error) {
+        //     console.error("Error loading API keys", error);
+        //     const container = document.getElementById("api-keys-container");
+        //     if (container) {
+        //       const errorMsg =
+        //         error instanceof Error ? error.message : "Unknown error";
+        //       container.innerHTML = `
+        //     <div class="text-center py-8">
+        //       <div class="text-red-400 mb-2">❌ Failed to load API keys</div>
+        //       <p class="text-matrix-300 text-sm">${errorMsg}</p>
+        //       <button
+        //         onclick="location.reload()"
+        //         class="mt-4 px-4 py-2 bg-cyber-500 hover:bg-cyber-400 text-black font-mono text-sm rounded transition-colors"
+        //       >
+        //         Retry
+        //       </button>
+        //     </div>
+        //   `;
+        //     }
+        //   }
+        // }
 
-          // async function deleteApiKey(keyId: string) {
-          //   try {
-          //     // Validate keyId to prevent sending undefined to API
-          //     if (!keyId || keyId === "undefined" || keyId.trim() === "") {
-          //       console.error("deleteApiKey called with invalid keyId", {
-          //         keyId,
-          //         type: typeof keyId,
-          //         length: keyId?.length,
-          //       });
-          //       alert(
-          //         "❌ Error: Invalid API key ID. Please refresh the page and try again.",
-          //       );
-          //       return;
-          //     }
+        // async function deleteApiKey(keyId: string) {
+        //   try {
+        //     // Validate keyId to prevent sending undefined to API
+        //     if (!keyId || keyId === "undefined" || keyId.trim() === "") {
+        //       console.error("deleteApiKey called with invalid keyId", {
+        //         keyId,
+        //         type: typeof keyId,
+        //         length: keyId?.length,
+        //       });
+        //       alert(
+        //         "❌ Error: Invalid API key ID. Please refresh the page and try again.",
+        //       );
+        //       return;
+        //     }
 
-          //     console.debug("Attempting to revoke API key", { keyId });
+        //     console.debug("Attempting to revoke API key", { keyId });
 
-          //     // Get current keys from DOM before making the request
-          //     const currentKeyElements =
-          //       document.querySelectorAll("[data-key-id]");
-          //     const currentKeys: string[] = [];
-          //     currentKeyElements.forEach((el) => {
-          //       const id = el.getAttribute("data-key-id");
-          //       if (id) currentKeys.push(id);
-          //     });
+        //     // Get current keys from DOM before making the request
+        //     const currentKeyElements =
+        //       document.querySelectorAll("[data-key-id]");
+        //     const currentKeys: string[] = [];
+        //     currentKeyElements.forEach((el) => {
+        //       const id = el.getAttribute("data-key-id");
+        //       if (id) currentKeys.push(id);
+        //     });
 
-          //     console.debug("Current key IDs in DOM BEFORE revoke", {
-          //       currentKeys,
-          //       targetKeyId: keyId,
-          //       exists: currentKeys.includes(keyId),
-          //     });
+        //     console.debug("Current key IDs in DOM BEFORE revoke", {
+        //       currentKeys,
+        //       targetKeyId: keyId,
+        //       exists: currentKeys.includes(keyId),
+        //     });
 
-          //     const response = await authService.revokeApiKey(keyId);
+        //     const response = await authService.revokeApiKey(keyId);
 
-          //     console.debug("Revoke response status", {
-          //       status: response.status,
-          //     });
+        //     console.debug("Revoke response status", {
+        //       status: response.status,
+        //     });
 
-          //     if (!response.success) {
-          //       let errorMsg = response.error || "Failed to revoke API key";
+        //     if (!response.success) {
+        //       let errorMsg = response.error || "Failed to revoke API key";
 
-          //       // Handle rate limiting
-          //       if (response.status === 429) {
-          //         window.alert(
-          //           errorMsg ||
-          //             "Rate limited. Please try again in a few seconds.",
-          //         );
-          //         return;
-          //       }
+        //       // Handle rate limiting
+        //       if (response.status === 429) {
+        //         window.alert(
+        //           errorMsg ||
+        //             "Rate limited. Please try again in a few seconds.",
+        //         );
+        //         return;
+        //       }
 
-          //       if (response.status === 404) {
-          //         console.warn("Got 404 - Key not found on server");
+        //       if (response.status === 404) {
+        //         console.warn("Got 404 - Key not found on server");
 
-          //         // Try to get error details from response
-          //         let errorDetails: any = null;
-          //         try {
-          //           errorDetails = response.data;
-          //           console.debug("404 Error details", errorDetails);
-          //           errorMsg =
-          //             errorDetails?.message ||
-          //             errorDetails?.detail ||
-          //             "API key not found";
-          //         } catch (e) {
-          //           console.warn("Could not parse 404 response", e);
-          //         }
+        //         // Try to get error details from response
+        //         let errorDetails: any = null;
+        //         try {
+        //           errorDetails = response.data;
+        //           console.debug("404 Error details", errorDetails);
+        //           errorMsg =
+        //             errorDetails?.message ||
+        //             errorDetails?.detail ||
+        //             "API key not found";
+        //         } catch (e) {
+        //           console.warn("Could not parse 404 response", e);
+        //         }
 
-          //         // Reload list to verify current state
-          //         const keysCountBefore = currentKeys.length;
-          //         await loadApiKeys(true); // Force refresh to bypass any caching
+        //         // Reload list to verify current state
+        //         const keysCountBefore = currentKeys.length;
+        //         await loadApiKeys(true); // Force refresh to bypass any caching
 
-          //         // Get keys after reload
-          //         const updatedKeyElements =
-          //           document.querySelectorAll("[data-key-id]");
-          //         const updatedKeys: string[] = [];
-          //         updatedKeyElements.forEach((el) => {
-          //           const id = el.getAttribute("data-key-id");
-          //           if (id) updatedKeys.push(id);
-          //         });
-          //         const keysCountAfter = updatedKeys.length;
+        //         // Get keys after reload
+        //         const updatedKeyElements =
+        //           document.querySelectorAll("[data-key-id]");
+        //         const updatedKeys: string[] = [];
+        //         updatedKeyElements.forEach((el) => {
+        //           const id = el.getAttribute("data-key-id");
+        //           if (id) updatedKeys.push(id);
+        //         });
+        //         const keysCountAfter = updatedKeys.length;
 
-          //         console.debug("Keys count after reload", {
-          //           before: keysCountBefore,
-          //           after: keysCountAfter,
-          //           updatedKeys,
-          //         });
+        //         console.debug("Keys count after reload", {
+        //           before: keysCountBefore,
+        //           after: keysCountAfter,
+        //           updatedKeys,
+        //         });
 
-          //         // Check if the key we tried to delete is still in the list
-          //         const keyStillExists = updatedKeys.includes(keyId);
+        //         // Check if the key we tried to delete is still in the list
+        //         const keyStillExists = updatedKeys.includes(keyId);
 
-          //         if (keyStillExists) {
-          //           // KEY MISMATCH: Key exists in UI but backend says not found
-          //           // Trust the backend - remove from UI since backend doesn't have it
-          //           console.error(
-          //             "DATA MISMATCH: Key exists in list but backend says not found. Removing from UI to sync with backend.",
-          //             { keyId },
-          //           );
+        //         if (keyStillExists) {
+        //           // KEY MISMATCH: Key exists in UI but backend says not found
+        //           // Trust the backend - remove from UI since backend doesn't have it
+        //           console.error(
+        //             "DATA MISMATCH: Key exists in list but backend says not found. Removing from UI to sync with backend.",
+        //             { keyId },
+        //           );
 
-          //           // Immediately remove the key from the DOM to sync with backend
-          //           const keyElements = document.querySelectorAll(
-          //             `[data-key-id="${keyId}"]`,
-          //           );
-          //           keyElements.forEach((el) => {
-          //             const container = el.closest("div");
-          //             if (container) {
-          //               container.style.opacity = "0.5";
-          //               container.style.pointerEvents = "none";
-          //               setTimeout(() => {
-          //                 container.remove();
-          //               }, 300);
-          //             }
-          //           });
+        //           // Immediately remove the key from the DOM to sync with backend
+        //           const keyElements = document.querySelectorAll(
+        //             `[data-key-id="${keyId}"]`,
+        //           );
+        //           keyElements.forEach((el) => {
+        //             const container = el.closest("div");
+        //             if (container) {
+        //               container.style.opacity = "0.5";
+        //               container.style.pointerEvents = "none";
+        //               setTimeout(() => {
+        //                 container.remove();
+        //               }, 300);
+        //             }
+        //           });
 
-          //           alert(
-          //             `⚠️ API Key Removed\n\n` +
-          //               `The API key was not found on the server (may have been already revoked).\n` +
-          //               `The key has been removed from your list.\n\n` +
-          //               `If you continue to see issues, please refresh the page.`,
-          //           );
-          //         } else {
-          //           // Key was removed from list during reload
-          //           console.debug("Key no longer in list after reload");
-          //           if (keysCountAfter < keysCountBefore) {
-          //             alert(
-          //               "✅ API Key Removed\n\nThe key has been removed from your account.",
-          //             );
-          //           } else {
-          //             alert(
-          //               `ℹ️ API Key Not Found\n\nThe key was not found on the server (may have been already revoked).\n\n${errorDetails?.message || ""}`,
-          //             );
-          //           }
-          //         }
-          //         return; // Exit gracefully
-          //       } else if (response.status === 403) {
-          //         errorMsg =
-          //           "You do not have permission to revoke this API key";
-          //       } else if (response.status === 401) {
-          //         errorMsg = "Authentication required. Please log in again";
-          //       } else {
-          //         // Error details are already in response.error or response.data
-          //         if (response.data) {
-          //           const errorData = response.data as any;
-          //           errorMsg =
-          //             errorData?.message || errorData?.detail || errorMsg;
-          //           console.debug("Error details", errorData);
-          //         }
-          //       }
+        //           alert(
+        //             `⚠️ API Key Removed\n\n` +
+        //               `The API key was not found on the server (may have been already revoked).\n` +
+        //               `The key has been removed from your list.\n\n` +
+        //               `If you continue to see issues, please refresh the page.`,
+        //           );
+        //         } else {
+        //           // Key was removed from list during reload
+        //           console.debug("Key no longer in list after reload");
+        //           if (keysCountAfter < keysCountBefore) {
+        //             alert(
+        //               "✅ API Key Removed\n\nThe key has been removed from your account.",
+        //             );
+        //           } else {
+        //             alert(
+        //               `ℹ️ API Key Not Found\n\nThe key was not found on the server (may have been already revoked).\n\n${errorDetails?.message || ""}`,
+        //             );
+        //           }
+        //         }
+        //         return; // Exit gracefully
+        //       } else if (response.status === 403) {
+        //         errorMsg =
+        //           "You do not have permission to revoke this API key";
+        //       } else if (response.status === 401) {
+        //         errorMsg = "Authentication required. Please log in again";
+        //       } else {
+        //         // Error details are already in response.error or response.data
+        //         if (response.data) {
+        //           const errorData = response.data as any;
+        //           errorMsg =
+        //             errorData?.message || errorData?.detail || errorMsg;
+        //           console.debug("Error details", errorData);
+        //         }
+        //       }
 
-          //       throw new Error(errorMsg + ` (HTTP ${response.status})`);
-          //     }
+        //       throw new Error(errorMsg + ` (HTTP ${response.status})`);
+        //     }
 
-          //     console.info("API key revoked successfully", { keyId });
+        //     console.info("API key revoked successfully", { keyId });
 
-          //     // Immediately remove the key from the DOM to provide instant feedback
-          //     const keyElements = document.querySelectorAll(
-          //       `[data-key-id="${keyId}"]`,
-          //     );
-          //     console.debug("Found key elements to remove", {
-          //       count: keyElements.length,
-          //       keyId,
-          //     });
+        //     // Immediately remove the key from the DOM to provide instant feedback
+        //     const keyElements = document.querySelectorAll(
+        //       `[data-key-id="${keyId}"]`,
+        //     );
+        //     console.debug("Found key elements to remove", {
+        //       count: keyElements.length,
+        //       keyId,
+        //     });
 
-          //     keyElements.forEach((el) => {
-          //       const container = el.closest("div");
-          //       if (container) {
-          //         // Add fade-out animation
-          //         container.style.opacity = "0.5";
-          //         container.style.pointerEvents = "none";
-          //         setTimeout(() => {
-          //           container.remove();
-          //         }, 300);
-          //       }
-          //     });
+        //     keyElements.forEach((el) => {
+        //       const container = el.closest("div");
+        //       if (container) {
+        //         // Add fade-out animation
+        //         container.style.opacity = "0.5";
+        //         container.style.pointerEvents = "none";
+        //         setTimeout(() => {
+        //           container.remove();
+        //         }, 300);
+        //       }
+        //     });
 
-          //     alert(
-          //       "✅ API key revoked successfully\n\nThe key has been permanently deleted and can no longer be used.",
-          //     );
+        //     alert(
+        //       "✅ API key revoked successfully\n\nThe key has been permanently deleted and can no longer be used.",
+        //     );
 
-          //     // Reload the keys list after a short delay to ensure backend is updated
-          //     setTimeout(async () => {
-          //       console.debug("Starting forced reload of API keys", { keyId });
-          //       await loadApiKeys(true); // Force refresh to bypass any caching
+        //     // Reload the keys list after a short delay to ensure backend is updated
+        //     setTimeout(async () => {
+        //       console.debug("Starting forced reload of API keys", { keyId });
+        //       await loadApiKeys(true); // Force refresh to bypass any caching
 
-          //       // Double-check the key is gone after reload
-          //       const remainingElements = document.querySelectorAll(
-          //         `[data-key-id="${keyId}"]`,
-          //       );
-          //       if (remainingElements.length > 0) {
-          //         console.warn(
-          //           "Key still exists after reload! Forcing removal.",
-          //           {
-          //             keyId,
-          //             count: remainingElements.length,
-          //           },
-          //         );
+        //       // Double-check the key is gone after reload
+        //       const remainingElements = document.querySelectorAll(
+        //         `[data-key-id="${keyId}"]`,
+        //       );
+        //       if (remainingElements.length > 0) {
+        //         console.warn(
+        //           "Key still exists after reload! Forcing removal.",
+        //           {
+        //             keyId,
+        //             count: remainingElements.length,
+        //           },
+        //         );
 
-          //         remainingElements.forEach((el) => {
-          //           const container = el.closest("div");
-          //           if (container) {
-          //             container.style.display = "none";
-          //           }
-          //         });
-          //       }
-          //     }, 500);
-          //   } catch (error) {
-          //     console.error("Error revoking API key", error);
-          //     const errorMsg =
-          //       error instanceof Error ? error.message : "Unknown error";
-          //     alert("❌ Failed to revoke API key\n\n" + errorMsg);
-          //   }
-          // }
+        //         remainingElements.forEach((el) => {
+        //           const container = el.closest("div");
+        //           if (container) {
+        //             container.style.display = "none";
+        //           }
+        //         });
+        //       }
+        //     }, 500);
+        //   } catch (error) {
+        //     console.error("Error revoking API key", error);
+        //     const errorMsg =
+        //       error instanceof Error ? error.message : "Unknown error";
+        //     alert("❌ Failed to revoke API key\n\n" + errorMsg);
+        //   }
+        // }
 
-          // async function toggleApiKey(keyId: string, shouldActivate: boolean) {
-          //   try {
-          //     // Validate keyId to prevent sending undefined to API
-          //     if (!keyId || keyId === "undefined" || keyId.trim() === "") {
-          //       console.error("toggleApiKey called with invalid keyId", {
-          //         keyId,
-          //         type: typeof keyId,
-          //         length: keyId?.length,
-          //       });
-          //       alert(
-          //         "❌ Error: Invalid API key ID. Please refresh the page and try again.",
-          //       );
-          //       return;
-          //     }
+        // async function toggleApiKey(keyId: string, shouldActivate: boolean) {
+        //   try {
+        //     // Validate keyId to prevent sending undefined to API
+        //     if (!keyId || keyId === "undefined" || keyId.trim() === "") {
+        //       console.error("toggleApiKey called with invalid keyId", {
+        //         keyId,
+        //         type: typeof keyId,
+        //         length: keyId?.length,
+        //       });
+        //       alert(
+        //         "❌ Error: Invalid API key ID. Please refresh the page and try again.",
+        //       );
+        //       return;
+        //     }
 
-          //     console.debug("Toggling API key", { keyId, shouldActivate });
+        //     console.debug("Toggling API key", { keyId, shouldActivate });
 
-          //     // Try the activate/deactivate endpoint first
-          //     let response = (await apiClient.post(
-          //       `${API_ENDPOINTS.AUTH.REVOKE_API_KEY.replace(":key_id", keyId)}/${shouldActivate ? "activate" : "deactivate"}`,
-          //       {},
-          //     )) as any;
+        //     // Try the activate/deactivate endpoint first
+        //     let response = (await apiClient.post(
+        //       `${API_ENDPOINTS.AUTH.REVOKE_API_KEY.replace(":key_id", keyId)}/${shouldActivate ? "activate" : "deactivate"}`,
+        //       {},
+        //     )) as any;
 
-          //     if (!response.ok && response.status === 404) {
-          //       console.warn(
-          //         "Toggle endpoint not implemented, trying PATCH method",
-          //       );
-          //       // Try PATCH method as fallback
-          //       response = (await apiClient.patch(
-          //         API_ENDPOINTS.AUTH.REVOKE_API_KEY.replace(":key_id", keyId),
-          //         { is_active: shouldActivate },
-          //       )) as any;
-          //     }
+        //     if (!response.ok && response.status === 404) {
+        //       console.warn(
+        //         "Toggle endpoint not implemented, trying PATCH method",
+        //       );
+        //       // Try PATCH method as fallback
+        //       response = (await apiClient.patch(
+        //         API_ENDPOINTS.AUTH.REVOKE_API_KEY.replace(":key_id", keyId),
+        //         { is_active: shouldActivate },
+        //       )) as any;
+        //     }
 
-          //     if (!response.ok) {
-          //       const errorMsg =
-          //         response.error ||
-          //         `Failed to ${shouldActivate ? "enable" : "disable"} API key`;
-          //       console.debug("Toggle error", response.data);
-          //       throw new Error(`${errorMsg} (HTTP ${response.status || 500})`);
-          //     }
+        //     if (!response.ok) {
+        //       const errorMsg =
+        //         response.error ||
+        //         `Failed to ${shouldActivate ? "enable" : "disable"} API key`;
+        //       console.debug("Toggle error", response.data);
+        //       throw new Error(`${errorMsg} (HTTP ${response.status || 500})`);
+        //     }
 
-          //     console.info("API key toggled successfully", { shouldActivate });
-          //     alert(
-          //       `✅ API key ${shouldActivate ? "enabled" : "disabled"} successfully`,
-          //     );
+        //     console.info("API key toggled successfully", { shouldActivate });
+        //     alert(
+        //       `✅ API key ${shouldActivate ? "enabled" : "disabled"} successfully`,
+        //     );
 
-          //     // Reload the keys list to reflect the status change
-          //     setTimeout(async () => {
-          //       await loadApiKeys(true); // Force refresh to bypass any caching
-          //     }, 300);
-          //   } catch (error) {
-          //     console.error("Error toggling API key", error);
-          //     const errorMsg =
-          //       error instanceof Error ? error.message : "Unknown error";
-          //     alert(
-          //       `❌ Failed to ${shouldActivate ? "enable" : "disable"} API key\n\n${errorMsg}`,
-          //     );
-          //   }
-          // }
+        //     // Reload the keys list to reflect the status change
+        //     setTimeout(async () => {
+        //       await loadApiKeys(true); // Force refresh to bypass any caching
+        //     }, 300);
+        //   } catch (error) {
+        //     console.error("Error toggling API key", error);
+        //     const errorMsg =
+        //       error instanceof Error ? error.message : "Unknown error";
+        //     alert(
+        //       `❌ Failed to ${shouldActivate ? "enable" : "disable"} API key\n\n${errorMsg}`,
+        //     );
+        //   }
+        // }
 
-          // await loadApiKeys();
+        // await loadApiKeys();
 
         //   const createBtn = document.getElementById("create-api-key-btn");
         //   const createBtnText = document.getElementById("create-api-key-text");
