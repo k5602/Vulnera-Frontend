@@ -16,6 +16,7 @@
 
 import axios from "axios";
 import { clearStore, csrfTokenStore } from "../utils/store";
+import ENDPOINTS from "../utils/api/endpoints";
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -27,17 +28,52 @@ const api = axios.create({
   },
 });
 
+let isRefreshingCsrf = false;
+
+// Helper: Refresh CSRF token from backend
+async function refreshCsrfToken(): Promise<string | null> {
+  if (isRefreshingCsrf) return null;
+  
+  isRefreshingCsrf = true;
+  try {
+    // Use relative path when BASE_URL is undefined to go through dev proxy
+    const refreshUrl = ENDPOINTS.AUTH.POST_refresh_token;
+    
+    const response = await axios.post(
+      refreshUrl,
+      {},
+      { 
+        withCredentials: true,
+        baseURL: BASE_URL || '',
+      }
+    );
+    
+    const csrfToken = response.data?.csrf_token || response.headers['x-csrf-token'];
+    if (csrfToken) {
+      csrfTokenStore.set(csrfToken);
+      console.log('✓ CSRF token refreshed');
+      return csrfToken;
+    }
+    return null;
+  } catch (error) {
+    console.error('✗ Failed to refresh CSRF token:', error);
+    return null;
+  } finally {
+    isRefreshingCsrf = false;
+  }
+}
+
 // REQUEST INTERCEPTOR
 api.interceptors.request.use(
-  (config) => {
+  async (config) => {
     const method = config.method?.toUpperCase();
     const url = config.url || "";
 
-    // Exclude CSRF for Login & Register
-    // (These endpoints return the token; they don't consume it)
+    // Exclude CSRF for Login, Register, and Refresh
     const EXCLUDED_CSRF_ENDPOINTS = [
       "/api/v1/auth/login",
       "/api/v1/auth/register",
+      "/api/v1/auth/refresh",
     ];
 
     const isExcluded = EXCLUDED_CSRF_ENDPOINTS.some((endpoint) =>
@@ -47,14 +83,26 @@ api.interceptors.request.use(
     // Add CSRF token to unsafe methods
     const requiresCsrf = ["POST", "PUT", "PATCH", "DELETE"];
 
-    // Read CSRF token dynamically from store on EVERY request
-    const csrfToken = csrfTokenStore.get();
-
-    if (requiresCsrf.includes(method!) && csrfToken && !isExcluded) {
-      if (config.headers && typeof config.headers.set === "function") {
-        config.headers.set("X-CSRF-Token", csrfToken);
-      } else {
-        config.headers["X-CSRF-Token"] = csrfToken;
+    if (requiresCsrf.includes(method!) && !isExcluded) {
+      // Read CSRF token dynamically from store
+      let csrfToken = csrfTokenStore.get();
+      
+      // If missing, try to refresh it
+      if (!csrfToken) {
+        console.warn('⚠ CSRF token missing, attempting refresh...');
+        csrfToken = await refreshCsrfToken();
+        
+        if (!csrfToken) {
+          console.error('✗ Could not obtain CSRF token, request may fail');
+        }
+      }
+      
+      if (csrfToken) {
+        if (config.headers && typeof config.headers.set === "function") {
+          config.headers.set("X-CSRF-Token", csrfToken);
+        } else {
+          config.headers["X-CSRF-Token"] = csrfToken;
+        }
       }
     }
 
@@ -67,7 +115,7 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
 
-  (error) => {
+  async (error) => {
     if (!error.response) return Promise.reject(error);
 
     // 401 Unauthorized → session expired, redirect to login
@@ -88,10 +136,27 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    // 403 Forbidden → possibly CSRF token issue
+    // 403 Forbidden → possibly CSRF token issue, try refresh once
     if (error.response.status === 403) {
-      console.warn(' Access forbidden (403), may need to refresh session');
-      // Don't auto-redirect on 403, let the calling code handle it
+      const errorData = error.response.data;
+      const isCsrfError = 
+        errorData?.code === 'CSRF_VALIDATION_FAILED' ||
+        errorData?.message?.toLowerCase().includes('csrf');
+      
+      if (isCsrfError && !error.config._csrfRetry) {
+        console.warn('⚠ CSRF validation failed, refreshing token and retrying...');
+        const newToken = await refreshCsrfToken();
+        
+        if (newToken) {
+          error.config._csrfRetry = true;
+          if (error.config.headers) {
+            error.config.headers['X-CSRF-Token'] = newToken;
+          }
+          return api.request(error.config);
+        }
+      }
+      
+      console.warn('✗ Access forbidden (403), cannot recover');
     }
 
     return Promise.reject(error);

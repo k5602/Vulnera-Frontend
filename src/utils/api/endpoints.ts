@@ -1,6 +1,7 @@
 const ENDPOINTS = {
 
     ANALYSIS: {
+        POST_dependencies_analyze: '/api/v1/dependencies/analyze',
         POST_analysis_job: '/api/v1/analyze/job',
         GET_jobs: (analysisJobId: string) => `/api/v1/jobs/${analysisJobId}`,
     },

@@ -121,7 +121,7 @@ import Logo from "./Logo.astro";
 </nav>
 
 <script>
-  import { isAuthenticatedStore, isOrgStore, clearStore } from "../utils/store";
+  import { isAuthenticatedStore, isOrgStore, clearStore, csrfTokenStore } from "../utils/store";
   import { POST } from "../api/api-manage";
   import ENDPOINTS from "../utils/api/endpoints";
 
@@ -135,8 +135,12 @@ import Logo from "./Logo.astro";
     const guestElements = document.querySelectorAll(".nav-guest");
     const isLoggedIn = isAuthenticatedStore.get();
     const hasOrg = isOrgStore.get();
+    
+    // Also check CSRF token - if missing, treat as logged out
+    const hasCsrf = csrfTokenStore.get() !== null;
+    const isActuallyAuthenticated = isLoggedIn && hasCsrf;
 
-    if (isLoggedIn) {
+    if (isActuallyAuthenticated) {
       authElements.forEach((el) => (el as HTMLElement).classList.remove("hidden"));
       guestElements.forEach((el) => (el as HTMLElement).classList.add("hidden"));
       

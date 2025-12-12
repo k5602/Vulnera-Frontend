@@ -9,13 +9,67 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
 
 <script>
   import { userStore } from "../utils/store";
+  import { ScanHandler } from "../modules/scanModule";
 
   const user = userStore.get();
   if (!user) {
     const currentPath = window.location.pathname;
     window.location.href = `/login?next=${encodeURIComponent(currentPath)}`;
+  }
+
+  const setupTabs = () => {
+    const tabImport = document.getElementById("tab-import");
+    const tabUpload = document.getElementById("tab-upload");
+    const contentImport = document.getElementById("content-import");
+    const contentUpload = document.getElementById("content-upload");
+
+    tabImport?.addEventListener("click", () => {
+      tabImport.classList.add("border-purple-500", "text-purple-400", "bg-purple-500/5");
+      tabImport.classList.remove("border-transparent", "text-gray-500");
+
+      tabUpload?.classList.remove("border-cyan-500", "text-cyan-400", "bg-cyan-500/5");
+      tabUpload?.classList.add("border-transparent", "text-gray-500");
+
+      contentImport?.classList.remove("hidden");
+      contentUpload?.classList.add("hidden");
+    });
+
+    tabUpload?.addEventListener("click", () => {
+      tabUpload.classList.add("border-cyan-500", "text-cyan-400", "bg-cyan-500/5");
+      tabUpload.classList.remove("border-transparent", "text-gray-500");
+
+      tabImport?.classList.remove("border-purple-500", "text-purple-400", "bg-purple-500/5");
+      tabImport?.classList.add("border-transparent", "text-gray-500");
+
+      contentUpload?.classList.remove("hidden");
+      contentImport?.classList.add("hidden");
+    });
+  };
+
+  const initScanPage = () => {
+    const handler = new ScanHandler({
+      dropzone: document.getElementById("dropzone"),
+      input: document.getElementById("file-input") as HTMLInputElement | null,
+      fileList: document.getElementById("file-list"),
+      btnScan: document.getElementById("btn-scan") as HTMLButtonElement | null,
+      btnImport: document.getElementById("btn-import") as HTMLButtonElement | null,
+      btnReset: document.getElementById("btn-reset-files") as HTMLButtonElement | null,
+      repoUrl: document.getElementById("repo-url") as HTMLInputElement | null,
+      privateCheckbox: document.getElementById("chk-private-repo") as HTMLInputElement | null,
+      tokenInput: document.getElementById("github-token-input") as HTMLInputElement | null,
+      tokenContainer: document.getElementById("token-input-container"),
+      sourceToggle: document.getElementById("source-type-toggle"),
+      analysisDepthButtons: document.querySelectorAll(".analysis-depth-btn"),
+    });
+
+    handler.init();
+    setupTabs();
+  };
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initScanPage);
   } else {
-    // Start monitoring session for this protected page
+    initScanPage();
   }
 </script>
 
@@ -389,111 +443,4 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
   </section>
 
   <Footer />
-
-  <script>
-    import { ScanHandler } from "../modules/scanModule";
-
-    const scanHandler = new ScanHandler(
-      document.getElementById("dropzone")!,
-      document.getElementById("file-input")! as HTMLInputElement,
-      document.getElementById("file-list")!,
-      document.getElementById("btn-scan")! as HTMLButtonElement,
-      document.getElementById("btn-import")! as HTMLButtonElement,
-      document.getElementById("btn-reset-files")! as HTMLButtonElement,
-      document.getElementById("repo-url")! as HTMLInputElement,
-      document.getElementById("chk-private-repo")! as HTMLInputElement,
-      document.getElementById("github-token-input")! as HTMLInputElement,
-      document.getElementById("auth-token-label")! as HTMLElement,
-      document.getElementById("source-type-toggle")! as HTMLElement,
-      document.querySelectorAll(".detail-level-btn"),
-      document.querySelectorAll(".analysis-depth-btn"),
-    );
-
-    function initializeHandlers() {
-      // Disable browser default file-open on drop anywhere
-      document.addEventListener("dragover", (e) => e.preventDefault());
-      document.addEventListener("drop", (e) => e.preventDefault());
-
-      // Handle detail level selection
-      scanHandler.addActiveBTNDetailClass();
-
-      // Handle analysis depth selection
-      scanHandler.addActiveBTNAnalysisClass();
-
-      scanHandler.renderFiles();
-
-      // Drag and drop handlers
-      scanHandler.dragAndDropSetup();
-      scanHandler.input?.addEventListener("change", () =>
-        scanHandler.handleFiles(scanHandler.input?.files),
-      );
-
-      // RESET_FILES handler
-      scanHandler.btnReset?.addEventListener("click", () => {
-        scanHandler.pickedFiles = [];
-        scanHandler.renderFiles();
-        scanHandler.repoUrl.value = "";
-      });
-
-      // START_SCAN handler - Using new /api/v1/dependencies/analyze endpoint
-      scanHandler.btnScan?.addEventListener("click", () =>
-        scanHandler.startScan(),
-      );
-      // IMPORT_REPO handler - Using new /api/v1/analyze/job endpoint
-      scanHandler.btnImport?.addEventListener("click", () =>
-        scanHandler.importRepository(),
-      );
-
-      // Tab Handling
-      const tabImport = document.getElementById("tab-import");
-      const tabUpload = document.getElementById("tab-upload");
-      const contentImport = document.getElementById("content-import");
-      const contentUpload = document.getElementById("content-upload");
-
-      tabImport?.addEventListener("click", () => {
-        tabImport.classList.add(
-          "border-purple-500",
-          "text-purple-400",
-          "bg-purple-500/5",
-        );
-        tabImport.classList.remove("border-transparent", "text-gray-500");
-
-        tabUpload?.classList.remove(
-          "border-cyan-500",
-          "text-cyan-400",
-          "bg-cyan-500/5",
-        );
-        tabUpload?.classList.add("border-transparent", "text-gray-500");
-
-        contentImport?.classList.remove("hidden");
-        contentUpload?.classList.add("hidden");
-      });
-
-      tabUpload?.addEventListener("click", () => {
-        tabUpload.classList.add(
-          "border-cyan-500",
-          "text-cyan-400",
-          "bg-cyan-500/5",
-        );
-        tabUpload.classList.remove("border-transparent", "text-gray-500");
-
-        tabImport?.classList.remove(
-          "border-purple-500",
-          "text-purple-400",
-          "bg-purple-500/5",
-        );
-        tabImport?.classList.add("border-transparent", "text-gray-500");
-
-        contentUpload?.classList.remove("hidden");
-        contentImport?.classList.add("hidden");
-      });
-    }
-
-    // Initialize when DOM is ready
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", initializeHandlers);
-    } else {
-      initializeHandlers();
-    }
-  </script>
 </Layout>

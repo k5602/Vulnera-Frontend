@@ -1,5 +1,22 @@
 import { useMemo, useState } from 'react';
 import { usePagination } from '../../hooks/usePagination';
+import { POST } from '../../api/api-manage';
+import ENDPOINTS from '../../utils/api/endpoints';
+import { getSeverityClasses, SEVERITY_ORDER, type SeverityLevel } from '../../utils/severity';
+
+// Minimal LLM/enrichment response shapes
+ type FixResponse = {
+  fixed_code: string;
+  explanation: string;
+  confidence: number;
+};
+
+ type EnrichedFinding = {
+  id: string;
+  summary?: string;
+  details?: string;
+  remediation?: string;
+};
 
 // Explain API response type
 type ExplainResponse = {
@@ -82,21 +99,21 @@ export default function ScanReport({ data }: { data: ScanReportData }) {
   const handleExplain = async (finding: Vulnerability) => {
     setExplainingFindingId(finding.id);
     try {
-      const response = await apiClient.post<ExplainResponse>(API_ENDPOINTS.LLM.EXPLAIN, {
+      const response = await POST(ENDPOINTS.LLM.POST_explain, {
         vulnerability_id: finding.cve || finding.id,
         affected_component: finding.package + (finding.version ? `@${finding.version}` : ''),
         description: finding.title,
         audience: 'technical',
       });
 
-      if (!response.ok) {
-        const errorData = response.error as { message?: string; error?: string } | undefined;
+      if (!response || response.status >= 400) {
+        const errorData = (response as any)?.data as { message?: string; error?: string } | undefined;
         throw new Error(errorData?.message || errorData?.error || 'Failed to explain vulnerability');
       }
 
       setExplainData(prev => ({
         ...prev,
-        [finding.id]: response.data!
+        [finding.id]: (response as any).data as ExplainResponse
       }));
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to explain vulnerability. Please try again.';
@@ -146,20 +163,21 @@ export default function ScanReport({ data }: { data: ScanReportData }) {
         }
       }
 
-      const response = await llmService.fix({
+      const response = await POST(ENDPOINTS.LLM.POST_fixCode, {
         context: finding.affectedFiles?.[0] || finding.package,
-        language: language,
+        language,
         vulnerability_id: finding.id,
-        vulnerable_code: finding.title || "Code not available", // Fallback as we don't have code content here
+        vulnerable_code: finding.title || "Code not available",
       });
 
-      if (response.ok && response.data) {
+      if (response?.status === 200 && response.data) {
         setFixData(prev => ({
           ...prev,
-          [finding.id]: response.data!
+          [finding.id]: response.data as FixResponse
         }));
       } else {
-        throw new Error(String(response.error) || "Failed to generate fix");
+        const errMsg = (response as any)?.data?.error || "Failed to generate fix";
+        throw new Error(String(errMsg));
       }
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Failed to generate fix. Please try again.";
@@ -201,15 +219,16 @@ export default function ScanReport({ data }: { data: ScanReportData }) {
       const codeContexts: Record<string, string> = {};
 
       // 4. Call enrichment service with payload
-      const response = await enrichService.enrichJob(data.jobId, {
+      const response = await POST(ENDPOINTS.LLM.POST_enrich_job(data.jobId), {
         finding_ids: findingIds,
         code_contexts: codeContexts
       });
 
-      if (response.ok && response.data) {
+      if (response?.status === 200 && response.data) {
         const newEnrichedData: Record<string, EnrichedFinding> = {};
-        response.data.findings.forEach(f => {
-          newEnrichedData[f.id] = f;
+        const findings = (response.data as any).findings || [];
+        findings.forEach((f: any) => {
+          if (f?.id) newEnrichedData[f.id] = f as EnrichedFinding;
         });
         setEnrichedData(newEnrichedData);
       }
@@ -400,36 +419,7 @@ export default function ScanReport({ data }: { data: ScanReportData }) {
         </div>
       </div>
 
-      {/* Files table - Show for standard and full levels */}
-      {detailLevel !== 'minimal' && (
-        <div className="bg-black/80 backdrop-blur-sm p-6 border border-green-500/20 relative">
-          <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-green-500/50"></div>
-          <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-green-500/50"></div>
-          <h3 className="text-green-400 text-base mb-4 tracking-wider uppercase font-bold">Files_Analysis</h3>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm font-mono">
-              <thead>
-                <tr className="text-green-500/50 border-b border-green-500/20">
-                  <th className="text-left py-2 pr-3 uppercase tracking-wider">File</th>
-                  <th className="text-left py-2 pr-3 uppercase tracking-wider">Ecosystem</th>
-                  <th className="text-right py-2 pr-3 uppercase tracking-wider">Deps</th>
-                  <th className="text-right py-2 uppercase tracking-wider">Vulns</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.files.map((f) => (
-                  <tr key={f.file} className="border-b border-green-500/10 hover:bg-green-500/5 transition-colors">
-                    <td className="py-2 pr-3 text-green-300 break-anywhere">{f.file}</td>
-                    <td className="py-2 pr-3 text-green-500/70">{f.ecosystem}</td>
-                    <td className="py-2 pr-3 text-right text-green-500/70">{f.dependencies}</td>
-                    <td className={`py-2 text-right font-bold ${f.vulnerable ? 'text-red-500' : 'text-green-500/30'}`}>{f.vulnerable}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
+    
 
       {/* Vulnerabilities */}
       <div className="bg-black/80 backdrop-blur-sm p-6 border border-green-500/20 relative">
