@@ -8,15 +8,16 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
 ---
 
 <script>
-  import { userStore, csrfTokenStore } from "../utils/store";
+  import { userStore } from "../utils/store";
 
   const user = userStore.get();
-  const csrfToken = csrfTokenStore.get();
-  if (!user || !csrfToken) {
-    window.location.href = "/login";
+  if (!user) {
+    const currentPath = window.location.pathname;
+    window.location.href = `/login?next=${encodeURIComponent(currentPath)}`;
+  } else {
+    // Start monitoring session for this protected page
   }
 </script>
-
 
 <Layout
   title="Scan — Vulnera"
@@ -34,7 +35,11 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
   >
     <!-- Background Layers -->
     <div class="absolute inset-0 z-0 pointer-events-none">
-      <div class="absolute inset-0 opacity-[0.03]" style="background-image: linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px); background-size: 20px 20px;"></div>
+      <div
+        class="absolute inset-0 opacity-[0.03]"
+        style="background-image: linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px); background-size: 20px 20px;"
+      >
+      </div>
       <div
         class="absolute inset-0 bg-gradient-to-b from-black via-transparent to-black"
       >
@@ -42,10 +47,15 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
     </div>
 
     <!-- Content -->
-    <div class="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
+    <div
+      class="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20"
+    >
       <header class="mb-16 border-b border-white/10 pb-10 text-center">
         <div class="flex items-center justify-center gap-3 mb-6">
-          <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(34,197,94,0.5)]"></div>
+          <div
+            class="w-3 h-3 bg-green-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(34,197,94,0.5)]"
+          >
+          </div>
           <div
             class="text-green-500/80 font-mono text-sm tracking-widest uppercase mt-10"
           >
@@ -58,7 +68,9 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
         >
           VULNERABILITY_SCANNER
         </h1>
-        <p class="text-gray-400 mt-4 font-mono text-base sm:text-lg max-w-3xl mx-auto leading-relaxed">
+        <p
+          class="text-gray-400 mt-4 font-mono text-base sm:text-lg max-w-3xl mx-auto leading-relaxed"
+        >
           Initiate deep analysis of dependency manifests or remote repositories.
           Our engine detects vulnerabilities, secrets, and compliance issues.
         </p>
@@ -70,7 +82,9 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
           class="bg-white/5 border border-white/10 rounded-lg p-8 hover:border-blue-500/50 hover:shadow-[0_0_30px_rgba(59,130,246,0.15)] transition-all duration-300 group"
         >
           <div class="flex items-center gap-4 mb-4">
-            <div class="p-3 bg-blue-500/10 rounded-lg group-hover:bg-blue-500/20 transition-colors">
+            <div
+              class="p-3 bg-blue-500/10 rounded-lg group-hover:bg-blue-500/20 transition-colors"
+            >
               <svg
                 class="w-7 h-7 text-blue-400"
                 fill="none"
@@ -100,7 +114,9 @@ import ScanReportIsland from "../components/report/ScanReportIsland";
           class="bg-white/5 border border-white/10 rounded-lg p-8 hover:border-purple-500/50 hover:shadow-[0_0_30px_rgba(168,85,247,0.15)] transition-all duration-300 group"
         >
           <div class="flex items-center gap-4 mb-4">
-            <div class="p-3 bg-purple-500/10 rounded-lg group-hover:bg-purple-500/20 transition-colors">
+            <div
+              class="p-3 bg-purple-500/10 rounded-lg group-hover:bg-purple-500/20 transition-colors"
+            >
               <svg
                 class="w-7 h-7 text-purple-400"
                 fill="none"

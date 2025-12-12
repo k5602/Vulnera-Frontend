@@ -13,6 +13,7 @@
  * import api, { GET, POST, PATCH, DELETE, setCsrfToken } from "@/api/api-manage";
  */
 
+
 import axios from "axios";
 import { clearStore, csrfTokenStore } from "../utils/store";
 
@@ -69,10 +70,28 @@ api.interceptors.response.use(
   (error) => {
     if (!error.response) return Promise.reject(error);
 
-    // 401 Unauthorized → user must log in
+    // 401 Unauthorized → session expired, redirect to login
     if (error.response.status === 401) {
+      console.warn(' Session expired (401), redirecting to login');
       clearStore();
-      window.location.href = "/login";
+      
+      // Preserve the current page for redirect after login
+      const currentPath = window.location.pathname;
+      const isLoginPage = currentPath === '/login' || currentPath === '/signup' || currentPath === '/orgsignup';
+      
+      if (!isLoginPage) {
+        window.location.href = `/login?next=${encodeURIComponent(currentPath)}`;
+      } else {
+        window.location.href = '/login';
+      }
+      
+      return Promise.reject(error);
+    }
+
+    // 403 Forbidden → possibly CSRF token issue
+    if (error.response.status === 403) {
+      console.warn(' Access forbidden (403), may need to refresh session');
+      // Don't auto-redirect on 403, let the calling code handle it
     }
 
     return Promise.reject(error);

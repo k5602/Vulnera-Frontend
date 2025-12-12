@@ -10,14 +10,16 @@ export const prerender = false;
   description="Overview of reports, projects, and recent activity."
 >
   <script>
-    import { organizationStore, userStore, csrfTokenStore } from "../utils/store";
+    import { organizationStore, userStore } from "../utils/store";
 
-  const user = userStore.get();
-  const csrfToken = csrfTokenStore.get();
-  if (!user || !csrfToken) {
-    window.location.href = "/login";
-  }
-    
+    const user = userStore.get();
+    if (!user) {
+      const currentPath = window.location.pathname;
+      window.location.href = `/login?next=${encodeURIComponent(currentPath)}`;
+    } else {
+      // Start monitoring session for this protected page
+    }
+
     const subtitleEl = document.getElementById("dash-subtitle") as HTMLElement;
     const currentUser = userStore.get();
     const organization = organizationStore.get();
@@ -126,9 +128,7 @@ export const prerender = false;
           </div>
         </div>
         <div class="terminal-border bg-black/60 rounded-lg p-4 sm:p-6">
-          <div class="text-cyber-400 text-xs sm:text-sm mb-1">
-            MONTH_SCANS
-          </div>
+          <div class="text-cyber-400 text-xs sm:text-sm mb-1">MONTH_SCANS</div>
           <div
             id="monthScans"
             class="text-2xl sm:text-3xl lg:text-4xl text-yellow-400 font-mono"
@@ -137,7 +137,9 @@ export const prerender = false;
           </div>
         </div>
         <div class="terminal-border bg-black/60 rounded-lg p-4 sm:p-6">
-          <div class="text-cyber-400 text-xs sm:text-sm mb-1">MONTH_FINDINGS</div>
+          <div class="text-cyber-400 text-xs sm:text-sm mb-1">
+            MONTH_FINDINGS
+          </div>
           <div
             id="monthFindings"
             class="text-2xl sm:text-3xl lg:text-4xl text-matrix-400 font-mono"
@@ -277,9 +279,9 @@ export const prerender = false;
 
   <Footer />
 
-  <script>
-    import { OrgDashboardHandler } from "../modules/userDashboard";
-    // Public dashboard: no auth guard
+<script>
+  import { OrgDashboardHandler } from "../modules/userDashboard";
+  // Public dashboard: no auth guard
 
     const dashboardHandler = new OrgDashboardHandler(
       document.getElementById("criticalFindings")!,
@@ -298,14 +300,14 @@ export const prerender = false;
       document.getElementById("quota-scans")! as HTMLElement,
     );
 
-    // Defer binding and initial load until idle to free up the main thread on first paint
-    const scheduleIdle = (cb: any) => {
-      if (typeof window.requestIdleCallback === "function") {
-        window.requestIdleCallback(cb);
-      } else {
-        setTimeout(cb, 120);
-      }
-    };
+  // Defer binding and initial load until idle to free up the main thread on first paint
+  const scheduleIdle = (cb: any) => {
+    if (typeof window.requestIdleCallback === "function") {
+      window.requestIdleCallback(cb);
+    } else {
+      setTimeout(cb, 120);
+    }
+  };
 
     scheduleIdle(() => {
       document
@@ -324,34 +326,33 @@ export const prerender = false;
           dashboardHandler.loadReportsAndProjects()
         );
 
-      // Export CSV
-      document.getElementById("btn-export")?.addEventListener("click", () => {
-        const header = ["id", "project", "severity", "issues", "createdAt"];
-        const rows = dashboardHandler.currentReportsFiltered.map((r) => [
-          r.id,
-          r.project,
-          r.severity,
-          String(r.issues),
-          r.createdAt,
-        ]);
-        const csv = [header, ...rows]
-          .map((cols) =>
-            cols.map((v) => '"' + String(v).replace(/"/g, '""') + '"').join(",")
-          )
-          .join("\n");
-        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `reports_${Date.now()}.csv`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
-      });
-
-      // Initial data load
-      dashboardHandler.loadReportsAndProjects();
+    // Export CSV
+    document.getElementById("btn-export")?.addEventListener("click", () => {
+      const header = ["id", "project", "severity", "issues", "createdAt"];
+      const rows = dashboardHandler.currentReportsFiltered.map((r) => [
+        r.id,
+        r.project,
+        r.severity,
+        String(r.issues),
+        r.createdAt,
+      ]);
+      const csv = [header, ...rows]
+        .map((cols) =>
+          cols.map((v) => '"' + String(v).replace(/"/g, '""') + '"').join(","),
+        )
+        .join("\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `reports_${Date.now()}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
     });
-  </script>
-</Layout>
+
+    // Initial data load
+    dashboardHandler.loadReportsAndProjects();
+  });
+</script>

@@ -5,8 +5,8 @@
 //- user info
 //- organization info
 
-import {atom, computed} from 'nanostores';
-import {persistentAtom} from '@nanostores/persistent';
+import { atom, computed } from 'nanostores';
+import { persistentAtom } from '@nanostores/persistent';
 
 export interface User {
     id: string;
@@ -26,10 +26,10 @@ export interface Organization {
     membersCount: number;
 }
 
-export const csrfTokenStore = persistentAtom<string | null>('csrfToken', null, {encode: JSON.stringify, decode: JSON.parse});
-export const userStore = persistentAtom<User | null>('user', null, {encode: JSON.stringify, decode: JSON.parse});
+export const csrfTokenStore = persistentAtom<string | null>('csrfToken', null, { encode: JSON.stringify, decode: JSON.parse });
+export const userStore = persistentAtom<User | null>('user', null, { encode: JSON.stringify, decode: JSON.parse });
 export const isAuthenticatedStore = computed(userStore, (user) => user !== null);
-export const organizationStore = persistentAtom<Organization | null>('organization', null, {encode: JSON.stringify, decode: JSON.parse});
+export const organizationStore = persistentAtom<Organization | null>('organization', null, { encode: JSON.stringify, decode: JSON.parse });
 export const isOrgStore = computed(organizationStore, (organization) => organization !== null);
 export const isLoadingStore = atom<boolean>(false);
 

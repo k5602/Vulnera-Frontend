@@ -6,13 +6,14 @@ export const prerender = false;
 ---
 
 <script>
-  import { userStore, csrfTokenStore } from "../utils/store";
+  import { userStore } from "../utils/store";
 
   const user = userStore.get();
-  const csrfToken = csrfTokenStore.get();
-  if (!user || !csrfToken) {
+  if (!user) {
     // Redirect to login if not authenticated
-    window.location.href = "/login";
+    const currentPath = window.location.pathname;
+    window.location.href = `/login?next=${encodeURIComponent(currentPath)}`;
+  } else {
   }
 </script>
 
@@ -187,7 +188,9 @@ export const prerender = false;
             id="recent-list"
             class="space-y-2 text-matrix-300 text-sm font-mono"
           >
-            <li class="text-gray-500">No scans yet. Start by running a scan!</li>
+            <li class="text-gray-500">
+              No scans yet. Start by running a scan!
+            </li>
           </ul>
         </div>
       </section>
@@ -227,112 +230,111 @@ export const prerender = false;
       <!-- Projects Grid -->
       <section class="mt-8 sm:mt-10">
         <div class="terminal-border bg-black/70 rounded-xl p-4 sm:p-6">
-          <h2 class="text-cyber-400 font-mono text-lg mb-3">HISTORICAL_USAGE</h2>
-            <div class="overflow-x-auto">
-              <table
-                class="min-w-full text-left text-sm text-matrix-300 font-mono"
-              >
-                <thead class="text-cyber-300">
-                  <tr>
-                    <th class="py-2 pr-4">MONTH</th>
-                    <th class="py-2 pr-2">REPORTS</th>
-                    <th class="py-2 text-center w-[80px]">CRITICAL</th>
-                    <th class="py-2 text-center w-[80px]">HIGH</th>
-                    <th class="py-2 text-center w-[80px]">MEDIUM</th>
-                    <th class="py-2 text-center w-[80px]">LOW</th>
-                    <th class="py-2 pr-4 text-center w-[80px]">TOTAL</th>
-                    <th class="py-2 pl-4">TOTAL_SCANS</th>
-                    <th class="py-2">API_CALLS</th>
-                  </tr>
-                </thead>
-                <tbody id="historical-usage-tbody">
-                  <tr><td class="py-2" colspan="5">Loading…</td></tr>
-                </tbody>
-              </table>
-            </div>
+          <h2 class="text-cyber-400 font-mono text-lg mb-3">
+            HISTORICAL_USAGE
+          </h2>
+          <div class="overflow-x-auto">
+            <table
+              class="min-w-full text-left text-sm text-matrix-300 font-mono"
+            >
+              <thead class="text-cyber-300">
+                <tr>
+                  <th class="py-2 pr-4">MONTH</th>
+                  <th class="py-2 pr-2">REPORTS</th>
+                  <th class="py-2 text-center w-[80px]">CRITICAL</th>
+                  <th class="py-2 text-center w-[80px]">HIGH</th>
+                  <th class="py-2 text-center w-[80px]">MEDIUM</th>
+                  <th class="py-2 text-center w-[80px]">LOW</th>
+                  <th class="py-2 pr-4 text-center w-[80px]">TOTAL</th>
+                  <th class="py-2 pl-4">TOTAL_SCANS</th>
+                  <th class="py-2">API_CALLS</th>
+                </tr>
+              </thead>
+              <tbody id="historical-usage-tbody">
+                <tr><td class="py-2" colspan="5">Loading…</td></tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </section>
     </div>
   </section>
-
-  <Footer />
-
-  <script>
-    import { DashboardHandler } from "../modules/userDashboard";
-    // Public dashboard: no auth guard
-
-    const dashboardHandler = new DashboardHandler(
-      document.getElementById("stat-critical")!,
-      document.getElementById("stat-high")!,
-      document.getElementById("stat-medium")!,
-      document.getElementById("stat-low")!,
-      document.getElementById("recent-list")!,
-      document.getElementById("reports-tbody")!,
-      document.getElementById("historical-usage-tbody")!,
-      document.getElementById("trend-svg")!,
-      document.getElementById("filter-ecosystem")! as HTMLSelectElement,
-      document.getElementById("month-tag")! as HTMLElement,
-    );
-
-    dashboardHandler.loadReportsAndProjects();
-
-    // Defer binding and initial load until idle to free up the main thread on first paint
-    const scheduleIdle = (cb: any) => {
-      if (typeof window.requestIdleCallback === "function") {
-        window.requestIdleCallback(cb);
-      } else {
-        setTimeout(cb, 120);
-      }
-    };
-
-    scheduleIdle(() => {
-      document
-        .getElementById("btn-refresh")
-        ?.addEventListener("click", () =>
-          dashboardHandler.loadReportsAndProjects(),
-        );
-      document
-        .getElementById("filter-ecosystem")
-        ?.addEventListener("change", () =>
-          dashboardHandler.loadReportsAndProjects(),
-        );
-      document
-        .getElementById("filter-severity")
-        ?.addEventListener("change", () =>
-          dashboardHandler.loadReportsAndProjects(),
-        );
-
-      // Export CSV
-      document.getElementById("btn-export")?.addEventListener("click", () => {
-        const header = ["id", "project", "severity", "issues", "createdAt"];
-        const rows = dashboardHandler.currentReportsFiltered.map((r) => [
-          r.id,
-          r.project,
-          r.severity,
-          String(r.issues),
-          r.createdAt,
-        ]);
-        const csv = [header, ...rows]
-          .map((cols) =>
-            cols
-              .map((v) => '"' + String(v).replace(/"/g, '""') + '"')
-              .join(","),
-          )
-          .join("\n");
-        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `reports_${Date.now()}.csv`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
-      });
-
-      // Initial data load
-      dashboardHandler.loadReportsAndProjects();
-    });
-  </script>
 </Layout>
+
+<Footer />
+
+<script>
+  import { DashboardHandler } from "../modules/userDashboard";
+  // Public dashboard: no auth guard
+
+  const dashboardHandler = new DashboardHandler(
+    document.getElementById("stat-critical")!,
+    document.getElementById("stat-high")!,
+    document.getElementById("stat-medium")!,
+    document.getElementById("stat-low")!,
+    document.getElementById("recent-list")!,
+    document.getElementById("reports-tbody")!,
+    document.getElementById("historical-usage-tbody")!,
+    document.getElementById("trend-svg")!,
+    document.getElementById("filter-ecosystem")! as HTMLSelectElement,
+    document.getElementById("month-tag")! as HTMLElement,
+  );
+
+  dashboardHandler.loadReportsAndProjects();
+
+  // Defer binding and initial load until idle to free up the main thread on first paint
+  const scheduleIdle = (cb: any) => {
+    if (typeof window.requestIdleCallback === "function") {
+      window.requestIdleCallback(cb);
+    } else {
+      setTimeout(cb, 120);
+    }
+  };
+
+  scheduleIdle(() => {
+    document
+      .getElementById("btn-refresh")
+      ?.addEventListener("click", () =>
+        dashboardHandler.loadReportsAndProjects(),
+      );
+    document
+      .getElementById("filter-ecosystem")
+      ?.addEventListener("change", () =>
+        dashboardHandler.loadReportsAndProjects(),
+      );
+    document
+      .getElementById("filter-severity")
+      ?.addEventListener("change", () =>
+        dashboardHandler.loadReportsAndProjects(),
+      );
+
+    // Export CSV
+    document.getElementById("btn-export")?.addEventListener("click", () => {
+      const header = ["id", "project", "severity", "issues", "createdAt"];
+      const rows = dashboardHandler.currentReportsFiltered.map((r) => [
+        r.id,
+        r.project,
+        r.severity,
+        String(r.issues),
+        r.createdAt,
+      ]);
+      const csv = [header, ...rows]
+        .map((cols) =>
+          cols.map((v) => '"' + String(v).replace(/"/g, '""') + '"').join(","),
+        )
+        .join("\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `reports_${Date.now()}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    });
+
+    // Initial data load
+    dashboardHandler.loadReportsAndProjects();
+  });
+</script>
