@@ -1,26 +1,19 @@
+import { POST } from "../api/api-manage";
+import ENDPOINTS from "../utils/api/endpoints";
+
 // User Signup Class (Refactored)
-
-import { apiClient } from "../utils/api/client";
-import { API_ENDPOINTS } from "../config/api";
-
 export class UserSignup {
-  firstName: string;
-  lastName: string;
   email: string;
   password: string;
   confirm: string;
   termsAccepted: boolean;
 
   constructor(
-    firstName: string,
-    lastName: string,
     email: string,
     password: string,
     confirm: string,
     termsAccepted: boolean
   ) {
-    this.firstName = firstName;
-    this.lastName = lastName;
     this.email = email;
     this.password = password;
     this.confirm = confirm;
@@ -31,8 +24,6 @@ export class UserSignup {
     if (
       !this.email ||
       !this.password ||
-      !this.firstName ||
-      !this.lastName ||
       !this.termsAccepted
     ) {
       return "Please complete all fields and accept the terms.";
@@ -55,11 +46,10 @@ export class UserSignup {
   }
 
   async signUp() {
-    const res = await apiClient.post(API_ENDPOINTS.AUTH.REGISTER, {
+    const res = POST(ENDPOINTS.AUTH.POST_register, {
       email: this.email,
       password: this.password,
-      first_name: this.firstName,
-      last_name: this.lastName
+      roles: ["user"],
     });
 
     return res;

@@ -48,8 +48,8 @@ The frontend uses **HttpOnly session cookies** (managed by backend) + **frontend
 - Avoids mixed-content errors (HTTPS frontend → HTTP backend dev server)
 - Reduces attack surface (no direct backend URL exposed to client)
 
-**API Endpoints** (`API_ENDPOINTS` object in `src/config/api.ts`):
-- All endpoints centralized: `API_ENDPOINTS.AUTH.LOGIN`, `API_ENDPOINTS.ANALYSIS.ANALYZE`, etc.
+**API Endpoints** (`ENDPOINTS` object in `src/utils/api/endpoints.ts`):
+- All endpoints centralized: `ENDPOINTS.AUTH.LOGIN`, `ENDPOINTS.ANALYSIS.ANALYZE`, etc.
 - Path params use `:param` syntax → use `apiClient.replacePath(template, params)` to fill
 
 ### API Client & Request/Response Patterns
@@ -62,7 +62,7 @@ The frontend uses **HttpOnly session cookies** (managed by backend) + **frontend
 
 **Error Handling Pattern**:
 ```typescript
-const res = await apiClient.post<ScanResponse>(API_ENDPOINTS.ANALYSIS.ANALYZE, payload);
+const res = await apiClient.post<ScanResponse>(ENDPOINTS.ANALYSIS.ANALYZE, payload);
 if (!res.ok) {
   const errorMsg = (res.error as any)?.message || 'Analysis failed';
   throw new Error(errorMsg);
@@ -201,7 +201,7 @@ npm run test:coverage
 ## Common Tasks
 
 ### Adding a New API Endpoint Integration
-1. Add endpoint to `API_ENDPOINTS` object in `src/config/api.ts` (use snake_case: `/api/v1/my_resource/:id`)
+1. Add endpoint to `ENDPOINTS` object in `src/config/api.ts` (use snake_case: `/api/v1/my_resource/:id`)
 2. Create service class in `src/utils/api/{domain}-service.ts` with type definitions using TypeScript interfaces
 3. Use `apiClient.get<T>(url, opts?)` or `apiClient.post<T>(url, body?, opts?)` with full type safety
 4. Always check `response.ok` before accessing `response.data` (early return pattern)

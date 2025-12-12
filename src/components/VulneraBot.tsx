@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { API_ENDPOINTS } from '../config/api';
 import { POST } from '../api/api-manage';
 import ENDPOINTS from '../utils/api/endpoints';
 
@@ -41,7 +40,7 @@ export default function VulneraBot() {
     const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [isAuthenticated] = useState(false);
 
     // useEffect(() => {
     //     // Check for authentication using the centralized store

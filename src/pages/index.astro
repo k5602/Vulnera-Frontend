@@ -618,13 +618,4 @@ const ecosystems = [
     </section>
 
     <Footer />
-    <script>
-        import { organization } from "../modules/orgData";
-        organization.falseSignOrganization();
-        organization.falseIsOrganization();
-        const createOrgBtn = document.getElementById('create-organization') as HTMLAnchorElement;
-        createOrgBtn.addEventListener('click', () => {
-            organization.trueSignOrganization();
-        });
-    </script>
 </Layout>

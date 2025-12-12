@@ -1,15 +1,3 @@
-import { getCookie, setCookie } from "../utils/cookies";
-import { logger } from "../utils/logger";
-import { detectEcosystem } from "../utils/scan-handler";
-import { apiClient } from "../utils/api/client";
-import { API_ENDPOINTS } from "../config/api";
-import { isAuthenticated } from "../utils/api/auth-store";
-import {
-  transformScanResult,
-  createScanHistoryRecord,
-  type RawScanResult,
-  type TransformedReport,
-} from "../utils/report-transformer";
 
 
 
