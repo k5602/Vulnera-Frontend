@@ -49,7 +49,27 @@ export class Settings {
             window.alert("Organization name updated successfully.");
             return;
         }
-
+        switch (req.status) {
+            case 400:
+                window.alert("Invalid request.");
+                break;
+            case 401:
+                window.alert("Unauthorized to change organization name.");
+                break;
+            case 403:
+                window.alert("only owner can change organization name.");
+                break;
+            case 404:
+                window.alert("Organization not found.");
+                break;
+            case 409:
+                window.alert("Organization name conflict. name already in use.");
+                break;
+            default:
+                if (req.status !== 200) {
+                    window.alert("Failed to update organization name.");
+                }
+        }
     }
 
     async inviteMember(email: string) {
@@ -64,11 +84,15 @@ export class Settings {
             email: email
         });
 
-        if (req.status === 200) {
+        if (req.status === 201) {
             await this.getOrgData();
             window.alert("Member invited successfully.");
         }
         switch (req.status) {
+            case 400:
+                window.alert("Invalid email address.");
+                break;
+
             case 409:
                 window.alert("User is already a member of the organization.");
                 break;
@@ -78,7 +102,7 @@ export class Settings {
                 break;
 
             case 403:
-                window.alert("Only members can invite members.");
+                window.alert("Only owner can invite members.");
                 break;
 
             case 404:
@@ -86,7 +110,7 @@ export class Settings {
                 break;
 
             default:
-                if (req.status !== 200) {
+                if (req.status !== 201) {
                     window.alert("Failed to invite member.");
                 }
         }
@@ -133,7 +157,6 @@ export class Settings {
 
     async removeMember(member_id: string) {
         const id = this.orgData?.id;
-        console.log("Removing member with ID:", id);
 
         if (!member_id || member_id.trim() === "") {
             window.alert("Member ID cannot be empty.");
@@ -144,27 +167,27 @@ export class Settings {
         console.log(req.data);
 
 
-        if (req.status === 200) {
+        if (req.status === 204) {
             await this.getOrgData();
             window.alert("Member removed successfully.");
         }
 
         switch (req.status) {
             case 401:
-                window.alert("You are not authorized to transfer ownership.");
+                window.alert("You are not authorized to remove members.");
                 break;
             case 403:
-                window.alert("Only the owner can transfer ownership.");
+                window.alert("Only the owner can remove members.");
                 break;
             case 404:
-                window.alert("Organization or new owner not found.");
+                window.alert("Organization or member not found.");
                 break;
             case 409:
                 window.alert("Cannot remove the owner from the organization.");
                 break;
             default:
-                if (req.status !== 200) {
-                    window.alert("Failed to transfer ownership.");
+                if (req.status !== 204) {
+                    window.alert("Failed to remove member.");
                 }
         }
 
@@ -177,24 +200,25 @@ export class Settings {
             id: id,
         });
 
-        if (req.status === 200) {
+        if (req.status === 204) {
             organizationStore.set(null);
             window.alert("Left the organization successfully.");
+            window.location.reload();
         }
 
         switch (req.status) {
             case 401:
-                window.alert("You are not authorized to transfer ownership.");
+                window.alert("You are not authorized to leave the organization.");
                 break;
             case 403:
-                window.alert("Only the owner can transfer ownership.");
+                window.alert("owner can't leave without transferring ownership.");
                 break;
             case 404:
                 window.alert("Organization or new owner not found.");
                 break;
             default:
-                if (req.status !== 200) {
-                    window.alert("Failed to transfer ownership.");
+                if (req.status !== 204) {
+                    window.alert("Failed to leave organization.");
                 }
         }
 
@@ -204,25 +228,26 @@ export class Settings {
         const id = this.orgData?.id;
 
         const req = await DELETE(ENDPOINTS.ORGANIZATION.DELETE_org(id!));
-
-        if (req.status === 200) {
+        console.log(req.data);
+        if (req.status === 204) {
             organizationStore.set(null);
             window.alert("Organization deleted successfully.");
+            window.location.reload();
         }
 
         switch (req.status) {
             case 401:
-                window.alert("You are not authorized to transfer ownership.");
+                window.alert("You are not authorized to delete the organization.");
                 break;
             case 403:
-                window.alert("Only the owner can transfer ownership.");
+                window.alert("Only the owner can delete the organization.");
                 break;
             case 404:
                 window.alert("Organization or new owner not found.");
                 break;
             default:
-                if (req.status !== 200) {
-                    window.alert("Failed to transfer ownership.");
+                if (req.status !== 204) {
+                    window.alert("Failed to delete organization.");
                 }
         }
 

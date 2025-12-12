@@ -260,8 +260,8 @@ import Footer from "../components/Footer.astro";
                     <p class="text-lg text-red-400 mb-1">Leave Organization</p>
                     <p class="text-sm text-red-200 mb-4">
                       if you are the owner of the organization the organization
-                      will be permanently deleted after your exit. To prevent
-                      that transfer ownership before leaving
+                      you will not be able to leave. First you need to transfer
+                      transfer ownership before leaving.
                     </p>
                     <button
                       id="leave-organization"
@@ -489,6 +489,7 @@ import { isOrgStore, organizationStore } from "../utils/store";
               }
             });
           });
+
         });
 
         const subscribeIsOrg = isOrgStore.subscribe((isOrg) => {

@@ -17,6 +17,10 @@ export class OrgDashboardHandler {
   currentReportsFiltered: any[] = [];
   ecoSelect: HTMLSelectElement;
   monthTag: HTMLElement;
+  quotaDescription: HTMLElement;
+  quotaApiCalls: HTMLElement;
+  quotaMembers: HTMLElement;
+  quotaScans: HTMLElement;
 
   renderOverview(data: any) {
     if (this.criticalElement) this.criticalElement.textContent = String(data.criticalFindings ?? "--");
@@ -142,6 +146,59 @@ export class OrgDashboardHandler {
     }
   }
 
+  renderQuota(quota: { organizatiod_id: string, tier: string, current_month: string, is_over_limit: boolean,
+    api_calls: {is_exceeded: boolean,
+        limit: number,
+        usage_percent: number,
+        used: number
+      },
+    members: {is_exceeded: boolean,
+        limit: number,
+        usage_percent: number,
+        used: number
+      },
+    scans: {is_exceeded: boolean,
+        limit: number,
+        usage_percent: number,
+        used: number
+      }
+}) {
+    if (!this.quotaDescription || !this.quotaApiCalls || !this.quotaMembers || !this.quotaScans) return;
+    this.quotaDescription.textContent = `TIER: ${quota.tier} || CURRENT_MONTH: ${quota.current_month} || IS_OVER_LIMIT: ${quota.is_over_limit}`;
+    this.addQuotaElemets(quota.api_calls, this.quotaApiCalls);
+    this.addQuotaElemets(quota.members, this.quotaMembers);
+    this.addQuotaElemets(quota.scans, this.quotaScans);
+  }
+
+addQuotaElemets(quotaElement: {
+        is_exceeded: boolean,
+        limit: number,
+        usage_percent: number,
+        used: number
+      }, container: HTMLElement) {
+      for (let index = 0; index < 4; index++) {
+        let Pelement = document.createElement('p');
+        switch (index) {
+          case 0:
+            Pelement.textContent = `IS_EXCEEDED: ${quotaElement.is_exceeded}`;
+            container.appendChild(Pelement);
+            break;
+          case 1:
+            Pelement.textContent = `LIMIT: ${quotaElement.limit}`;
+            container.appendChild(Pelement);
+            break;
+          case 2:
+            Pelement.textContent = `USAGE_PERCENT: ${quotaElement.usage_percent}`;
+            container.appendChild(Pelement);
+            break;
+          case 3:
+            Pelement.textContent = `USED: ${quotaElement.used}`;
+            container.appendChild(Pelement);
+            break;
+        }
+      }
+  }
+
   renderChartData(trend: { day: string, reports: number, vulns: number }[]) {
     if (!(this.chartSvg instanceof SVGElement)) return;
     // Remove existing paths
@@ -215,7 +272,6 @@ export class OrgDashboardHandler {
 
     if (!organization?.id) {
       await loadUserOrganization();
-      this.changeDashboard('organization');
     }
 
     let criticalFindings = 0;
@@ -239,11 +295,15 @@ export class OrgDashboardHandler {
       }
 
       try {
-        const res = await GET(ENDPOINTS.ORG_ANALYTICS.GET_historical_usage(organization?.id));
+        const res = await GET(ENDPOINTS.ORG_ANALYTICS.GET_dashboard_stats(organization?.id));
 
         if (res.status === 200 && res.data) {
           const data = res.data;
-          historicalUsage = data.months
+          criticalFindings = data.critical_this_month;
+          highFindings = data.high_this_month;
+          scans = data.scans_this_month;
+          currMonth = data.current_month;
+          findingsMonth = data.findings_this_month;
 
         } else if (res.status === 404) {
           console.debug("Organization not found, using local scan history only");
@@ -270,24 +330,36 @@ export class OrgDashboardHandler {
           }
         ]
       }
-      //load organization historical stats
+
       try {
         const resHist = await GET(ENDPOINTS.ORG_ANALYTICS.GET_historical_usage(organization?.id));
 
         if (resHist.status === 200 && resHist.data) {
           const data = resHist.data.months;
+          historicalUsage = data;
 
-          console.log("Org history Stats Data:", data);
         } else if (resHist.status === 404) {
           console.debug("Organization not found, using local scan history only");
         } else {
-          console.debug("Failed to load organization stats:", resHist.status);
+          console.debug("Failed to load organization historical usage:", resHist.status);
         }
       } catch (e) {
-        console.debug("Failed to load organization stats:", e);
+        console.debug("Failed to load organization historical usage:", e);
       }
     } else {
       console.debug("Organization ID not available, skipping organization analytics");
+    }
+
+    try {
+      const resQuota = await GET(ENDPOINTS.ORG_ANALYTICS.GET_quota_usage(organization?.id || ""));
+
+      if (resQuota.status === 200 && resQuota.data) {
+        const data = resQuota.data;
+        console.log(organization?.id);
+        this.renderQuota(data);
+      }
+    } catch (e) {
+      console.debug("Failed to load organization quota:", e);
     }
     // Calculate overview stats
 
@@ -368,28 +440,6 @@ export class OrgDashboardHandler {
     this.renderHistoricalUsage(historicalUsage);
   }
 
-  changeDashboard(selection: string) {
-    const titleEl = document.getElementById('dash-title') as HTMLElement;
-    const subtitleEl = document.getElementById('dash-subtitle') as HTMLElement;
-    if (selection == "organization") {
-      titleEl.innerHTML = `<span class="text-cyber-400">&gt;</span> ORGANIZATION_DASHBOARD`;
-      subtitleEl.innerHTML = `ORGANIZATION_NAME: ${organization?.name || 'N/A'} ||
-                                DESCRIPTION: ${organization?.description || 'N/A'} ||
-                                TIER: ${organization?.tier || 'N/A'} ||
-                                CREATED_AT: ${organization?.createdAt || 'N/A'} ||
-                                MEMBERS_COUNT: ${organization?.membersCount || 'N/A'}`;
-    };
-    if (selection == "member") {
-      titleEl.innerHTML = `<span class="text-cyber-400">&gt;</span> MEMBER_DASHBOARD`;
-      subtitleEl.innerHTML = `MEMBER_OF_ORGANIZATION: ${organization?.name || 'N/A'} ||
-                                DESCRIPTION: ${organization?.description || 'N/A'} ||
-                                CREATED_AT: ${organization?.createdAt || 'N/A'}`;
-    }
-  }
-
-
-
-
   constructor(criticalElement: HTMLElement,
     highElement: HTMLElement,
     scanElement: HTMLElement,
@@ -399,7 +449,11 @@ export class OrgDashboardHandler {
     historicalUsageBody: HTMLElement,
     chartSvg: HTMLElement,
     ecoSelect: HTMLSelectElement,
-    monthTag: HTMLElement) {
+    monthTag: HTMLElement,
+    quotaDescription: HTMLElement,
+    quotaApiCalls: HTMLElement,
+    quotaMembers: HTMLElement,
+    quotaScans: HTMLElement) {
     this.criticalElement = criticalElement;
     this.highElement = highElement;
     this.scanElement = scanElement;
@@ -410,6 +464,10 @@ export class OrgDashboardHandler {
     this.chartSvg = chartSvg;
     this.ecoSelect = ecoSelect;
     this.monthTag = monthTag;
+    this.quotaDescription = quotaDescription;
+    this.quotaApiCalls = quotaApiCalls;
+    this.quotaMembers = quotaMembers;
+    this.quotaScans = quotaScans;
   }
 
 }

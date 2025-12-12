@@ -78,13 +78,6 @@ export const prerender = false;
       >
         <div class="flex gap-2">
           <select
-            id="filter-view"
-            class="bg-black/60 border border-cyber-400/30 text-matrix-200 px-2 sm:px-3 py-2 rounded-lg text-xs sm:text-sm"
-          >
-            <option value="organization">ORGANIZATION</option>
-            <option value="member">MEMBER</option>
-          </select>
-          <select
             id="filter-ecosystem"
             class="bg-black/60 border border-cyber-400/30 text-matrix-200 px-2 sm:px-3 py-2 rounded-lg text-xs sm:text-sm"
           >
@@ -229,7 +222,7 @@ export const prerender = false;
         </div>
       </section>
 
-      <!-- Projects Grid -->
+      <!-- historical-usage Grid -->
       <section class="mt-8 sm:mt-10">
         <div class="terminal-border bg-black/70 rounded-xl p-4 sm:p-6">
           <h2 class="text-cyber-400 font-mono text-lg mb-3">HISTORICAL_USAGE</h2>
@@ -241,12 +234,12 @@ export const prerender = false;
                   <tr>
                     <th class="py-2 pr-4">MONTH</th>
                     <th class="py-2 pr-2">REPORTS</th>
-                    <th class="py-2 text-center w-[80px]">CRITICAL</th>
-                    <th class="py-2 text-center w-[80px]">HIGH</th>
-                    <th class="py-2 text-center w-[80px]">MEDIUM</th>
-                    <th class="py-2 text-center w-[80px]">LOW</th>
+                    <th class="py-2 pr-2 text-center w-[80px]">CRITICAL</th>
+                    <th class="py-2 pr-2 text-center w-[80px]">HIGH</th>
+                    <th class="py-2 pr-2 text-center w-[80px]">MEDIUM</th>
+                    <th class="py-2 pr-2 text-center w-[80px]">LOW</th>
                     <th class="py-2 pr-4 text-center w-[80px]">TOTAL</th>
-                    <th class="py-2 pl-4">TOTAL_SCANS</th>
+                    <th class="py-2 pl-4 pr-2">TOTAL_SCANS</th>
                     <th class="py-2">API_CALLS</th>
                   </tr>
                 </thead>
@@ -256,10 +249,31 @@ export const prerender = false;
               </table>
             </div>
           </div>
+
+          <section class="mt-8 sm:mt-10">
+            <div class="terminal-border bg-black/70 rounded-xl p-4 sm:p-6">
+              <h2 class="text-cyber-400 font-mono text-lg mb-3">Quota</h2>
+              <h1 id="quota-description" class="text-matrix-400 text-m"></h1> 
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+                  <div class="mb-4 mt-4 border-1 border-yellow-400 bg-black/60 rounded-lg p-4 sm:p-6">
+                    <div class="text-cyber-400 text-xl sm:text-sm mb-1">API_CALLS</div>
+                    <div id="quota-api-calls" class="text-xs text-matrix-400 font-mono"></div>
+                  </div>
+                  <div class="mb-4 mt-4 border-1 border-yellow-400 bg-black/60 rounded-lg p-4 sm:p-6">
+                    <div class="text-cyber-400 text-xl sm:text-sm mb-1">MEMBERS</div>
+                    <div id="quota-members" class="text-xs text-matrix-400 font-mono"></div>
+                  </div>
+                  <div class="mb-4 mt-4 border-1 border-yellow-400 bg-black/60 rounded-lg p-4 sm:p-6">
+                    <div class="text-cyber-400 text-xl sm:text-sm mb-1">SCANS</div>
+                    <div id="quota-scans" class="text-xs text-matrix-400 font-mono"></div>
+                </div>
+              </div>
+            </div>
+          </section>
         </div>
       </section>
-    </div>
-  </section>
+
+      <!-- quota grid  -->
 
   <Footer />
 
@@ -278,6 +292,10 @@ export const prerender = false;
       document.getElementById("trend-svg")!,
       document.getElementById("filter-ecosystem")! as HTMLSelectElement,
       document.getElementById("month-tag")! as HTMLElement,
+      document.getElementById("quota-description")! as HTMLElement,
+      document.getElementById("quota-api-calls")! as HTMLElement,
+      document.getElementById("quota-members")! as HTMLElement,
+      document.getElementById("quota-scans")! as HTMLElement,
     );
 
     // Defer binding and initial load until idle to free up the main thread on first paint
@@ -305,14 +323,6 @@ export const prerender = false;
         ?.addEventListener("change", () =>
           dashboardHandler.loadReportsAndProjects()
         );
-      document
-        .getElementById("filter-view")
-        ?.addEventListener("change", (selection) => {
-          dashboardHandler.changeDashboard(
-            (selection.target as HTMLSelectElement).value
-          );
-          dashboardHandler.loadReportsAndProjects();
-        });
 
       // Export CSV
       document.getElementById("btn-export")?.addEventListener("click", () => {
