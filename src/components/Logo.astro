@@ -6,12 +6,12 @@ interface Props {
 const { class: className } = Astro.props;
 ---
 
-<div class:list={["relative group", className]}>
+<div class:list={["relative inline-block shrink-0 group", className]}>
     <svg
         viewBox="0 0 100 100"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        class="w-10 h-10 sm:w-12 sm:h-12 overflow-visible"
+        class="w-full h-full overflow-visible"
         aria-label="Vulnera Logo"
     >
         <defs>
